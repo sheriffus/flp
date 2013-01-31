@@ -4,9 +4,9 @@
 
 %% {ctx, mode         :: 'new' | 'try_shrunk' | 'try_cexm',
 %%       bound        :: imm_testcase() | counterexample(),
-%%       actions      :: fail_actions(),
-%%       samples      :: [sample()],
-%%       printers     :: [stats_printer()]}
+%%       actions      :: fail_actions(),                    % not used
+%%       samples      :: [sample()],                        % not used
+%%       printers     :: [stats_printer()]}                 % not used
 
 default({ctx, new, [], [], [], []}).
 

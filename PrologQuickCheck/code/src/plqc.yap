@@ -271,39 +271,22 @@ create_fail_result(Ctx, Reason, Fail) :-
 
   % {{{ integers
 %% generator
-int(I,Size) :- random:random(0,Size,I).
+int(I,Size) :- choose(0, Size, I, Size). %% random:random(0,Size,I).
 
 %% shrink interface
 int(0, _, []) :- !.
 int(I, shrink, Shrs) :- shr_int(I, Shrs).
 int(I, shrink, [0]).
 
-%% shrinker
-shr_int(I, L) :-
-        I =< 0, !,
-        L = []
-    ;
-        random:random(0,I,I2),
-        I3 is I-1,
-        L = [I2, I3]
-    .
-  % }}}
-
-  % {{{ lists
-
-%% generator
-list(ElGen, L, Size) :-
-        random:random(0,Size,Length),
-        generate_list(Length, L, ElGen, Size).
-%% generator - auxiliar
-generate_list(Length, L, ElGen, ElSize) :-
-        Length > 0, !, call_with_args(ElGen, X, ElSize),
-        Len1 is Length-1,
-        generate_list(Len1, XS, ElGen, ElSize), L = [X|XS].
-generate_list(0, [], _ElGen, _ElSize).
-
-%% TODO - shrinking
-
+%% %% shrinker
+%% shr_int(I, L) :-
+%%         I =< 0, !,
+%%         L = []
+%%     ;
+%%         random:random(0,I,I2),
+%%         I3 is I-1,
+%%         L = [I2, I3]
+%%     .
   % }}}
 
   % {{{ common generator stuff

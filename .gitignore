@@ -1,0 +1,59 @@
+# Ignore loads of file types.
+
+*#
+*.aux
+*.bak
+*.bbl
+*-blx.bib
+# biblatex
+*.blg
+*.beam
+*.dvi
+*.eps
+*.fdb_latexmk
+*.gfc
+*.gfr
+*.gfo
+*.hi
+*.hers
+# McBride's She
+*.hspp
+*.log
+*.mps
+*.mpx
+# metapost generated
+*.nav
+*.o
+*.out
+*.pdf
+*.prof
+*.ps
+*.ptb
+*.tmp
+*.toc
+*.snm
+*.vrb
+*/.svn
+*~
+.#*
+.*.agda.el
+*.agdai
+.cake
+.DS_Store
+._*
+.yi.dbg
+_darcs
+_region_.*
+
+mpxerr.tex
+
+#drv
+*-delayed.mp
+*-delayed.mpx
+*-proof.tex
+
+.dialyzer_plt
+erl_crash.dump
+
+
+* (copy)*

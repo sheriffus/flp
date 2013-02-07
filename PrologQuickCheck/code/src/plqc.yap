@@ -235,13 +235,24 @@ run(Test, Opts, Ctx, Result) :-
 run(Test, Opts, IState, OState, Result) :-
         ctx:default(Ctx),
         run(Test, Opts, Ctx, IState, OState, Result).
-
+%% universal quantification
 run(plqc:qcforall(Gen, Var, Test), Opts, Ctx, IState, OState, Result) :- 
         !,
         state:get_size(IState,Size),
         call_with_args(Gen, Var, Size),
         ctx:bind(Ctx, Var, Ctx1),
         run(Test, Opts, Ctx1, IState, OState, Result).
+%% explicitly sized quantification
+run(plqc:qcforall(Gen, Var, Test, Size), Opts, Ctx, IState, OState, Result) :- 
+        !,
+        call_with_args(Gen, Var, Size),
+        ctx:bind(Ctx, Var, Ctx1),
+        run(Test, Opts, Ctx1, IState, OState, Result).
+%% a labeled property to be unfolded; requires compilation with 'source'
+run(M:qcprop(Label), Opts, Ctx, IState, OState, Result) :-
+        !,
+        clause(M:qcprop(Label), Body),
+        run(Body, Opts, Ctx, IState, OState, Result).
 %% a leaf in the property syntax tree - a predicate call
 run(Test, Opts, Ctx, State, State, Result) :- 
         (call(Test), !,
@@ -438,6 +449,9 @@ vectorOf(K, GenA, [A|AS], Size) :-
 
 %% | Generates the given value, discarding the size.
 value(A, A, _Size).
+
+%% | Generates a variable, discarding the size.
+variable(X, _Size) :- var(X).
   % }}}
 
   % {{{ generator combination samples

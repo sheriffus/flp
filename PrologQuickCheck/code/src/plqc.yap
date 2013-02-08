@@ -235,27 +235,40 @@ run(Test, Opts, Ctx, Result) :-
 run(Test, Opts, IState, OState, Result) :-
         ctx:default(Ctx),
         run(Test, Opts, Ctx, IState, OState, Result).
+%% current module
+run(Mod:Test, Opts, Ctx, IState, OState, Result) :- 
+        ctx:new_module(Ctx, Mod, Ctx1),
+        run(Test, Opts, Ctx1, IState, OState, Result).
 %% universal quantification
-run(plqc:qcforall(Gen, Var, Test), Opts, Ctx, IState, OState, Result) :- 
+run(qcforall(Gen, Var, Test), Opts, Ctx, IState, OState, Result) :- 
         !,
         state:get_size(IState,Size),
-        call_with_args(Gen, Var, Size),
+        bind_forall(Gen, Ctx, Var, Size),
         ctx:bind(Ctx, Var, Ctx1),
         run(Test, Opts, Ctx1, IState, OState, Result).
 %% explicitly sized quantification
-run(plqc:qcforall(Gen, Var, Test, Size), Opts, Ctx, IState, OState, Result) :- 
+run(qcforall(Gen, Var, Test, Size), Opts, Ctx, IState, OState, Result) :- 
         !,
-        call_with_args(Gen, Var, Size),
+        bind_forall(Gen, Ctx, Var, Size),
         ctx:bind(Ctx, Var, Ctx1),
         run(Test, Opts, Ctx1, IState, OState, Result).
 %% a labeled property to be unfolded; requires compilation with 'source'
-run(M:qcprop(Label), Opts, Ctx, IState, OState, Result) :-
+%% Label is either the identifier (atom that identifies the property)
+%%  or a tuple with the identifier and the arguments
+run(qcprop(Label), Opts, Ctx, IState, OState, Result) :-
         !,
+        ctx:module(Ctx, M),
         clause(M:qcprop(Label), Body),
         run(Body, Opts, Ctx, IState, OState, Result).
+%% run(M:qcprop(Label), Opts, Ctx, IState, OState, Result) :-
+%%         !,
+%%         clause(M:qcprop(Label), Body),
+%%         print(Body), nl,
+%%         run(Body, Opts, Ctx, IState, OState, Result).
 %% a leaf in the property syntax tree - a predicate call
 run(Test, Opts, Ctx, State, State, Result) :- 
-        (call(Test), !,
+        ctx:module(Ctx, M),
+        (call(M:Test), !,
         create_pass_result(Ctx, true_prop, Result)
         )
     ;
@@ -264,6 +277,15 @@ run(Test, Opts, Ctx, State, State, Result) :-
         ).
 %% TODO: prolog conjunction and disjunction
 %% TODO: collect information for user analysis 
+
+
+  % {{{ bind_forall(Gen, Ctx, Var, Size)
+bind_forall(M:Gen, _Ctx, Var, Size) :- 
+        call_with_args(M:Gen, Var, Size).
+bind_forall(Gen, Ctx, Var, Size) :- 
+        ctx:module(Ctx, M),
+        call_with_args(M:Gen, Var, Size).
+  % }}}
 
 % }}}
 

@@ -9,7 +9,7 @@
 %%       samples      :: [sample()],                        % not used
 %%       printers     :: [stats_printer()]}                 % not used
 
-default({ctx, new, plqc, [], [], [], []}).
+default({ctx, new, [], plqc, [], [], []}).
 
 % {{{ accessing a context
 

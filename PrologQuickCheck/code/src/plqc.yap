@@ -130,6 +130,7 @@ report_result( Result, Opts ) :-
 
     % {{{ print_testcase
 %% TODO: print each quantified variable separately
+print_testcase([], _Print).% :- !.
 print_testcase(Bound, Print) :-
         call_with_args(Print, "Counterexample found: ~w \n", [Bound]).
     % }}}
@@ -260,11 +261,10 @@ run(qcprop(Label), Opts, Ctx, IState, OState, Result) :-
         ctx:module(Ctx, M),
         clause(M:qcprop(Label), Body),
         run(Body, Opts, Ctx, IState, OState, Result).
-%% run(M:qcprop(Label), Opts, Ctx, IState, OState, Result) :-
-%%         !,
-%%         clause(M:qcprop(Label), Body),
-%%         print(Body), nl,
-%%         run(Body, Opts, Ctx, IState, OState, Result).
+%% conjunction - individual calls
+run((Test, Tests), Opts, Ctx, IState, OState, Result) :- 
+        run(Test, Opts, Ctx, IState, State1, Result1),
+        cond_run(Result1, Tests, Opts, Ctx, State1, OState, Result).
 %% a leaf in the property syntax tree - a predicate call
 run(Test, Opts, Ctx, State, State, Result) :- 
         ctx:module(Ctx, M),
@@ -278,6 +278,15 @@ run(Test, Opts, Ctx, State, State, Result) :-
 %% TODO: prolog conjunction and disjunction
 %% TODO: collect information for user analysis 
 
+cond_run(Result1, Tests, Opts, Ctx, IState, OState, Result) :-
+        (
+            result:is_pass_res(Result), !,
+            run(Tests, Opts, Ctx, IState, OState, Result)
+        ) ; (
+            result:is_fail_res(Result), !,
+            IState = Ostate,
+            Result = Result1
+        ).
 
   % {{{ bind_forall(Gen, Ctx, Var, Size)
 bind_forall(M:Gen, _Ctx, Var, Size) :- 

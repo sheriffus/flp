@@ -11,7 +11,15 @@
 
 :- use_module(library(random)).
 :- use_module(library(lists)).
+:- use_module(library(timeout)).
 
+:- source.
+
+:- op(910, xfx, og_type).
+:- op(700, xfx, such_that).
+:- op(750, xfx, where).
+:- op(800, xfx, has_range).
+:- op(900, xfx, obbeys).
 
 % {{{ qc top predicates
 
@@ -33,11 +41,13 @@ quickcheckResult(Property, UserOpts, Result) :-
         state:init(Opts, IState),
         test(Property, Opts, IState, OState, Result)
 .
+
 % }}}
 
 % {{{ test
 
   % {{{ test(Property, Opts, IState, OState, Result)
+
 %% | Tests a property, based on options, carrying a state, produces a test result, and prints the results to 'stdout'.
 test(Property, Opts, IState, OState, Result) :-
         %% retrieve specific attributes for testing behaviour
@@ -58,9 +68,11 @@ test(Property, Opts, IState, OState, Result) :-
         Result = ShortRes
         )
 .
+
   % }}}
 
   % {{{ refine_result(Result1, Property, Opts, ShortRes, LongRes)
+
 refine_result(Result, Property, Opts, ShortRes, LongRes) :-
         (result:is_pass_res(Result), !,
         ShortRes = true,
@@ -77,10 +89,12 @@ refine_result(Result, Property, Opts, ShortRes, LongRes) :-
         LongRes = Result
         )
     .
+
   % }}}
 
   % {{{ report_result
     % {{{ report_result
+
 report_result( Result, Opts ) :-
         opts:expect_fail(Opts, ExpectF),
         opts:output_fun(Opts, Print),
@@ -126,20 +140,26 @@ report_result( Result, Opts ) :-
          )
         )
     .
+
     % }}}
 
     % {{{ print_testcase
+
 %% TODO: print each quantified variable separately
 print_testcase([], _Print).% :- !.
 print_testcase(Bound, Print) :-
         call_with_args(Print, "Counterexample found: ~w \n", [Bound]).
+
     % }}}
 
     % {{{ TODO report_error
+
 report_error(Reason, Print) :- print(report_error_predicate_missing).
+
    % }}}
 
     % {{{ report_fail_reason
+
 report_fail_reason(false_prop, _Prefix, _Print) :- !.
 report_fail_reason(time_out, Prefix, Print) :-
         lists:append(Prefix, "Test execution timed out.~n", Msg),
@@ -160,12 +180,14 @@ report_fail_reason({exception,ExcKind,ExcReason,StackTrace}, Prefix, Print) :-
 %% 	end,
 %%     lists:foreach(Report, SubReasons),
 %%     ok.
+
     % }}}
   % }}}
 
 % }}}
 
 % {{{ perform(NumTestsPassed, NumSuccessTests, TriesLeft, Property, ...)
+
 %% main test loop
 
 % reached limit of tries and passed no test - can't satisfy
@@ -332,6 +354,7 @@ int(I, shrink, [0]).
   % }}}
 
   % {{{ common generator stuff
+
 %% %% | Used to construct generators that depend on the size parameter.
 %% sized(SGenA, A, Size) :- call_with_args(SGenA, A, Size).
 
@@ -382,20 +405,20 @@ stSizeStep(S, S1) :- S1 is S+1. % growing size sampling
 
 suchThat(GenA, PredA, A) :-
         stDefaultSize(S),
-        suchThatSized(GenA, PredA, A, S).
-suchThatSized(GenA, PredA, A, S) :-
+        suchThat(GenA, PredA, A, S).
+suchThat(GenA, PredA, A, S) :-
         (
-            suchThatMaybeSized(GenA, PredA, A, S), !
+            suchThatMaybe(GenA, PredA, A, S), !
         ;
             stSizeStep(S, S1),
-            suchThatSized(GenA, PredA, A, S1)            
+            suchThat(GenA, PredA, A, S1)            
         ).
 
 %% | Tries to generate a value that satisfies a predicate.
 suchThatMaybe(GenA, PredA, A) :-
         stDefaultSize(S),
-        suchThatMaybeSized(GenA, PredA, A, S).
-suchThatMaybeSized(GenA, PredA, A, S) :-
+        suchThatMaybe(GenA, PredA, A, S).
+suchThatMaybe(GenA, PredA, A, S) :-
         call_with_args(GenA, A, S),
         call_with_args(PredA, A).
 
@@ -483,6 +506,25 @@ value(A, A, _Size).
 
 %% | Generates a variable, discarding the size.
 variable(X, _Size) :- var(X).
+
+%% | Generates values with a certain structure
+structure(X, Y, Size) :- var(X), !, var(Y), X=Y.
+structure([], [], Size) :- !.
+structure([SX|SXS], [X|XS], Size) :-
+        !,
+        structure(SX, X, Size),
+        structure(SXS, XS, Size).
+structure({ST}, {T}, Size) :-
+        !,
+        structure(ST, T, Size),
+        structure(SXS, XS, Size).
+structure( (SX, SXS), (X, XS), Size) :-
+        !,
+        structure(SX, X, Size),
+        structure(SXS, XS, Size).
+structure(GenX, X, Size) :-
+        call(GenX, X, Size).
+
   % }}}
 
   % {{{ generator combination samples
@@ -497,6 +539,161 @@ qcforall(Gen, Var, Prop, Size) :- call_with_args(Gen, Var, Size), call(Prop).
 
 % }}}
 
+% {{{ predicate specification language
+
+user:term_expansion( PredicateId og_type Typing,
+                     (qcprop(PropName) :- PLQCProperty)
+ ) :-
+        pred_spec_name(PredicateId, Predicate, PropName),
+        spec_expand(Predicate, Typing, PLQCProperty)
+.
+
+  % {{{ pred_spec_name(Predicate, PropName) 
+pred_spec_name({Predicate,X}, Predicate, PropName) :-
+        !,
+        (name(X, [95|PostfixL]), ! ; name(X, PostfixL)),
+        pred_spec_name_aux(Predicate, [95|PostfixL], PropName).
+        
+pred_spec_name(Predicate, Predicate, PropName) :-
+        pred_spec_name_aux(Predicate, [], PropName).
+
+pred_spec_name_aux(PredicateId, PostfixL, PropName) :-
+        (PredicateId = Mod:Predicate, !;
+         PredicateId = Predicate),
+        name(Predicate, PredL),
+        lists:append(PredL, PostfixL, PropNameL1),
+        name(spec_, PrefixL),
+        lists:append(PrefixL, PropNameL1, PropNameL),
+        name(PropName, PropNameL).
+  % }}}
+
+  % {{{ expand the specification by accumulating property/generator modifiers
+spec_expand(Predicate, TypingSpec, Property) :- 
+        %% Call and Args are holes for unifying later
+        spec_expand([(mp-Call)], Predicate-Args, TypingSpec, Property).
+
+spec_expand(Modifiers, Pred-Args, DomainRange obbeys Prop, Property) :-
+        !,
+        spec_expand([(prop-Prop)|Modifiers], Pred-Args, DomainRange, Property).
+spec_expand(Modifiers, Pred-Args, DomainDir has_range Range, Property) :-
+        !,
+        %% modify mp to check range
+        range_mp(Modifiers, Range, Args, NewMs),
+        spec_expand(NewMs, Pred-Args, DomainDir, Property)
+        .
+spec_expand(Modifiers, Pred-Args, Domain where Directionality, Property) :-
+        !, % st - such that (generator modifier for conditional generation)
+        spec_expand([(st-DomPrecond)|Modifiers], Pred-Args, Domain, Property).
+spec_expand(Modifiers, Pred-Args, Typing such_that DomPrecond, Property) :-
+        !, % st - such that (generator modifier for conditional generation)
+        spec_expand([(st-DomPrecond)|Modifiers], Pred-Args, Typing, Property).
+spec_expand(Modifiers, Pred-Args, Typing, Property) :-
+        pp_typing(Typing, TS, Args), % pre-process typing for explicit arguments
+        modify_gen(Modifiers, structure(TS), ArgGen), % modify generator if needed
+        spec_prop(Modifiers, Pred, Args, InnerProperty), % build property
+        Property = plqc:qcforall(ArgGen, Args, InnerProperty).
+
+    % {{{ range_mp(Modifiers, Range, Args, NewModifiers)
+range_mp([(mp-Call)|MS], Range, Args, NewMs) :-
+        %% !, NewMs = [(mp-Range-Call)|MS].
+        !,
+        Range = {Min, Max},
+        %% infimum and supremum of number of solutions
+        integer(Min), Inf=Min,
+        integer(Max), Sup=Max,
+        defaul_timeout(TimeOut),
+        %% (
+        %%     Max = {inf, TimeOut}, Sup=inf;
+        %%     Max = {Sup, TimeOut}, integer(Sup);
+        %%     defaul_timeout(TimeOut),
+        %%     ( Max = inf, Sup=inf;
+        %%       integer(Max), Sup=Max
+        %%     )
+        %% ),
+        NewMP = timeout:time_out(findall(_, Call, RList), TimeOut, Result),
+        NewProp = (lists:length(RList, K), plqc:check_range(Args, Result, K, Inf, Sup)),
+        NewMs = [(mp-NewMP-Call), (prop-NewProp)|MS].
+range_mp([M|MS], Range, Args, [M|NewMs]) :-
+        range_mp(MS, Range, Args, NewMs).
+
+      % {{{ check_range(InputTested, TimeoutResult, NumberOfAnswers, Infimum, Supremum)
+%% TODO - better messages
+%% check_range(time_out, K, Inf, inf) :-
+%%         !,
+%%         print(time_out_on_infinity_Range_OK), nl.
+%% check_range(time_out, K, Inf, Sup) :-
+%%         !,
+%%         print(time_out_on_bound_Range_NOT_OK), nl.
+%% check_range(success, K, inf, Sup).
+%%         !,
+%%         print(terminate_on_infinity_Range_NOT_OK), nl.
+%% check_range(success, K, Inf, inf).
+%%         !,
+%%         (K >= Inf, print(terminate_on_lower_bound_Range_OK);
+%%         print(terminate_on_lower_bound_Range_NOT_OK)), nl.
+%% check_range(Res, K, Inf, Sup) :-
+%%         print({check_range_bad_pattern, Res}).
+check_range(Input, Res, K, Inf, Sup) :-
+        print({range_for, Input, Inf, {Res, K}, Sup}), nl.
+      % }}}
+
+      % {{{ defaul_timeout
+%% .5 seconds default timeout
+%% do not forget this will be applied in every test
+defaul_timeout(500).
+      % }}}
+    % }}}
+
+    % {{{ pp_typing(Typing, TypingAsList, NamedArgVarList)
+pp_typing((Arg-T, TS), [T|XS], [Arg|YS]) :-
+        !, pp_typing(TS, XS, YS).
+pp_typing((T, TS), [T|XS], [Y|YS]) :-
+        !, pp_typing(TS, XS, YS).
+pp_typing(Arg-T, [T], [Arg]) :- !.
+pp_typing(TS, [T], [Y]).
+    % }}}
+
+    % {{{ modify_gen(Modifiers, OriginalGenerator, ModifiedGenerator)
+modify_gen([(st-DomPrecond) | _], Gen, suchThat(Gen, DomPrecond)) :- !.
+modify_gen([_M | MS], Gen, ArgGen) :- modify_gen(MS, Gen, ArgGen).
+modify_gen([], Gen, Gen).
+    % }}}
+
+    % {{{ spec_prop(Modifiers, Pred, Args, Property)
+spec_prop([], _, _, true).
+spec_prop([(prop-Prop)|MS], Pred, Args, (Prop, PropS)) :-
+        !, spec_prop(MS, Pred, Args, PropS).
+spec_prop([(mp-Call)|MS], Pred, Args, (Call, PropS)) :-
+        !, apply_args(Pred, Args, Call),
+        spec_prop(MS, Pred, Args, PropS).
+spec_prop([(mp-Prop-Call)|MS], Pred, Args, (Prop, PropS)) :-
+        !, apply_args(Pred, Args, Call),
+        spec_prop(MS, Pred, Args, PropS).
+spec_prop([_|MS], Pred, Args, PropS) :-
+        spec_prop(MS, Pred, Args, PropS).
+
+      % {{{ apply_args(Pred, [Arg|Args], Call)
+%% arguments need to be applied in order and predicate calls revert the order
+apply_args(Pred, [Arg|Args], Call) :-
+        apply_args(Pred, Args, Call, call(Pred, Arg)).
+
+apply_args(Pred, [], Acc, Acc).
+apply_args(Pred, [Arg|Args], Call, Acc) :-
+        apply_args(Pred, Args, Call, call(Acc, Arg)).
+      % }}}
+    % }}}
+
+    % {{{ 
+    % }}}
+
+    % {{{ 
+    % }}}
+
+    % {{{ 
+    % }}}
+  % }}}
+
+% }}}
 
 max_tries_factoring(N,X) :-
         X is 5 *N.

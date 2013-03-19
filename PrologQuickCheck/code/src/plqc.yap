@@ -15,10 +15,11 @@
 
 :- source.
 
-:- op(910, xfx, og_type).
+:- op(910, xfx, of_type).
 :- op(700, xfx, such_that).
 :- op(750, xfx, where).
 :- op(800, xfx, has_range).
+:- op(850, xfx, limit).
 :- op(900, xfx, obbeys).
 
 % {{{ qc top predicates
@@ -541,7 +542,7 @@ qcforall(Gen, Var, Prop, Size) :- call_with_args(Gen, Var, Size), call(Prop).
 
 % {{{ predicate specification language
 
-user:term_expansion( PredicateId og_type Typing,
+user:term_expansion( PredicateId of_type Typing,
                      (qcprop(PropName) :- PLQCProperty)
  ) :-
         pred_spec_name(PredicateId, Predicate, PropName),
@@ -568,55 +569,62 @@ pred_spec_name_aux(PredicateId, PostfixL, PropName) :-
   % }}}
 
   % {{{ expand the specification by accumulating property/generator modifiers
+    % {{{ spec_expand(Predicate, TypingSpec, Property)
 spec_expand(Predicate, TypingSpec, Property) :- 
         %% Call and Args are holes for unifying later
-        spec_expand([(mp-Call)], Predicate-Args, TypingSpec, Property).
+        spec_expand([(dummy-mp)], Predicate, TypingSpec, Property).
 
-spec_expand(Modifiers, Pred-Args, DomainRange obbeys Prop, Property) :-
+spec_expand(Modifiers, Pred, DomainRange obbeys Prop, Property) :-
         !,
-        spec_expand([(prop-Prop)|Modifiers], Pred-Args, DomainRange, Property).
-spec_expand(Modifiers, Pred-Args, DomainDir has_range Range, Property) :-
+        spec_expand([(Prop-prop)|Modifiers], Pred, DomainRange, Property).
+spec_expand(Modifiers, Pred, DomDirRange limit Limit, Property) :-
         !,
         %% modify mp to check range
-        range_mp(Modifiers, Range, Args, NewMs),
-        spec_expand(NewMs, Pred-Args, DomainDir, Property)
+        limit_mp(Modifiers, Limit, NewMs),
+        spec_expand(NewMs, Pred, DomDirRange, Property)
         .
-spec_expand(Modifiers, Pred-Args, Domain where Directionality, Property) :-
+spec_expand(Modifiers, Pred, DomainDir has_range Range, Property) :-
+        !,
+        %% modify mp to check range
+        range_mp(Modifiers, Range, NewMs),
+        spec_expand(NewMs, Pred, DomainDir, Property)
+        .
+spec_expand(Modifiers, Pred, Domain where Directionality, Property) :-
+        !,
+        dir_mp(Modifiers, Directionality, NewMs),
+        spec_expand(NewMs, Pred, Domain, Property).
+spec_expand(Modifiers, Pred, Typing such_that DomPrecond, Property) :-
         !, % st - such that (generator modifier for conditional generation)
-        spec_expand([(st-DomPrecond)|Modifiers], Pred-Args, Domain, Property).
-spec_expand(Modifiers, Pred-Args, Typing such_that DomPrecond, Property) :-
-        !, % st - such that (generator modifier for conditional generation)
-        spec_expand([(st-DomPrecond)|Modifiers], Pred-Args, Typing, Property).
-spec_expand(Modifiers, Pred-Args, Typing, Property) :-
+        spec_expand([(DomPrecond-st)|Modifiers], Pred, Typing, Property).
+spec_expand(Modifiers, Pred, Typing, Property) :-
         pp_typing(Typing, TS, Args), % pre-process typing for explicit arguments
         modify_gen(Modifiers, structure(TS), ArgGen), % modify generator if needed
         spec_prop(Modifiers, Pred, Args, InnerProperty), % build property
         Property = plqc:qcforall(ArgGen, Args, InnerProperty).
+    % }}}
 
-    % {{{ range_mp(Modifiers, Range, Args, NewModifiers)
-range_mp([(mp-Call)|MS], Range, Args, NewMs) :-
-        %% !, NewMs = [(mp-Range-Call)|MS].
-        !,
-        Range = {Min, Max},
-        %% infimum and supremum of number of solutions
-        integer(Min), Inf=Min,
-        integer(Max), Sup=Max,
-        defaul_timeout(TimeOut),
-        %% (
-        %%     Max = {inf, TimeOut}, Sup=inf;
-        %%     Max = {Sup, TimeOut}, integer(Sup);
-        %%     defaul_timeout(TimeOut),
-        %%     ( Max = inf, Sup=inf;
-        %%       integer(Max), Sup=Max
-        %%     )
-        %% ),
-        NewMP = timeout:time_out(findall(_, Call, RList), TimeOut, Result),
-        NewProp = (lists:length(RList, K), plqc:check_range(Args, Result, K, Inf, Sup)),
-        NewMs = [(mp-NewMP-Call), (prop-NewProp)|MS].
-range_mp([M|MS], Range, Args, [M|NewMs]) :-
-        range_mp(MS, Range, Args, NewMs).
+    % {{{ limit_mp(Modifiers, Range, NewModifiers)
+limit_mp([(Call-mp)|MS], Lim, NewMs) :-
+        !, NewMs = [((Lim-limit)-Call-mp)|MS].
+limit_mp([M|MS], Lim, [M|NewMs]) :-
+        limit_mp(MS, Lim, NewMs).
+    % }}}
 
-      % {{{ check_range(InputTested, TimeoutResult, NumberOfAnswers, Infimum, Supremum)
+    % {{{ range_mp(Modifiers, Range, NewModifiers)
+range_mp([(Call-mp)|MS], Range, NewMs) :-
+        !, NewMs = [((Range-range)-Call-mp)|MS].
+range_mp([M|MS], Range, [M|NewMs]) :-
+        range_mp(MS, Range, NewMs).
+    % }}}
+
+    % {{{ dir_mp(Modifiers, Directionalities, NewModifiers)
+dir_mp([(MP-mp)|MS], Dir, NewMs) :-
+        !, NewMs = [((Dir-dir)-MP-mp)|MS].
+dir_mp([M|MS], Dir, [M|NewMs]) :-
+        dir_mp(MS, Dir, NewMs).
+    % }}}
+
+      % {{{ check_range(Input, TimeoutRes, NumberOfAnswers, Infimum, Supremum)
 %% TODO - better messages
 %% check_range(time_out, K, Inf, inf) :-
 %%         !,
@@ -636,13 +644,11 @@ range_mp([M|MS], Range, Args, [M|NewMs]) :-
 check_range(Input, Res, K, Inf, Sup) :-
         print({range_for, Input, Inf, {Res, K}, Sup}), nl.
       % }}}
-
       % {{{ defaul_timeout
 %% .5 seconds default timeout
 %% do not forget this will be applied in every test
 defaul_timeout(500).
       % }}}
-    % }}}
 
     % {{{ pp_typing(Typing, TypingAsList, NamedArgVarList)
 pp_typing((Arg-T, TS), [T|XS], [Arg|YS]) :-
@@ -654,21 +660,22 @@ pp_typing(TS, [T], [Y]).
     % }}}
 
     % {{{ modify_gen(Modifiers, OriginalGenerator, ModifiedGenerator)
-modify_gen([(st-DomPrecond) | _], Gen, suchThat(Gen, DomPrecond)) :- !.
+modify_gen([(DomPrecond-st) | _], Gen, suchThat(Gen, DomPrecond)) :- !.
 modify_gen([_M | MS], Gen, ArgGen) :- modify_gen(MS, Gen, ArgGen).
 modify_gen([], Gen, Gen).
     % }}}
 
     % {{{ spec_prop(Modifiers, Pred, Args, Property)
 spec_prop([], _, _, true).
-spec_prop([(prop-Prop)|MS], Pred, Args, (Prop, PropS)) :-
+spec_prop([(Prop-prop)|MS], Pred, Args, (Prop, PropS)) :-
         !, spec_prop(MS, Pred, Args, PropS).
-spec_prop([(mp-Call)|MS], Pred, Args, (Call, PropS)) :-
+spec_prop([(MPinfo-mp)|MS], Pred, Args, (MP, PropS)) :-
         !, apply_args(Pred, Args, Call),
+        build_mp(MPinfo, Call, Args, MP),
         spec_prop(MS, Pred, Args, PropS).
-spec_prop([(mp-Prop-Call)|MS], Pred, Args, (Prop, PropS)) :-
-        !, apply_args(Pred, Args, Call),
-        spec_prop(MS, Pred, Args, PropS).
+%% spec_prop([(Call-mp)|MS], Pred, Args, (Prop, PropS)) :-
+%%         !, apply_args(Pred, Args, Call),
+%%         spec_prop(MS, Pred, Args, PropS).
 spec_prop([_|MS], Pred, Args, PropS) :-
         spec_prop(MS, Pred, Args, PropS).
 
@@ -680,6 +687,179 @@ apply_args(Pred, [Arg|Args], Call) :-
 apply_args(Pred, [], Acc, Acc).
 apply_args(Pred, [Arg|Args], Call, Acc) :-
         apply_args(Pred, Args, Call, call(Acc, Arg)).
+      % }}}
+
+      % {{{ build_mp(MPinfo, Call, Args, Prop)
+%% build_mp((Dir-dir)-R, Call, Args, Prop) :-
+build_mp(MP, Call, Args, Prop) :-
+        build_mp(MP, Args, In, Out, Range, Limit),
+        merge_mp(In, Out, Range, Limit, Call, Args, Prop).
+build_mp((Dir-dir)-R, Args, WIn, WOut, Range, Limit) :-
+        in_out(Dir, InD, OutsD),
+        build_in(InD, Args, In),
+        build_out(OutsD, Args, Out),
+        wrap_mode_check(in, InD, Args, In, WIn),
+        wrap_mode_check(out, OutsD, Args, Out, WOut),
+        build_mp(R, Args, _in, _out, Range, Limit).
+build_mp((Range-range)-MP, Args, In, Out, Range, Limit) :-
+        build_mp(MP, Args, In, Out, _range, Limit).
+build_mp((Limit-limit)-dummy, Args, none, none, any, Limit).
+build_mp(dummy, Args, none, none, any, Limit) :-
+        default_limit(Limit).
+
+        % {{{ in_out(Dir, In, Outs)
+in_out((D1, D2), In, Outs) :-
+        !,
+        in_out(D1, I1, O1),
+        in_out(D2, I2, O2),
+        merge_in(I1, I2, In),
+        lists:append(O1, O2, Outs).
+in_out(D, In, Out) :-
+        D =.. Dl,
+        (Dl = [i|_], In = Dl, Out = [];
+         Dl = [o|_], In = none, Out = [Dl]   ).
+
+%% note that this fails if more than one 'in' is given
+merge_in(none, I, I).
+merge_in(I, none, I).
+        % }}}
+
+        % {{{ default_limit
+default_limit(100).
+        % }}}
+
+        % {{{ wrap_mode_check(Dir, DProp, Args, Prop, WrappedProp)
+wrap_mode_check(in, Modes, Args, Prop, (Prop, !; print({failed_in_mode, Modes, Args}))).
+wrap_mode_check(out, Modes, Args, Prop, (Prop, !; print({failed_out_modes, Modes, Args}))).
+        % }}}
+
+        % {{{ build_Dir(Dirs, Args, DProp)
+build_in(none, _Args, true).
+build_in([i|Modes], Args, In) :-
+        match_modes(Modes, Args, In).
+
+%% build_out([], _Args, true, true).
+%% build_in([ [i|Modes]|DS ], Args, In, Out) :-
+%%         match_modes(Modes, Args, In),
+%%         build_dir(DS, _, Out).
+%% build_in([ [o|Modes] ], Args, True, Out) :-
+%%         match_modes(Modes, Args, Out).
+%% build_in([ [o|Modes]|DS ], Args, In, Out) :-
+%%         match_modes(Modes, Args, O),
+%%         build_dir(DS, In, O2),
+%%         Out = (O1, O2).
+
+build_out([], _Args, true).
+build_out([ [o|Modes] ], Args, Out) :-
+        !, match_modes(Modes, Args, Out).
+build_out([ [o|Modes]|OS ], Args, Out) :-
+        match_modes(Modes, Args, O1),
+        build_out(OS, Args, O2),
+        Out = (O1; O2).
+
+          % {{{ match_modes(Modes, Args, Prop)
+match_modes([M], [A], P) :-
+        match_mode(M, A, P).
+match_modes([M|MS], [A|AS], (P1, P2)) :-
+        match_mode(M, A, P1),
+        match_modes(MS, AS, P2).
+%% match_modes([], [], true).
+
+match_mode(g,   A,  ground(A)).
+match_mode(v,   A,  var(A)).
+match_mode(gv,  A,  (ground(A); var(A))).
+match_mode(ng,  A,  (not ground(A))).
+match_mode(nv,  A,  nonvar(A)).
+match_mode(ngv, A,  (not (ground(A); var(A)))).
+          % }}}
+        % }}}
+
+        % {{{ merge_mp(In, Out, Range, Limit, Call, Args, Prop),
+merge_mp(true, Out, Range, Limit, Call, Args, Prop) :-
+        !, merge_mp2(Out, Range, Limit, Call, Args, Prop).
+merge_mp(In, Out, Range, Limit, Call, Args, Prop) :-
+        merge_mp2(Out, Range, Limit, Call, Args, Prop1),
+        Prop = (In, Prop1).
+
+%% merge_mp2(true, Range, Limit, Call, Args, Prop) :-
+%%         !,
+%%         merge_mp3(Range, Limit, Call, Args, Prop).
+merge_mp2(OutProp, Range, Limit, Call, Args, Prop) :-
+        %% print(Call),
+        merge_mp3(Range, Limit, (Call, OutProp), Args, Prop).
+
+merge_mp3(any, Limit, Call, Args, Prop) :-
+        !,
+        bound_call(1, -2, Limit, Call, Args, Prop).
+merge_mp3({Min,Max}, Limit, Call, Args, TheCall) :-
+        bound_min(Min, Limit, LowerBound),
+        %% bound_max(Max, Limit, UpperBound),
+        TheCall = bound_call(LowerBound, Max, Limit, Call, Args).
+
+bound_min(inf, Limit, Limit) :- !.
+bound_min(A, B, C) :-
+        C is min(A,B).
+bound_max(inf, Limit, Limit) :- !.
+bound_max(A, B, C) :-
+        C is min(A,B).
+
+%% bound_call(Lower, Upper, Limit, Call, Args).
+bound_call(Lower, Upper, Limit, (Call, OutProp), Args) :-
+        duplicate_term(Args, OriginalArguments),
+        nb_setval(counter, 0),
+        nb:nb_queue(Ref),
+        (
+            call(Call),
+            nb_getval(counter, C1),
+            C2 is C1 +1,
+            nb_setval(counter, C2),
+            nb:nb_queue_enqueue(Ref, Args),
+            %% check counter
+            (
+                C2 > Upper,
+                !,
+                print('Number of answers exceeds range upper bound for'), nl,
+                print(OriginalArguments), nl
+            ;
+                C2 > Limit,
+                !,
+                print('Reached limit for number of answers tested for'), nl,
+                print(OriginalArguments), nl
+            ),
+            call(OutProp),
+            fail
+        ;
+            nb_getval(counter, Count),
+            %% number of given answers is less than range lower bound
+            Lower - Count > 0, !,
+            print('Did not reach range lower bound for'), nl,
+            print(OriginalArguments), nl
+        ;
+            %% we are OK here (exceeding upper bound and limit is on the fly)
+            nb:nb_queue_close(Ref, Answers, []),
+            nb_getval(counter, Count),
+            Result = {Count, Answers}
+        ).
+
+%% bound_call(Upper, Lower, Upper, Limit, Call, Args) :-
+%%         !,
+%%         print('Number of answers exceeds range upper bound for'), nl,
+%%         print(Args), nl.
+%% bound_call(Limit, Lower, Upper, Limit, Call, Args) :-
+%%         !,
+%%         print('Reached limit for number of answers tested for'), nl,
+%%         print(Args), nl.
+%% bound_call(Count1, Lower, Upper, Limit, (Call, OutProp), Args) :-
+%%         !,
+%%         Count is Count1 +1,
+%%         (Call, OutProp,
+%%          bound_call(Count, Lower, Upper, Limit, (Call, OutProp), Args)
+%%     ;
+%%         %% failed and number of given answers is less than range lower bound
+%%         Count - Lower  > 0, !,
+%%         print('Did not reach range lower bound for'), nl, print(Args), nl
+%%         ).
+        % }}}
       % }}}
     % }}}
 
@@ -698,3 +878,175 @@ apply_args(Pred, [Arg|Args], Call, Acc) :-
 max_tries_factoring(N,X) :-
         X is 5 *N.
 
+
+ %%  18 %   The "existential quantifier" symbol is only significant to bagof
+ %%  19 %   and setof, which it stops binding the quantified variable.
+ %%  20 %   op(200, xfy, ^) is defined during bootstrap.
+ %%  21 
+ %%  22 % this is used by the all predicate
+ %%  24 :- op(50,xfx,same).
+ %%  25 
+ %%  26 _^Goal :-
+ %%  27         '$execute'(Goal).
+ %%  28 
+ %%  30 %   findall/3 is a simplified version of bagof which has an implicit
+ %%  31 %   existential quantifier on every variable.
+ %%  34 findall(Template, Generator, Answers) :-
+ %%  35         ( '$is_list_or_partial_list'(Answers) ->
+ %%  36                 true
+ %%  37         ;
+ %%  38                 '$do_error'(type_error(list,Answers), findall(Template, Generator, Answers))
+ %%  39         ),
+ %%  40         '$findall'(Template, Generator, [], Answers).
+ %%  42 
+ %%  43 % If some answers have already been found
+ %%  44 findall(Template, Generator, Answers, SoFar) :-
+ %%  45         '$findall'(Template, Generator, SoFar, Answers).
+ %%  46 
+ %%  47 % starts by calling the generator,
+ %%  48 % and recording the answers
+ %%  49 '$findall'(Template, Generator, SoFar, Answers) :-
+ %%  50         nb:nb_queue(Ref),
+ %%  51         (
+ %%  52           '$execute'(Generator),
+ %%  53          '$stop_creeping',
+ %%  54           nb:nb_queue_enqueue(Ref, Template),
+ %%  55          fail
+ %%  56         ;
+ %%  57          '$stop_creeping',
+ %%  58          nb:nb_queue_close(Ref, Answers, SoFar)
+ %%  59         ).
+ %%  60 
+ %%  61 
+ %%  62 
+ %%  63 % findall_with_key is very similar to findall, but uses the SICStus
+ %%  64 % algorithm to guarantee that variables will have the same names.
+ %%  65 %
+ %%  66 '$findall_with_common_vars'(Template, Generator, Answers) :-
+ %%  67         nb:nb_queue(Ref),
+ %%  68         (
+ %%  69           '$execute'(Generator),
+ %%  70           nb:nb_queue_enqueue(Ref, Template),
+ %%  71           fail
+ %%  72         ;
+ %%  73           nb:nb_queue_close(Ref, Answers, []),
+ %%  74           '$collect_with_common_vars'(Answers, _)
+ %%  75         ).
+ %%  76 
+ %%  77 '$collect_with_common_vars'([], _).
+ %%  78 '$collect_with_common_vars'([Key-_|Answers], VarList) :-
+ %%  79         '$variables_in_term'(Key, _, VarList),
+ %%  80         '$collect_with_common_vars'(Answers, VarList).
+ %%  81         
+ %%  82 % This is the setof predicate
+ %%  83 
+ %%  84 setof(Template, Generator, Set) :-
+ %%  85         ( '$is_list_or_partial_list'(Set) ->
+ %%  86                 true
+ %%  87         ;
+ %%  88                 '$do_error'(type_error(list,Set), setof(Template, Generator, Set))
+ %%  89         ),
+ %%  90         '$bagof'(Template, Generator, Bag),
+ %%  91         '$sort'(Bag, Set).
+ %%  92 
+ %%  93 % And this is bagof
+ %%  94 
+ %%  95 % Either we have excess of variables
+ %%  96 % and we need to find the solutions for each instantiation
+ %%  97 % of these variables
+ %%  98 
+ %%  99 bagof(Template, Generator, Bag) :-
+ %% 100         ( '$is_list_or_partial_list'(Bag) ->
+ %% 101                 true
+ %% 102         ;
+ %% 103                 '$do_error'(type_error(list,Bag), bagof(Template, Generator, Bag))
+ %% 104         ),
+ %% 105         '$bagof'(Template, Generator, Bag).
+ %% 106 
+ %% 107 '$bagof'(Template, Generator, Bag) :-
+ %% 108         '$free_variables_in_term'(Template^Generator, StrippedGenerator, Key),
+ %% 109         %format('TemplateV=~w v=~w ~w~n',[TemplateV,Key, StrippedGenerator]),
+ %% 110         ( Key \== '$' ->
+ %% 111                 '$findall_with_common_vars'(Key-Template, StrippedGenerator, Bags0),
+ %% 112                 '$keysort'(Bags0, Bags),
+ %% 113                 '$pick'(Bags, Key, Bag)
+ %% 114         ;
+ %% 115                 '$findall'(Template, StrippedGenerator, [], Bag0),
+ %% 116                 Bag0 \== [],
+ %% 117                 Bag = Bag0
+ %% 118         ).
+ %% 119 
+ %% 120 
+ %% 121 % picks a solution attending to the free variables
+ %% 122 '$pick'([K-X|Bags], Key, Bag) :-
+ %% 123         '$parade'(Bags, K, Bag1, Bags1),
+ %% 124         '$decide'(Bags1, [X|Bag1], K, Key, Bag).
+ %% 125 
+ %% 126 '$parade'([K-X|L1], Key, [X|B], L) :- K == Key, !,
+ %% 127         '$parade'(L1, Key, B, L).
+ %% 128 '$parade'(L, _, [], L).
+ %% 129 
+ %% 130 %
+ %% 131 % The first argument to decide gives if solutions still left;
+ %% 132 % The second gives the solution currently found;
+ %% 133 % The third gives the free variables that are supposed to be bound;
+ %% 134 % The fourth gives the free variables being currently used.
+ %% 135 % The fifth  outputs the current solution.
+ %% 136 %
+ %% 137 '$decide'([], Bag, Key0, Key, Bag) :- !,
+ %% 138         Key0=Key.
+ %% 139 '$decide'(_, Bag, Key, Key, Bag).
+ %% 140 '$decide'(Bags, _, _, Key, Bag) :-
+ %% 141         '$pick'(Bags, Key, Bag).
+ %% 142 
+ %% 143 % as an alternative to setof you can use the predicate all(Term,Goal,Solutions)
+ %% 144 % But this version of all does not allow for repeated answers
+ %% 145 % if you want them use findall  
+ %% 146 
+ %% 147 all(T,G same X,S) :- !, all(T same X,G,Sx), '$$produce'(Sx,S,X).
+ %% 148 all(T,G,S) :- 
+ %% 149         '$init_db_queue'(Ref),
+ %% 150         ( '$catch'(Error,'$clean_findall'(Ref,Error),_),
+ %% 151           '$execute'(G),
+ %% 152           '$stop_creeping',
+ %% 153           '$db_enqueue'(Ref, T),
+ %% 154           fail
+ %% 155         ;
+ %% 156           '$stop_creeping',
+ %% 157           '$$set'(S,Ref)
+ %% 158         ).
+ %% 159 
+ %% 160 % $$set does its best to preserve space
+ %% 161 '$$set'(S,R) :- 
+ %% 162        '$$build'(S0,_,R),
+ %% 163         S0 = [_|_],
+ %% 164         S = S0.
+ %% 165 
+ %% 166 '$$build'(Ns,S0,R) :- '$db_dequeue'(R,X), !,
+ %% 167         '$$build2'(Ns,S0,R,X).
+ %% 168 '$$build'([],_,_).
+ %% 169 
+ %% 170 '$$build2'([X|Ns],Hash,R,X) :-
+ %% 171         '$$new'(Hash,X), !,
+ %% 172         '$$build'(Ns,Hash,R).
+ %% 173 '$$build2'(Ns,Hash,R,_) :-
+ %% 174         '$$build'(Ns,Hash,R).
+ %% 175 
+ %% 176 '$$new'(V,El) :- var(V), !, V = n(_,El,_).
+ %% 177 '$$new'(n(R,El0,L),El) :- 
+ %% 178         compare(C,El0,El),
+ %% 179         '$$new'(C,R,L,El).
+ %% 180 
+ %% 181 '$$new'(=,_,_,_) :- !, fail.
+ %% 182 '$$new'(<,R,_,El) :- '$$new'(R,El).
+ %% 183 '$$new'(>,_,L,El) :- '$$new'(L,El).
+ %% 184 
+ %% 185 
+ %% 186 '$$produce'([T1 same X1|Tn],S,X) :- '$$split'(Tn,T1,X1,S1,S2),
+ %% 187         ( S=[T1|S1], X=X1;
+ %% 188           !, produce(S2,S,X) ).
+ %% 189 
+ %% 190 '$$split'([],_,_,[],[]).
+ %% 191 '$$split'([T same X|Tn],T,X,S1,S2) :- '$$split'(Tn,T,X,S1,S2).
+ %% 192 '$$split'([T1 same X|Tn],T,X,[T1|S1],S2) :- '$$split'(Tn,T,X,S1,S2).
+ %% 193 '$$split'([T1|Tn],T,X,S1,[T1|S2]) :- '$$split'(Tn,T,X,S1,S2).

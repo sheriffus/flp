@@ -122,40 +122,51 @@ qcprop(equiv_acc_app_dapp_rev) :-
 %% ?- plqc:quickcheck(plqccase1:qcprop(l2dl2l)).
 %% ?- plqc:quickcheck(plqccase1:qcprop(double_rev)).
 
-test(Arg1, Arg2) :- var(Arg2), print({Arg1, Arg2}), nl.
-test(Arg1, [Arg2]) :- print({Arg1, Arg2}), nl.
-test(Arg1, [Arg2]) :- Arg2=0, print({Arg1, Arg2}), nl.
+test(Arg1, Arg2) :- var(Arg2).%, print({t1, Arg1, Arg2}), nl.
+test(Arg1, [Arg2]) :- true.%print({t2, Arg1, Arg2}), nl.
+test(Arg1, [Arg2]) :- Arg2=0. %, print({t3, Arg1, Arg2}), nl.
 %% test(Arg1, [X]).
 %% test(Arg1, [X, Y|XS]) :- test(Arg1, [Y|XS]).
 
 %% TODO - infer module for the specifications co-located with their predicates
-{plqccase1:test, 1} og_type (plqc:listOf(int), plqc:variable).
-{plqccase1:test, 2} og_type (L-(plqc:listOf(int)), plqc:variable) such_that plqccase1:odd_arg1.
-{plqccase1:test, 3} og_type (L-(plqc:listOf(int)), plqc:variable) such_that plqccase1:odd_arg1 obbeys (L \= []).
-{plqccase1:test, 4} og_type (L-(plqc:listOf(int)), plqc:variable) such_that plqccase1:odd_arg1 has_range {1,1} obbeys (L \= []).
+%% {plqccase1:test, 1} of_type (plqc:listOf(int), plqc:variable).
+%% {plqccase1:test, 2} of_type (L-(plqc:listOf(int)), plqc:variable) such_that plqccase1:odd_arg1.
+%% {plqccase1:test, 3} of_type (L-(plqc:listOf(int)), plqc:variable) such_that plqccase1:odd_arg1 obbeys (L \= []).
+%% {plqccase1:test, 4} of_type (L-(plqc:listOf(int)), plqc:variable) such_that plqccase1:odd_arg1 has_range {1,1} obbeys (L \= []).
 
 {plqccase1:test, 5}
-    og_type (L-(plqc:listOf(int)), plqc:variable)
+    of_type (L-(plqc:listOf(int)), plqc:variable)
     such_that plqccase1:odd_arg1
-    where (i(g,v), o(g,v))
-    has_range {1,1}
+
+    where (i(g,v), o(g,v), o(g,ng), o(g,g))
+
+    has_range {0,inf} % default 1-inf
+    limit 2
     obbeys (L \= []).
 
-t1:- {plqccase1:test, 1} og_type (plqc:listOf(int), plqc:variable).
-t2 :- {plqccase1:test, 2} og_type (L-(plqc:listOf(int)), plqc:variable) such_that plqccase1:odd_arg1.
-t3 :- {plqccase1:test, 3} og_type (L-(plqc:listOf(int)), plqc:variable) such_that plqccase1:odd_arg1 obbeys (L \= []).
-t4 :- {plqccase1:test, 4} og_type (L-(plqc:listOf(int)), plqc:variable) such_that plqccase1:odd_arg1 has_range {1,1} obbeys (L \= []).
+t1 :- {plqccase1:test, 1} of_type (plqc:listOf(int), plqc:variable).
+t2 :- {plqccase1:test, 2} of_type (L-(plqc:listOf(int)), plqc:variable) such_that plqccase1:odd_arg1.
+t3 :- {plqccase1:test, 3} of_type (L-(plqc:listOf(int)), plqc:variable) such_that plqccase1:odd_arg1 obbeys (L \= []).
+t4 :- {plqccase1:test, 4} of_type (L-(plqc:listOf(int)), plqc:variable) such_that plqccase1:odd_arg1 has_range {1,1} obbeys (L \= []).
+t5 :- {plqccase1:test, 5}
+    of_type (L-(plqc:listOf(int)), plqc:variable)
+    such_that plqccase1:odd_arg1
+    where (i(g,v), o(g,v), o(g,ng), o(g,g))
+    has_range {0,inf} % default 1-inf
+    limit 2
+    obbeys (L \= []).
+
 
 odd_arg1([L, _V]) :- odd_list(L).
 
 odd_list([]).
 odd_list([X|XS]) :- 0 is X mod 2, odd_list(XS).
 
-%% {rev_app, 1} og_type (listOf(int), variable).
-%% {rev_app, a} og_type (listOf(int), variable) such_that true has_range {1,1}.
-%% {rev_app, 2} og_type (variable, listOf(int)) such_that true has_range {1,1}.
+%% {rev_app, 1} of_type (listOf(int), variable).
+%% {rev_app, a} of_type (listOf(int), variable) such_that true has_range {1,1}.
+%% {rev_app, 2} of_type (variable, listOf(int)) such_that true has_range {1,1}.
 
-%% coiso og_type _A has_range _B.
+%% coiso of_type _A has_range _B.
 
 
 %% ?- plqc:quickcheck(plqccase1:qcprop(spec_rev_app_1)).

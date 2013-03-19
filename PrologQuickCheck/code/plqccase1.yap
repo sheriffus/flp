@@ -32,6 +32,18 @@ qcprop(l2dl2l) :-
         plqc:qcforall( listOf(int), L, (plqccase1:l2dl(L,DL-T), !,
                                         plqccase1:dl2l(DL-T,L1), !,
                                         L == L1), 50).
+l2dl2l_mirror(L) :-
+        l2dl(L,DL-T), !
+        dl2l(DL-T,L1), !,
+        L == L1.
+
+{plqccase1:l2dl2l_mirror, 1}
+    of_type (L-(plqc:listOf(int)))
+    where (i(g), o(g), o(g,ng), o(g,g))
+
+    has_range {0,inf} % default 1-inf
+    limit 2
+    obbeys (L \= []).
 % }}}
 
 % {{{ appending regular and difference lists

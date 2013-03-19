@@ -781,6 +781,7 @@ merge_mp(In, Out, Range, Limit, Call, Args, Prop) :-
         merge_mp2(Out, Range, Limit, Call, Args, Prop1),
         Prop = (In, Prop1).
 
+          % {{{ merge_mp2(Out, Range, Limit, Call, Args, Prop),
 %% merge_mp2(true, Range, Limit, Call, Args, Prop) :-
 %%         !,
 %%         merge_mp3(Range, Limit, Call, Args, Prop).
@@ -788,7 +789,11 @@ merge_mp2(OutProp, Range, Limit, Call, Args, Prop) :-
         %% print(Call),
         merge_mp3(Range, Limit, (Call, OutProp), Args, Prop).
 
+            % {{{ merge_mp3(Range, Limit, Call, Args, Prop),
 merge_mp3(any, Limit, Call, Args, Prop) :-
+        !,
+        bound_call(1, -2, Limit, Call, Args, Prop).
+merge_mp3(default, Limit, Call, Args, Prop) :-
         !,
         bound_call(1, -2, Limit, Call, Args, Prop).
 merge_mp3({Min,Max}, Limit, Call, Args, TheCall) :-
@@ -796,14 +801,16 @@ merge_mp3({Min,Max}, Limit, Call, Args, TheCall) :-
         %% bound_max(Max, Limit, UpperBound),
         TheCall = bound_call(LowerBound, Max, Limit, Call, Args).
 
+              % {{{ bound_min|max
 bound_min(inf, Limit, Limit) :- !.
 bound_min(A, B, C) :-
         C is min(A,B).
 bound_max(inf, Limit, Limit) :- !.
 bound_max(A, B, C) :-
         C is min(A,B).
+              % }}}
 
-%% bound_call(Lower, Upper, Limit, Call, Args).
+              % {{{ %% bound_call(Lower, Upper, Limit, Call, Args).
 bound_call(Lower, Upper, Limit, (Call, OutProp), Args) :-
         duplicate_term(Args, OriginalArguments),
         nb_setval(counter, 0),
@@ -840,36 +847,12 @@ bound_call(Lower, Upper, Limit, (Call, OutProp), Args) :-
             nb_getval(counter, Count),
             Result = {Count, Answers}
         ).
-
-%% bound_call(Upper, Lower, Upper, Limit, Call, Args) :-
-%%         !,
-%%         print('Number of answers exceeds range upper bound for'), nl,
-%%         print(Args), nl.
-%% bound_call(Limit, Lower, Upper, Limit, Call, Args) :-
-%%         !,
-%%         print('Reached limit for number of answers tested for'), nl,
-%%         print(Args), nl.
-%% bound_call(Count1, Lower, Upper, Limit, (Call, OutProp), Args) :-
-%%         !,
-%%         Count is Count1 +1,
-%%         (Call, OutProp,
-%%          bound_call(Count, Lower, Upper, Limit, (Call, OutProp), Args)
-%%     ;
-%%         %% failed and number of given answers is less than range lower bound
-%%         Count - Lower  > 0, !,
-%%         print('Did not reach range lower bound for'), nl, print(Args), nl
-%%         ).
+              % }}}
+            % }}}
+          % }}}
         % }}}
       % }}}
-    % }}}
 
-    % {{{ 
-    % }}}
-
-    % {{{ 
-    % }}}
-
-    % {{{ 
     % }}}
   % }}}
 
@@ -878,175 +861,3 @@ bound_call(Lower, Upper, Limit, (Call, OutProp), Args) :-
 max_tries_factoring(N,X) :-
         X is 5 *N.
 
-
- %%  18 %   The "existential quantifier" symbol is only significant to bagof
- %%  19 %   and setof, which it stops binding the quantified variable.
- %%  20 %   op(200, xfy, ^) is defined during bootstrap.
- %%  21 
- %%  22 % this is used by the all predicate
- %%  24 :- op(50,xfx,same).
- %%  25 
- %%  26 _^Goal :-
- %%  27         '$execute'(Goal).
- %%  28 
- %%  30 %   findall/3 is a simplified version of bagof which has an implicit
- %%  31 %   existential quantifier on every variable.
- %%  34 findall(Template, Generator, Answers) :-
- %%  35         ( '$is_list_or_partial_list'(Answers) ->
- %%  36                 true
- %%  37         ;
- %%  38                 '$do_error'(type_error(list,Answers), findall(Template, Generator, Answers))
- %%  39         ),
- %%  40         '$findall'(Template, Generator, [], Answers).
- %%  42 
- %%  43 % If some answers have already been found
- %%  44 findall(Template, Generator, Answers, SoFar) :-
- %%  45         '$findall'(Template, Generator, SoFar, Answers).
- %%  46 
- %%  47 % starts by calling the generator,
- %%  48 % and recording the answers
- %%  49 '$findall'(Template, Generator, SoFar, Answers) :-
- %%  50         nb:nb_queue(Ref),
- %%  51         (
- %%  52           '$execute'(Generator),
- %%  53          '$stop_creeping',
- %%  54           nb:nb_queue_enqueue(Ref, Template),
- %%  55          fail
- %%  56         ;
- %%  57          '$stop_creeping',
- %%  58          nb:nb_queue_close(Ref, Answers, SoFar)
- %%  59         ).
- %%  60 
- %%  61 
- %%  62 
- %%  63 % findall_with_key is very similar to findall, but uses the SICStus
- %%  64 % algorithm to guarantee that variables will have the same names.
- %%  65 %
- %%  66 '$findall_with_common_vars'(Template, Generator, Answers) :-
- %%  67         nb:nb_queue(Ref),
- %%  68         (
- %%  69           '$execute'(Generator),
- %%  70           nb:nb_queue_enqueue(Ref, Template),
- %%  71           fail
- %%  72         ;
- %%  73           nb:nb_queue_close(Ref, Answers, []),
- %%  74           '$collect_with_common_vars'(Answers, _)
- %%  75         ).
- %%  76 
- %%  77 '$collect_with_common_vars'([], _).
- %%  78 '$collect_with_common_vars'([Key-_|Answers], VarList) :-
- %%  79         '$variables_in_term'(Key, _, VarList),
- %%  80         '$collect_with_common_vars'(Answers, VarList).
- %%  81         
- %%  82 % This is the setof predicate
- %%  83 
- %%  84 setof(Template, Generator, Set) :-
- %%  85         ( '$is_list_or_partial_list'(Set) ->
- %%  86                 true
- %%  87         ;
- %%  88                 '$do_error'(type_error(list,Set), setof(Template, Generator, Set))
- %%  89         ),
- %%  90         '$bagof'(Template, Generator, Bag),
- %%  91         '$sort'(Bag, Set).
- %%  92 
- %%  93 % And this is bagof
- %%  94 
- %%  95 % Either we have excess of variables
- %%  96 % and we need to find the solutions for each instantiation
- %%  97 % of these variables
- %%  98 
- %%  99 bagof(Template, Generator, Bag) :-
- %% 100         ( '$is_list_or_partial_list'(Bag) ->
- %% 101                 true
- %% 102         ;
- %% 103                 '$do_error'(type_error(list,Bag), bagof(Template, Generator, Bag))
- %% 104         ),
- %% 105         '$bagof'(Template, Generator, Bag).
- %% 106 
- %% 107 '$bagof'(Template, Generator, Bag) :-
- %% 108         '$free_variables_in_term'(Template^Generator, StrippedGenerator, Key),
- %% 109         %format('TemplateV=~w v=~w ~w~n',[TemplateV,Key, StrippedGenerator]),
- %% 110         ( Key \== '$' ->
- %% 111                 '$findall_with_common_vars'(Key-Template, StrippedGenerator, Bags0),
- %% 112                 '$keysort'(Bags0, Bags),
- %% 113                 '$pick'(Bags, Key, Bag)
- %% 114         ;
- %% 115                 '$findall'(Template, StrippedGenerator, [], Bag0),
- %% 116                 Bag0 \== [],
- %% 117                 Bag = Bag0
- %% 118         ).
- %% 119 
- %% 120 
- %% 121 % picks a solution attending to the free variables
- %% 122 '$pick'([K-X|Bags], Key, Bag) :-
- %% 123         '$parade'(Bags, K, Bag1, Bags1),
- %% 124         '$decide'(Bags1, [X|Bag1], K, Key, Bag).
- %% 125 
- %% 126 '$parade'([K-X|L1], Key, [X|B], L) :- K == Key, !,
- %% 127         '$parade'(L1, Key, B, L).
- %% 128 '$parade'(L, _, [], L).
- %% 129 
- %% 130 %
- %% 131 % The first argument to decide gives if solutions still left;
- %% 132 % The second gives the solution currently found;
- %% 133 % The third gives the free variables that are supposed to be bound;
- %% 134 % The fourth gives the free variables being currently used.
- %% 135 % The fifth  outputs the current solution.
- %% 136 %
- %% 137 '$decide'([], Bag, Key0, Key, Bag) :- !,
- %% 138         Key0=Key.
- %% 139 '$decide'(_, Bag, Key, Key, Bag).
- %% 140 '$decide'(Bags, _, _, Key, Bag) :-
- %% 141         '$pick'(Bags, Key, Bag).
- %% 142 
- %% 143 % as an alternative to setof you can use the predicate all(Term,Goal,Solutions)
- %% 144 % But this version of all does not allow for repeated answers
- %% 145 % if you want them use findall  
- %% 146 
- %% 147 all(T,G same X,S) :- !, all(T same X,G,Sx), '$$produce'(Sx,S,X).
- %% 148 all(T,G,S) :- 
- %% 149         '$init_db_queue'(Ref),
- %% 150         ( '$catch'(Error,'$clean_findall'(Ref,Error),_),
- %% 151           '$execute'(G),
- %% 152           '$stop_creeping',
- %% 153           '$db_enqueue'(Ref, T),
- %% 154           fail
- %% 155         ;
- %% 156           '$stop_creeping',
- %% 157           '$$set'(S,Ref)
- %% 158         ).
- %% 159 
- %% 160 % $$set does its best to preserve space
- %% 161 '$$set'(S,R) :- 
- %% 162        '$$build'(S0,_,R),
- %% 163         S0 = [_|_],
- %% 164         S = S0.
- %% 165 
- %% 166 '$$build'(Ns,S0,R) :- '$db_dequeue'(R,X), !,
- %% 167         '$$build2'(Ns,S0,R,X).
- %% 168 '$$build'([],_,_).
- %% 169 
- %% 170 '$$build2'([X|Ns],Hash,R,X) :-
- %% 171         '$$new'(Hash,X), !,
- %% 172         '$$build'(Ns,Hash,R).
- %% 173 '$$build2'(Ns,Hash,R,_) :-
- %% 174         '$$build'(Ns,Hash,R).
- %% 175 
- %% 176 '$$new'(V,El) :- var(V), !, V = n(_,El,_).
- %% 177 '$$new'(n(R,El0,L),El) :- 
- %% 178         compare(C,El0,El),
- %% 179         '$$new'(C,R,L,El).
- %% 180 
- %% 181 '$$new'(=,_,_,_) :- !, fail.
- %% 182 '$$new'(<,R,_,El) :- '$$new'(R,El).
- %% 183 '$$new'(>,_,L,El) :- '$$new'(L,El).
- %% 184 
- %% 185 
- %% 186 '$$produce'([T1 same X1|Tn],S,X) :- '$$split'(Tn,T1,X1,S1,S2),
- %% 187         ( S=[T1|S1], X=X1;
- %% 188           !, produce(S2,S,X) ).
- %% 189 
- %% 190 '$$split'([],_,_,[],[]).
- %% 191 '$$split'([T same X|Tn],T,X,S1,S2) :- '$$split'(Tn,T,X,S1,S2).
- %% 192 '$$split'([T1 same X|Tn],T,X,[T1|S1],S2) :- '$$split'(Tn,T,X,S1,S2).
- %% 193 '$$split'([T1|Tn],T,X,S1,[T1|S2]) :- '$$split'(Tn,T,X,S1,S2).

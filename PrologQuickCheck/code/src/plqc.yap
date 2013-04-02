@@ -671,7 +671,9 @@ spec_prop([(Prop-prop)|MS], Pred, Args, (Prop, PropS)) :-
         !, spec_prop(MS, Pred, Args, PropS).
 spec_prop([(MPinfo-mp)|MS], Pred, Args, (MP, PropS)) :-
         !, apply_args(Pred, Args, Call),
+        print({[(MPinfo-mp)|MS], Pred, Args, (MP, PropS)}), nl,
         build_mp(MPinfo, Call, Args, MP),
+        print({dummy, Args, none, none, any, Limit}), nl,
         spec_prop(MS, Pred, Args, PropS).
 %% spec_prop([(Call-mp)|MS], Pred, Args, (Prop, PropS)) :-
 %%         !, apply_args(Pred, Args, Call),
@@ -705,7 +707,11 @@ build_mp((Range-range)-MP, Args, In, Out, Range, Limit) :-
         build_mp(MP, Args, In, Out, _range, Limit).
 build_mp((Limit-limit)-dummy, Args, none, none, any, Limit).
 build_mp(dummy, Args, none, none, any, Limit) :-
-        default_limit(Limit).
+        %% print({dummy, Args, none, none, any, Limit}), nl,
+        default_limit(Limit)
+
+%% ,        print({dummy, Args, none, none, any, Limit}), nl
+.
 
         % {{{ in_out(Dir, In, Outs)
 in_out((D1, D2), In, Outs) :-
@@ -729,8 +735,8 @@ default_limit(100).
         % }}}
 
         % {{{ wrap_mode_check(Dir, DProp, Args, Prop, WrappedProp)
-wrap_mode_check(in, Modes, Args, Prop, (Prop, !; print({failed_in_mode, Modes, Args}))).
-wrap_mode_check(out, Modes, Args, Prop, (Prop, !; print({failed_out_modes, Modes, Args}))).
+wrap_mode_check(in, Modes, Args, Prop, (Prop, !; print({failed_in_mode, Modes, Args}), nl)).
+wrap_mode_check(out, Modes, Args, Prop, (Prop, !; print({failed_out_modes, Modes, Args}), nl)).
         % }}}
 
         % {{{ build_Dir(Dirs, Args, DProp)
@@ -777,6 +783,8 @@ match_mode(ngv, A,  (not (ground(A); var(A)))).
         % {{{ merge_mp(In, Out, Range, Limit, Call, Args, Prop),
 merge_mp(true, Out, Range, Limit, Call, Args, Prop) :-
         !, merge_mp2(Out, Range, Limit, Call, Args, Prop).
+merge_mp(none, Out, Range, Limit, Call, Args, Prop) :-
+        !, merge_mp2(Out, Range, Limit, Call, Args, Prop).
 merge_mp(In, Out, Range, Limit, Call, Args, Prop) :-
         merge_mp2(Out, Range, Limit, Call, Args, Prop1),
         Prop = (In, Prop1).
@@ -785,17 +793,19 @@ merge_mp(In, Out, Range, Limit, Call, Args, Prop) :-
 %% merge_mp2(true, Range, Limit, Call, Args, Prop) :-
 %%         !,
 %%         merge_mp3(Range, Limit, Call, Args, Prop).
+merge_mp2(none, Range, Limit, Call, Args, Prop) :-
+        !, merge_mp3(Range, Limit, (Call), Args, Prop).
 merge_mp2(OutProp, Range, Limit, Call, Args, Prop) :-
         %% print(Call),
         merge_mp3(Range, Limit, (Call, OutProp), Args, Prop).
 
             % {{{ merge_mp3(Range, Limit, Call, Args, Prop),
-merge_mp3(any, Limit, Call, Args, Prop) :-
+merge_mp3(any, Limit, Call, Args, TheCall) :-
         !,
-        bound_call(1, -2, Limit, Call, Args, Prop).
-merge_mp3(default, Limit, Call, Args, Prop) :-
+        TheCall = bound_call(1, -2, Limit, Call, Args).
+merge_mp3(default, Limit, Call, Args, TheCall) :-
         !,
-        bound_call(1, -2, Limit, Call, Args, Prop).
+        TheCall = bound_call(1, -2, Limit, Call, Args).
 merge_mp3({Min,Max}, Limit, Call, Args, TheCall) :-
         bound_min(Min, Limit, LowerBound),
         %% bound_max(Max, Limit, UpperBound),
@@ -812,6 +822,7 @@ bound_max(A, B, C) :-
 
               % {{{ %% bound_call(Lower, Upper, Limit, Call, Args).
 bound_call(Lower, Upper, Limit, (Call, OutProp), Args) :-
+        print(sdf), nl,
         duplicate_term(Args, OriginalArguments),
         nb_setval(counter, 0),
         nb:nb_queue(Ref),
@@ -832,9 +843,10 @@ bound_call(Lower, Upper, Limit, (Call, OutProp), Args) :-
                 !,
                 print('Reached limit for number of answers tested for'), nl,
                 print(OriginalArguments), nl
-            ),
-            call(OutProp),
-            fail
+            ;
+                call(OutProp),
+                fail
+            )
         ;
             nb_getval(counter, Count),
             %% number of given answers is less than range lower bound

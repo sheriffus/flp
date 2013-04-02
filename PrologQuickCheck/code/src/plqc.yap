@@ -671,13 +671,8 @@ spec_prop([(Prop-prop)|MS], Pred, Args, (Prop, PropS)) :-
         !, spec_prop(MS, Pred, Args, PropS).
 spec_prop([(MPinfo-mp)|MS], Pred, Args, (MP, PropS)) :-
         !, apply_args(Pred, Args, Call),
-        print({[(MPinfo-mp)|MS], Pred, Args, (MP, PropS)}), nl,
         build_mp(MPinfo, Call, Args, MP),
-        print({dummy, Args, none, none, any, Limit}), nl,
         spec_prop(MS, Pred, Args, PropS).
-%% spec_prop([(Call-mp)|MS], Pred, Args, (Prop, PropS)) :-
-%%         !, apply_args(Pred, Args, Call),
-%%         spec_prop(MS, Pred, Args, PropS).
 spec_prop([_|MS], Pred, Args, PropS) :-
         spec_prop(MS, Pred, Args, PropS).
 
@@ -707,11 +702,7 @@ build_mp((Range-range)-MP, Args, In, Out, Range, Limit) :-
         build_mp(MP, Args, In, Out, _range, Limit).
 build_mp((Limit-limit)-dummy, Args, none, none, any, Limit).
 build_mp(dummy, Args, none, none, any, Limit) :-
-        %% print({dummy, Args, none, none, any, Limit}), nl,
-        default_limit(Limit)
-
-%% ,        print({dummy, Args, none, none, any, Limit}), nl
-.
+        default_limit(Limit).
 
         % {{{ in_out(Dir, In, Outs)
 in_out((D1, D2), In, Outs) :-
@@ -822,7 +813,6 @@ bound_max(A, B, C) :-
 
               % {{{ %% bound_call(Lower, Upper, Limit, Call, Args).
 bound_call(Lower, Upper, Limit, (Call, OutProp), Args) :-
-        print(sdf), nl,
         duplicate_term(Args, OriginalArguments),
         nb_setval(counter, 0),
         nb:nb_queue(Ref),

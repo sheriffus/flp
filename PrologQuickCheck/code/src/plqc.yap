@@ -20,7 +20,8 @@
 :- op(750, xfx, where).
 :- op(800, xfx, has_range).
 :- op(850, xfx, limit).
-:- op(900, xfx, obbeys).
+:- op(890, xfx, preCond).
+:- op(900, xfx, postCond).
 
 % {{{ qc top predicates
 
@@ -574,9 +575,16 @@ spec_expand(Predicate, TypingSpec, Property) :-
         %% Call and Args are holes for unifying later
         spec_expand([(dummy-mp)], Predicate, TypingSpec, Property).
 
-spec_expand(Modifiers, Pred, DomainRange obbeys Prop, Property) :-
+spec_expand(Modifiers, Pred, DomainRange preCond Prop, Property) :-
         !,
-        spec_expand([(Prop-prop)|Modifiers], Pred, DomainRange, Property).
+        spec_expand([(Prop-pre)|Modifiers], Pred, DomainRange, Property).
+spec_expand(Modifiers, Pred, DomainRange postCond Prop, Property) :-
+        !,
+        spec_expand([(Prop-post)|Modifiers], Pred, DomainRange, Property).
+%% spec_expand(Modifiers, Pred, DomainRange obbeys Prop, Property) :-
+%%         !,
+%%         print({DomainRange, Prop}), nl, 
+%%         spec_expand([(Prop-prop)|Modifiers], Pred, DomainRange, Property).
 spec_expand(Modifiers, Pred, DomDirRange limit Limit, Property) :-
         !,
         %% modify mp to check range
@@ -666,9 +674,14 @@ modify_gen([], Gen, Gen).
     % }}}
 
     % {{{ spec_prop(Modifiers, Pred, Args, Property)
+
 spec_prop([], _, _, true).
-spec_prop([(Prop-prop)|MS], Pred, Args, (Prop, PropS)) :-
+spec_prop([(Prop-pre)|MS], Pred, Args, (Prop, PropS)) :-
         !, spec_prop(MS, Pred, Args, PropS).
+spec_prop([(Prop-post)|MS], Pred, Args, (PropS, Prop)) :-
+        !, spec_prop(MS, Pred, Args, PropS).
+%% spec_prop([(Prop-prop)|MS], Pred, Args, (Prop, PropS)) :- % prop and props needed a reversed order
+%%         !, spec_prop(MS, Pred, Args, PropS).
 spec_prop([(MPinfo-mp)|MS], Pred, Args, (MP, PropS)) :-
         !, apply_args(Pred, Args, Call),
         build_mp(MPinfo, Call, Args, MP),
@@ -687,6 +700,7 @@ apply_args(Pred, [Arg|Args], Call, Acc) :-
       % }}}
 
       % {{{ build_mp(MPinfo, Call, Args, Prop)
+
 %% build_mp((Dir-dir)-R, Call, Args, Prop) :-
 build_mp(MP, Call, Args, Prop) :-
         build_mp(MP, Args, In, Out, Range, Limit),
@@ -772,6 +786,7 @@ match_mode(ngv, A,  (not (ground(A); var(A)))).
         % }}}
 
         % {{{ merge_mp(In, Out, Range, Limit, Call, Args, Prop),
+
 merge_mp(true, Out, Range, Limit, Call, Args, Prop) :-
         !, merge_mp2(Out, Range, Limit, Call, Args, Prop).
 merge_mp(none, Out, Range, Limit, Call, Args, Prop) :-
@@ -781,6 +796,7 @@ merge_mp(In, Out, Range, Limit, Call, Args, Prop) :-
         Prop = (In, Prop1).
 
           % {{{ merge_mp2(Out, Range, Limit, Call, Args, Prop),
+
 %% merge_mp2(true, Range, Limit, Call, Args, Prop) :-
 %%         !,
 %%         merge_mp3(Range, Limit, Call, Args, Prop).
@@ -791,6 +807,7 @@ merge_mp2(OutProp, Range, Limit, Call, Args, Prop) :-
         merge_mp3(Range, Limit, (Call, OutProp), Args, Prop).
 
             % {{{ merge_mp3(Range, Limit, Call, Args, Prop),
+
 merge_mp3(any, Limit, Call, Args, TheCall) :-
         !,
         TheCall = bound_call(1, -2, Limit, Call, Args).
@@ -812,6 +829,7 @@ bound_max(A, B, C) :-
               % }}}
 
               % {{{ %% bound_call(Lower, Upper, Limit, Call, Args).
+
 bound_call(Lower, Upper, Limit, (Call, OutProp), Args) :-
         duplicate_term(Args, OriginalArguments),
         nb_setval(counter, 0),
@@ -824,7 +842,7 @@ bound_call(Lower, Upper, Limit, (Call, OutProp), Args) :-
             nb:nb_queue_enqueue(Ref, Args),
             %% check counter
             (
-                C2 > Upper,
+                C2 > Upper, Upper >=0,
                 !,
                 print('Number of answers exceeds range upper bound for'), nl,
                 print(OriginalArguments), nl
@@ -849,10 +867,15 @@ bound_call(Lower, Upper, Limit, (Call, OutProp), Args) :-
             nb_getval(counter, Count),
             Result = {Count, Answers}
         ).
+
               % }}}
+
             % }}}
+
           % }}}
+
         % }}}
+
       % }}}
 
     % }}}

@@ -20,8 +20,8 @@
 :- op(750, xfx, where).
 :- op(800, xfx, has_range).
 :- op(850, xfx, limit).
-:- op(890, xfx, preCond).
-:- op(900, xfx, postCond).
+:- op(890, xfx, pre_cond).
+:- op(900, xfx, post_cond).
 
 % {{{ qc top predicates
 
@@ -575,10 +575,10 @@ spec_expand(Predicate, TypingSpec, Property) :-
         %% Call and Args are holes for unifying later
         spec_expand([(dummy-mp)], Predicate, TypingSpec, Property).
 
-spec_expand(Modifiers, Pred, DomainRange preCond Prop, Property) :-
+spec_expand(Modifiers, Pred, DomainRange pre_cond Prop, Property) :-
         !,
         spec_expand([(Prop-pre)|Modifiers], Pred, DomainRange, Property).
-spec_expand(Modifiers, Pred, DomainRange postCond Prop, Property) :-
+spec_expand(Modifiers, Pred, DomainRange post_cond Prop, Property) :-
         !,
         spec_expand([(Prop-post)|Modifiers], Pred, DomainRange, Property).
 %% spec_expand(Modifiers, Pred, DomainRange obbeys Prop, Property) :-

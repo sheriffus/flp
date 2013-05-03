@@ -229,6 +229,9 @@ qcprop({double_rev_app_body, L}) :-
 qcprop(equiv_acc_app_dapp_rev) :-
         plqc:qcforall( listOf(int), L, (plqccase1:rev_acc(L,LR), plqccase1:rev_acc(LR,L))).
 
+qcprop(wrong_drev) :-
+        plqc:qcforall( listOf(int), XS, (plqccase1:rev_acc(XS,RX), plqccase1:rev_app(RX,RX))).
+
 %% ?- plqc:quickcheck(plqccase1:qcprop(l2dl2l)).
 %% ?- plqc:quickcheck(plqccase1:qcprop(double_rev)).
 

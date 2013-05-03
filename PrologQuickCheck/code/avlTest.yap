@@ -6,6 +6,8 @@
 :- add_to_path( './src/' ).
 :- reconsult(plqc).
 
+:- reconsult(avl).
+
 %% bst - T is a binary search tree
 %% meaning a node's key is greater than all keys in the left subtree
 %% and is smaller than all keys in the right subtree
@@ -31,7 +33,7 @@ qcprop(bst, {(tree, T), (curr_key, GetKey), (cmp_key, CmpKeys), (left, L), (righ
 qcprop(bst, {(gt, GTS), (lt, LTS), (tree, RT), (curr_key, GetKey), (cmp_key, CmpKeys), (left, L), (right, R), (is_nil, IsNil)}) :- 
         call(IsNil, T, V),
         (
-            V=false, !,  call(GetKey, T Key),  call(L, T, LT),   call(R, T, RT),
+            V=false, !,  call(GetKey, T, Key),  call(L, T, LT),   call(R, T, RT),
             %% Key is greater then or equal to all lesser values (LTS)
             (forall(member(X, LTS), call(CmpKeys, X, Key, lte)), !
             ;  print(bst_key_not_inorder1), nl, fail),
@@ -63,8 +65,8 @@ qcprop(avl, {(tree, T), (height, H), (curr_key, GetKey), (cmp_key, CmpKeys), (le
                            (left, L),(right, R),(is_nil, IsNil)}),
             qcprop(bst, {(gt, []), (lt, [Key]), (tree, RT), (height, RH),
                            (curr_key, GetKey), (cmp_key, CmpKeys),
-                           (left, L),(right, R),(is_nil, IsNil)})
-            (abs(LH-RH) <= 1, !; print(height_mismatch), fail),
+                           (left, L),(right, R),(is_nil, IsNil)}),
+            (abs(LH-RH) =< 1, !; print(height_mismatch), fail),
             H is 1+ max(LH,RH)
         ;
             %% if this is an empty tree, it is an avl of height 0
@@ -91,8 +93,8 @@ qcprop(avl, {(gt, GTS), (lt, LTS), (tree, T), (height, H), (curr_key, GetKey), (
                            (left, L),(right, R),(is_nil, IsNil)}),
             qcprop(bst, {(gt, GTS), (lt, [Key|LTS]), (tree, RT), (height, RH),
                            (curr_key, K), (cmp_key, CmpKeys),
-                           (left, L),(right, R),(is_nil, IsNil)})
-            (abs(LH-RH) <= 1, !; print(height_mismatch), fail),
+                           (left, L),(right, R),(is_nil, IsNil)}),
+            (abs(LH-RH) =< 1, !; print(height_mismatch), fail),
             H is 1+ max(LH,RH)
         ;
             %% if this is an empty tree, it is an avl of height 0
@@ -109,7 +111,7 @@ qcprop(rbt, {(tree, T), (colour, GetColour), (curr_key, GetKey), (cmp_key, CmpKe
         (
             %% a rbt must be a bst
             qcprop(bst, {(tree, T), (curr_key, GetKey), (cmp_key, CmpKeys),
-             (left, L), (right, R), (is_nil, IsNil)})
+             (left, L), (right, R), (is_nil, IsNil)}),
             V=false, !,  call(GetKey, T, Key),  call(L, T, LT),  call(R, T, RT),
             qcprop(rbt, {(tree, LT), (parent, Colour), (black_path, LN), (colour, GetColour),
              (left, L), (right, R), (is_nil, IsNil)}),
@@ -149,3 +151,6 @@ qcprop(rbt, {(tree, T), (parent, PColour), (black_path, N), (colour, GetColour),
 % }}}
 
 
+% {{{ testing a copy of Yaps avl.yap module
+
+% }}}

@@ -1,11 +1,13 @@
 NAME = paper
 
+.phony: default
+
 default: $(NAME).pdf
 
 %.pdf: %.tex 
 	latexmk -pdf $<
 
-%.tex: %.lhs %.fmt header.tex abstract.tex sec*.tex elements/*/*.tex
+%.tex: %.lhs %.fmt *.tex
 	lhs2TeX  $< > $@
 
 clean:

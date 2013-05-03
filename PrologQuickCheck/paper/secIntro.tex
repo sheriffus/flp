@@ -17,32 +17,102 @@ systems.
 Early detection and correction of bugs is then crucial to minimise
 maintenance efforts and therefore associated costs.
 %
-To detect or prevent such shortcomings testing is widely used with
+To detect or prevent such shortcomings testing has been widely used with
 growing importance in industry.
  \todo{I do not like the word technique here; maybe change whole sentence}
  \todo{cite some quviq industry related testing job}
+%
+Regardless of the formal and constructive nature of logic programming,
+rare cases and typing mistakes makes it necessary to regularly test
+during logic program development.
 
 %  What (is the subject)
 Testing a software component or components consists of executing it for
 a pre-selected set of inputs (test suite) and inspect if the outputs
 respect the expected results.
 %
-The way we choose the individual test cases to be part of the test suite
-is 
+%% Software testing can be classified by the granularity of test focus, the
+%% tester point of view or approach.
+%% %
+%% Tests can focus on the behaviour of single components (unit testing), the
+%% correct interaction of components (integration testing) or that the
+%% whole system complies to its specification (system testing).
+%% %
+%% A library user has its access limited to the given interface in order to
+%% test its behaviour whereas the developer may want to check invariants
+%% and the integrity of internal data-structures.
+%
+The way individual test cases are chosen to be part of the test suite
+can be either manual, where the test developer designs test cases one by
+one, or with any degree of automation, resorting to tools for the
+effect.
+%
+Such tools reduce time needed for testing software components and make
+it easier to test developing programs.
+%
+In this paper we will describe \plqc{} (\Prolog\QuickCheck), a \Prolog{}
+version of the property based testing framework \QuickCheck, a tool for
+testing \Prolog{} programs equipped with predicate specification
+test generation.
+\todo{cite quickcheck}
+
 
 %  why  (are we exploring it) and 
-
+Programming in logic languages such as \Prolog{} benefits from automatic
+testing due to its untyped nature and backtracking execution model.
+%
+Its ties to logic reduces the gap between the program and the
+specification of properties to be tested.
+%
+Therefore, a property based approach to testing is intuitive for the
+logic programmer.  
 
 
 %  how  (are we doing it)
+Tests are automatically run from formal specifications of general
+properties and feedback is given to the tool user about their
+evaluation.
+%
+Properties are stated through a domain-specific language wrapping a
+\Prolog{} goal, which \plqc{} checks for a number of inputs.
+%
+Singleton properties are, even though nor enforced, pure predicate calls
+whose successful execution determines that the property holds for the
+given input.
 
+
+The automatic generation of input for a particular test case of a
+property is random w.r.t. a maximum size for the generated value.
+%
+The user has the freedom to decide how to compose the test data
+generators to best fit the tests' purpose.
+%
+From simple generators and using the provided predicate generator
+combinators it is possible to obtain generators for more complex
+domains, provide suitable value distributions for specific predicates or
+predicate uses and to ensure the relation between the arguments applied
+to the predicates being tested is valid.
+
+
+Following the original \QuickCheck{} implementation, our main tool is
+lightweight and completely integrated in \Prolog{}.
+%
+On top of this lightweight testing tool we have built predicate
+specification testing.
+%
+By specifying some aspects of a predicate in a proper specification
+language it is possible to generate a \plqc{} property and check it.
+%
+We have used \plqc{} and its predicate specification in a number of
+predicates and even libraries.
 
 %}}} introduction
 
 
 %{{{ paper outline
-%% This paper is organised as follows.
+This paper is organised as follows.
 %
+%% \refSecI{}
 %}}} outline
 
 

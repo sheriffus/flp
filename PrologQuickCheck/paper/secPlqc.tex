@@ -1,0 +1,209 @@
+% -*- mode: latex; mode: folding -*-
+
+\section{\plqc}
+\label{sec:plqc}
+
+The \plqc{} tool is inspired by \QuickCheck{} and retains its main
+ideas.
+%
+It is an automatic software testing tool that generates test cases based
+on properties written in a dialect of the programming language.
+%
+Nevertheless, since \Prolog{} does not possess a built-in static strong
+type system, the interface of \plqc{} differs from the \Haskell{}
+\QuickCheck{} one.
+
+
+
+Since \plqc{} is a tool to test \Prolog{} programs we took advantage of
+the nature of the language and loosened the requirements for property
+specification.
+%
+Traditional interfaces rely on built-in mechanisms, such as equality or
+a boolean type, to determine primitive properties.
+%
+Even if they are composed of software units of other types they still
+need to be able to evaluate to a truth value in order to assess a
+property validity.
+%
+With \Prolog{} there are no such restrictions: any goal my be a property.
+
+
+Instead of expecting a reduced set of syntactic elements to describe
+properties, in \plqc{}, a property is a goal and it is satisfied when
+the execution of the goal, given all necessary input, succeeds.
+%
+Input to such goals is given based on \plqc{} universal quantification
+over a domain represented by a term generator.
+%
+Testing will consist on repetitively calling the goal for multiple
+potential inputs, extreme care is advised when choosing goals for
+properties.
+%
+A strong static type system can ensure that only safe properties, pure
+functions or predicates, are allowed.
+%
+We choose to let the user be free to use more involved properties, who
+is then responsible to seek that the impure parts of a property are self
+contained and do not interfere with posterior test cases.
+
+
+
+\subsection{Properties}
+
+The expressive power of properties is the same as \Prolog{} predicates,
+since the whole language is allowed.
+%
+This enables the specification of a good range of properties about
+regular predicates through the use of meta-predicates, such as checking
+the mode of a term.
+%
+In this section we give some example how to define properties.
+
+
+Let us start with an example about reversing lists, for which we assume the
+predicate \yap{rev/2}, relating two lists with reversed element order.
+%
+The property and predicate to be tested are in the same module,
+\yap{mod}, and use the \plqc{} tool module.
+%
+The \yap{rev/2} predicate has a desired behaviours, which
+coincides with laws of a reversing operation.
+{
+\aligncolumn{7}{@@{}>{\hspre}r<{\hspost}@@{}}
+\begin{code}
+      rev([])   == []
+  rev(XS++YX)   == rev(YS) ++ rev(XS)
+  rev(rev(XS))  == XS
+\end{code}
+}
+These laws are intended to be satisfied for ground, finite lists
+\yap{XS} and \yap{YS}.
+%
+We represent them as \Prolog{} goals we can run and check.
+%
+\begin{yapcode}
+ rev([], [])
+ append(XS, YS, ZS), rev(ZS, RZ),
+  rev(XS, RX), rev(YS, RY),
+   append(RY, RX, RZ)
+ rev(XS, RX), rev(RX, XS)
+\end{yapcode}
+%
+Going into more detail on the third property, we need to match its
+semantics to the intended property.
+%
+As is, it can have multiple meanings depending on its arguments modes.
+%
+In this particular case we want to express the symmetry of the
+\yap{rev/2} relation in terms of its intended use: given a ground
+list in one argument retrieve a result in the other.
+%
+The next step is optional, to generalise the goal and parametrise it
+accordingly.
+%
+\begin{yapcode}
+ qcprop({drev, XS}) :-
+   rev(XS, RX), rev(RX, XS).
+\end{yapcode}
+%
+We write a clause for the special predicate \yap{qcprop/1}.
+%
+A call to this predicate in a property causes \plqc{} to inspect the
+body of the clause, making it possible to abstract long or frequently
+used properties and compose complex properties from smaller elements.
+%
+This is still not complete to use with \plqc{} for random testing, we
+need to specify the domain over which we abstract the property.
+\todo{CA: I don't like this sentence much...}
+%
+\begin{yapcode}
+ qcprop(double_rev) :-
+   plqc:qcforall(listOf(int), XS,
+                 mod:qcprop({drev, XS}))
+\end{yapcode}
+%
+We want to test our \yap{drev} property for random \yap{XS} lists.
+%
+When a polymorphic operation is being tested it is usually sufficient
+to test it for a domain such as integers, so in this particular example
+we state the property in terms of lists of integers.
+%
+We use \plqc{}'s universal quantification to which we describe the
+\emph{type} of terms we want to get randomly generated,
+\yap{listOf(int)}, the variable to bind the value to, \yap{XS},
+and finally the property.
+%
+Now we can check the property using its alias \yap{mod:qcprop(double_rev)}.
+\begin{yapcode}
+   ?- plqc:quickcheck(mod:qcprop(double_rev)).
+ OK: Passed 100 test(s).
+ yes
+\end{yapcode}
+%
+The \yap{plqc:quickcheck/1} predicate is the simplest property tester in
+\plqc{}, taking a property as a parameter and checking it for a large
+number (100 is the default number) of generated test cases.
+
+
+We could make the mistake of typing the property wrong, which would deem
+it impossible to be satisfied.
+%
+\begin{yapcode}
+ qcprop(wrong_drev) :-
+   plqc:qcforall(listOf(int), XS,
+                 (plqccase1:rev(XS,RX),
+                  plqccase1:rev(RX,RX))).
+\end{yapcode}
+%
+Here we mistakenly make the second call to \yap{rev/2} with \yap{RX} as
+second parameter.
+%
+\begin{yapcode}
+   ?- plqc:quickcheck(plqccase1:qcprop(wrong_drev)).
+ Failed: After 7 test(s).
+ Counterexample found: [[3,0,1,0]] 
+ yes
+\end{yapcode}
+A counterexample is found and showed in a list with an element for each
+generated input value.
+%
+In this example it is just a list with four elements, but it can show
+the sequence of values instantiated in each universal quantification of
+the property.
+%
+A thing to notice here is that a counterexample is only found after a
+few tests.
+%
+This is due to the fact that test cases are randomly generated based on
+a maximum size and therefore it is more likely to get lists with 0 or 1
+element early, which actually obey the property.
+
+
+\subsection{Generators}
+We saw a reference to \yap{listOf(int)} in the previous example.
+%
+This is an example of a \emph{generator} in \plqc{}.
+
+
+
+Generators also show some differences towards the generators in a
+strongly typed version of the tool.
+%
+In a setting with static types, generators pick values inside a type
+according to some criteria.
+%
+In \plqc{} they are special predicates that randomly choose an element
+from a domain.
+%
+In fact, the generators themselves define the domain by the elements
+they generate, regardless of their probability distribution.
+%
+They define a set of terms and therefore a \emph{type}.
+
+
+
+
+\begin{yapcode}
+\end{yapcode}
+

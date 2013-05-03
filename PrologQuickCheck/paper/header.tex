@@ -9,11 +9,44 @@
 %% \usepackage{array} % For \extrarowheight.
 %% \usepackage{bussproofs}
 %% \usepackage{multirow}
+\usepackage{listings}
 
 
 %% \usepackage{caption}
 %% \usepackage{subcaption}
 %% \DeclareCaptionType{copyrightbox}
+
+\lstset{language=Prolog}          % Set your language (you can change
+                                % the language for each code-block
+                                % optionally)
+%style for prolog programs
+\lstdefinestyle{yap}{
+  language=Prolog,
+  basicstyle=\small\ttfamily,
+%  basicstyle=\scriptsize\ttfamily,
+  keywordstyle=\ttfamily\bfseries,
+  showstringspaces=false,
+  otherkeywords={ <->, (,) },
+}
+%% \providecommand{\yap}[1]{\lstinline[style=yap]@#1@}%
+\lstnewenvironment{yapcode}
+  {\lstset{style=yap}\lstset{basicstyle=\small\ttfamily}}
+  %% {\lstset{style=yap}\lstset{basicstyle=\scriptsize\ttfamily}}
+  {}
+%% \lstnewenvironment{erlcodeB}
+%%   {\lstset{style=erl}
+%%    \lstset{basicstyle=\scriptsize\ttfamily}
+%% %   \lstset{float=*}
+%%    \lstset{multicols=2}
+%%    %% \lstset{columns=fixed}
+%%    %% \lstset{title=Example}
+%%    %% \lstset{caption=#2}
+%%    %% \lstset{label=#3}
+%%    %% \lstset{captionpos=b}
+%% }
+%%   {}
+
+\newcommand{\yap}[1]{\lstinline[style=yap]{#1}}
 
 \newcommand{\todo}[2][?]{\marginpar{\raggedright \tiny TODO: #2}}
 \newcommand{\refSec}[1]{Sec.~\ref{#1}}
@@ -25,6 +58,8 @@
 \newcommand{\refTabI}[1]{Table~\ref{#1}}
 
 \newcommand{\Prolog}[0]{{\sf Prolog}}
+\newcommand{\Haskell}[0]{{\sf Haskell}}
+\newcommand{\QuickCheck}[0]{{\sf QuickCheck}}
 \newcommand{\plqc}[0]{{\sf plqc}}
 
 %% % ----------------------------------------------------

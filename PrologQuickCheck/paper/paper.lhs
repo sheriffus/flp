@@ -4,7 +4,7 @@
 %include lhs2TeX.fmt
 %include lhs2TeX.sty
 
-%% %include polycode.fmt
+%include polycode.fmt
 %include paper.fmt
 
 %include header.tex
@@ -40,6 +40,10 @@ LIACC - University of Porto}
 % Metaprogramming, Domain Specific Languages
 
 %include secIntro.tex
+%include secPlqc.tex
+%include sec.tex
+%include secImplementation.tex
+%include secRelWork.tex
 %include secConclusion.tex
 %% %include sec3.tex
 %% %include sec4.tex

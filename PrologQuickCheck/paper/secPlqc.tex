@@ -157,7 +157,7 @@ it impossible to be satisfied.
 \end{yapcode}
 %
 Here we mistakenly make the second call to \yap{rev/2} with \yap{RX} as
-second parameter.
+the second parameter.
 %
 \begin{yapcode}
    ?- plqc:quickcheck(plqccase1:qcprop(wrong_drev)).
@@ -176,8 +176,10 @@ A thing to notice here is that a counterexample is only found after a
 few tests.
 %
 This is due to the fact that test cases are randomly generated based on
-a maximum size and therefore it is more likely to get lists with 0 or 1
-element early, which actually obey the property.
+a maximum size.
+%
+The size criteria causes it to be more likely to get lists with 0 or 1
+element early, which actually obeys the property.
 
 
 \subsection{Generators}
@@ -187,8 +189,8 @@ This is an example of a \emph{generator} in \plqc{}.
 
 
 
-Generators also show some differences towards the generators in a
-strongly typed version of the tool.
+There are also some differences between \plqc{} generators and the
+generators in a strongly typed version of the tool.
 %
 In a setting with static types, generators pick values inside a type
 according to some criteria.
@@ -202,7 +204,54 @@ they generate, regardless of their probability distribution.
 They define a set of terms and therefore a \emph{type}.
 
 
+In \plqc{} we differentiate generators from generator predicates.
+%
+The bridge between the generator and the corresponding generator
+predicate is made by \plqc{}'s quantification.
+%
+A generator is any callable predicate that can generate a value given a
+size parameter.
+%
+The bridge consists of calling the generator it with the extra
+arguments: the quantified variable and the current size parameter.
+%
+The generator predicate can use the size to guide the value
+construction.
+%
+The value is passed to the property by the \plqc{} quantification
+through unification.
+\todo{CA: this paragraph sound awkward... need to rephrase somehow}
 
+
+
+Together with the generator predicates for basic domains, we make
+available some predicate combinators to construct more complex kinds of
+generators.
+%
+Generator predicates can have multiple parameters in order to build
+values, but the two last arguments must always be, in this order, the
+generated value and the size.
+%
+\begin{yapcode}
+ generator_predicate(A1,...,An,Value,Size).
+\end{yapcode}
+%
+When a generator predicate uses another generator predicate to build a
+value, the parameter passed is the generator form as seen in the example
+where the generator for lists, \yap{lisstOf(int)}, is parametrised by a
+generator for its elements.
+\todo{CA: long sentence, would be happy to rephrase}
+%
+
+\begin{yapcode}
+\end{yapcode}
+
+\begin{yapcode}
+\end{yapcode}
+
+
+\begin{yapcode}
+\end{yapcode}
 
 \begin{yapcode}
 \end{yapcode}

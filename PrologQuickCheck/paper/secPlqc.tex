@@ -1,55 +1,8 @@
 % -*- mode: latex; mode: folding -*-
 
-\section{\plqc}
-\label{sec:plqc}
+\section{Properties}
+\label{sec:properties}
 
-The \plqc{} tool is inspired by \QuickCheck{} and retains its main
-ideas.
-%
-It is an automatic software testing tool that generates test cases based
-on properties written in a dialect of the programming language.
-%
-Nevertheless, since \Prolog{} does not possess a built-in static strong
-type system, the interface of \plqc{} differs from the \Haskell{}
-\QuickCheck{} one.
-
-
-
-Since \plqc{} is a tool to test \Prolog{} programs we took advantage of
-the nature of the language and loosened the requirements for property
-specification.
-%
-Traditional interfaces rely on built-in mechanisms, such as equality or
-a boolean type, to determine primitive properties.
-%
-Even if they are composed of software units of other types they still
-need to be able to evaluate to a truth value in order to assess a
-property validity.
-%
-With \Prolog{} there are no such restrictions: any goal my be a property.
-
-
-Instead of expecting a reduced set of syntactic elements to describe
-properties, in \plqc{}, a property is a goal and it is satisfied when
-the execution of the goal, given all necessary input, succeeds.
-%
-Input to such goals is given based on \plqc{} universal quantification
-over a domain represented by a term generator.
-%
-Testing will consist on repetitively calling the goal for multiple
-potential inputs, extreme care is advised when choosing goals for
-properties.
-%
-A strong static type system can ensure that only safe properties, pure
-functions or predicates, are allowed.
-%
-We choose to let the user be free to use more involved properties, who
-is then responsible to seek that the impure parts of a property are self
-contained and do not interfere with posterior test cases.
-
-
-
-\subsection{Properties}
 
 The expressive power of properties is the same as \Prolog{} predicates,
 since the whole language is allowed.
@@ -182,7 +135,39 @@ The size criteria causes it to be more likely to get lists with 0 or 1
 element early, which actually obeys the property.
 
 
-\subsection{Generators}
+Since properties are \Prolog{} goals,  we get for free the built-in
+features to compose goals in a program.
+%
+We can make logical statements with built-in control predicates:
+truth values, conjunction, disjunction, implication or negation.
+%
+\begin{yapcode}
+   true; fail
+   rev(XS, RX), rev(RX, XS).
+   XS = []; XS = [H||T].
+   fail -> true
+   \+(fail)
+\end{yapcode}
+%
+Other control predicates, such as cut (\yap{!}), are also allowed in
+order to refine the meaning of a property.
+%
+Extreme care is advised when choosing goals containing impure or
+meta-predicates for properties.
+%
+In a setting with a strong static type system it can ensure that only
+safe properties, pure functions or predicates, are allowed.
+%
+We choose to let the user be free to use more involved properties, who
+is then responsible to seek that the impure parts of a property are self
+contained and do not interfere with posterior test cases and are not
+influenced by previous ones.
+\todo{CA: last paragraph a little off the story line}
+
+
+\section{Generators}
+\label{sec:generators}
+
 We saw a reference to \yap{listOf(int)} in the previous example.
 %
 This is an example of a \emph{generator} in \plqc{}.

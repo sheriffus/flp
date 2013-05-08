@@ -14,4 +14,41 @@ It is just a form to express some predicate features we thought to be of
 importance in a way that suited our needs.
 
 
+Our general specification form of a predicate \yap{p/n} consists, in its
+core, of a set of specification clauses about input types.
+%
+\begin{code}
+predicate specification clause
+  p Id
+parameter input types
+  T1, ..., Tn
+\end{code}
+%
+Various aspects of the predicate for the particular input type in
+question can be added to a specification clause.
+%
+\begin{code}
+parameter relation
+  irel([A1,...,An])
+mode
+  i(Mi1,...,Min), [o(Mo1,...,Mon)]
+range
+  {Min,Max}
+pre/post conditions
+  Goal
+\end{code}
+
+
+\subsection{Types}
+
+As mentioned in \refSec{sec:generators}, types in \plqc{} differ from
+the regular notion of type.
+%
+Our types are not defined by 
+are the set of
+terms a generator produces
+\subsection{Domain Precondition}
+\subsection{Mode}
+\subsection{Range}
+\subsection{Properties}
 

@@ -44,8 +44,8 @@ pre/post conditions
 As mentioned in \refSec{sec:generators}, types in \plqc{} differ from
 the regular notion of type.
 %
-Our types are not defined by a set of ground terms but rather by the set
-of terms produced by a generator.
+Our types are not defined by a set of \emph{ground} terms but rather by
+the set of terms produced by a generator.
 %
 These are the types used in predicate specification and are also
 the only mandatory part of the specification.
@@ -59,6 +59,11 @@ predicate input.
 This approach for types already encloses, by domain definition, the type
 precondition.
 
+
+\begin{definition}
+\label{def:type}
+A {\em type} is a non-empty set of terms.
+\end{definition}
 
 
 The types mentioned in a predicate specification clause are \plqc{}
@@ -84,6 +89,16 @@ predicate.
 %
 Correct typing of parameters may be insufficient to express allowed
 input.
+%
+Sometimes the arguments must obey a relation extending type information,
+based on the actual values of the parameters.
+
+
+\begin{definition}
+\label{def:type}
+A {\em domain precondition} is a non-empty set of terms.
+\end{definition}
+
 \subsection{Mode}
 \subsection{Range}
 \subsection{Properties}

@@ -67,7 +67,7 @@ body of the clause, making it possible to abstract long or frequently
 used properties and compose complex properties from smaller elements.
 %
 This is still not complete to use with \plqc{} for random testing, we
-need to specify the domain over which we abstract the property.
+need to specify the set of values over which we abstract the property.
 \todo{CA: I don't like this sentence much...}
 %
 \begin{yapcode}
@@ -79,7 +79,7 @@ need to specify the domain over which we abstract the property.
 We want to test our \yap{drev} property for random \yap{XS} lists.
 %
 When a polymorphic operation is being tested it is usually sufficient
-to test it for a domain such as integers, so in this particular example
+to test it for integers, so in this particular example
 we state the property in terms of lists of integers.
 %
 We use \plqc{}'s universal quantification to which we describe the
@@ -181,9 +181,9 @@ In a setting with static types, generators pick values inside a type
 according to some criteria.
 %
 In \plqc{} they are special predicates that randomly choose an element
-from a domain.
+from a set of values.
 %
-In fact, the generators themselves define the domain by the elements
+In fact, the generators themselves define the set by the elements
 they generate, regardless of their probability distribution.
 %
 They define a set of terms and therefore a \emph{type}.
@@ -213,7 +213,7 @@ through unification.
 
 
 
-Together with the generator predicates for basic domains, we make
+Together with the generator predicates for basic sets of values, we make
 available some predicate combinators to construct more complex kinds of
 generators.
 %

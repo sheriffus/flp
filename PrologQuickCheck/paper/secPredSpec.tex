@@ -44,8 +44,8 @@ pre/post conditions
 As mentioned in \refSec{sec:generators}, types in \plqc{} differ from
 the regular notion of type.
 %
-Our types are not defined by a set of ground terms but rather the set of
-terms produced by a generator.
+Our types are not defined by a set of ground terms but rather by the set
+of terms produced by a generator.
 %
 These are the types used in predicate specification and are also
 the only mandatory part of the specification.
@@ -53,21 +53,37 @@ the only mandatory part of the specification.
 The reason for this is the goal of the specification, which is to be
 automatically tested.
 %
+Types defined in this manner depict perfectly possible forms of
+predicate input.
+%
+This approach for types already encloses, by domain definition, the type
+precondition.
 
 
 
 The types mentioned in a predicate specification clause are \plqc{}
 generators used to automatically create individual test cases.
 %
-The type in a specification clause is partial in the sense that it only
-specifies the predicate should succeed when given elements of such types
-as parameters.
+This means that the type in a specification clause is partial in the
+sense that it only specifies the predicate should succeed when given
+elements of such types as parameters.
 %
-It states nothing about other kinds of terms.
-
+It states nothing about parameters of other kinds.
+%
+Other input types can be covered by other specification clauses with
+different generators.
+%
+The effect of a procedure execution for types not covered by any of the
+specification clauses is considered undefined.
 
 
 \subsection{Domain Precondition}
+
+The domain precondition is a restriction over the set of parameters of a
+predicate.
+%
+Correct typing of parameters may be insufficient to express allowed
+input.
 \subsection{Mode}
 \subsection{Range}
 \subsection{Properties}

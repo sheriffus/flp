@@ -422,7 +422,8 @@ suchThatMaybe(GenA, PredA, A) :-
         suchThatMaybe(GenA, PredA, A, S).
 suchThatMaybe(GenA, PredA, A, S) :-
         call_with_args(GenA, A, S),
-        call_with_args(PredA, A).
+        duplicate_term(A, ATest),  % precaution against binding properties
+        call_with_args(PredA, ATest).
 
 %% | Randomly uses one of the given generators. The input list
 %% must be non-empty.

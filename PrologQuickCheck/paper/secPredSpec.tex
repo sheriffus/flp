@@ -153,8 +153,11 @@ There are two parts of a directionality: input and output.
 They must hold for a predicate's parameters before and after execution
 respectively.
 %
+This means a full directionality denotes a pre- and a post-condition to
+the execution of the specified predicate.
+%
 In \plqc{} these properties are checked for each test case when
-specified.
+specified before and after calling the predicate, accordingly.
 
 
 Input directionality acts as a sanity check for the elements of the
@@ -195,6 +198,53 @@ respectively.
 \end{definition}
 
 
-\subsection{Range}
+\todo{talk a little about inconsistent directionalities ($v<ngv<g$),
+  which are only caught during testing...}
+\todo{maybe also about minimality and how we just don't care, we test}
+
+\subsection{Multiplicity}
+The number of answers a predicate call has can also be valuable
+information.
+%
+Knowing a predicate has a finite search space is a termination
+guarantee for predicates using it.
+%
+Conventionally, multiplicity information, or \emph{range}, is given for
+each directionality.
+%
+In \plqc{} we do not require that a directionality is given, in which
+case no tests are performed regarding parameter form and the \emph{any}
+mode is assumed for all parameters.
+%
+The multiplicity is tied to the domain of each specification clause
+where defined.
+
+
+The range of answers is given with two bounds: \emph{Min} and
+\emph{Max}.
+%
+These values are the lower and upper bounds to the number of answers.
+%
+The lower bound should not exceed the upper bound and they both take
+non-negative integer values up to infinity (denoted by the atom
+\yap{inf}).
+%
+When no explicit multiplicity is given the default we chose to follow is
+$\langle 1, inf \rangle $.
+%
+When testing a specification clause, the default minimal expected
+behaviour is that the domain is successfully accepted by the predicate.
+%
+Therefore we tried to mirror this when there are other features
+specified but no multiplicity, expecting at least one solution.
+
+
+It is necessary to impose a limit when the upper bound is infinity or an
+excessively large number.
+%
+One can state the maximum number of answers necessary to assume the
+answer range is sufficiently close to the upper bound with a positive
+integer.
+
 \subsection{Properties}
 

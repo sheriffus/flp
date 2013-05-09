@@ -100,7 +100,7 @@ predicate.
 
 
 \begin{definition}
-\label{def:type}
+\label{def:domain}
 A {\em domain} of a procedure p/n is a set of term
 n-tuples such that\\
 \qquad $\langle t_1,...,t_n \rangle \in (\tau_1 \times ... \times
@@ -137,7 +137,63 @@ by the notation for ground and variable as well as the negation:
 This results in the main modes and their pairwise combinations: \emph{g},
 \emph{v}, \emph{ngv},  \emph{ng}, \emph{nv}, \emph{gv}.
 %
-A parameter that can be used in any form is denoted \emph{any}.
+A parameter that can be used in any form is denoted by the mode
+identifier \emph{any}.
+
+
+\begin{definition}
+\label{def:modes}
+The \emph{modes} or \emph{forms} a term may present are denoted by\\
+ $Modes = {g, v, gv, ng, nv, ngv, any}$
+\end{definition}
+
+
+There are two parts of a directionality: input and output.
+%
+They must hold for a predicate's parameters before and after execution
+respectively.
+%
+In \plqc{} these properties are checked for each test case when
+specified.
+
+
+Input directionality acts as a sanity check for the elements of the
+domain, meaning the generators must be constructed to conform to the
+specified input modes.
+%
+Each specification clause is allowed one input directionality.
+%
+If the user wishes to specify more than one input form the clause should
+be divided into the number of input forms and its generators adapted
+accordingly.
+%
+This results in bigger predicate specifications with possibly many
+duplicated parts, but is a very simple way express what happens to the
+parameters in finer detail.
+
+
+Each input may have more than one answer and therefore more than one
+output form.
+%
+For this reason we adopted the schema where an input directionality is
+paired with a list of output forms.
+
+
+\begin{definition}
+\label{def:directionality}
+A \emph{directionality} of a specification clause of a predicate
+\yap{p/n} is a sequence of \emph{predicate modes}, with one input mode
+followed by one or more output modes.
+\\
+A predicate mode of \yap{p}, or just mode of \yap{p}, is a denoted as
+\begin{itemize}
+  \item $i(m_1, ..., m_n)$
+  \item $o(M_1, ..., M_n)$
+\end{itemize}
+where $m_i,M_i \in Modes$ and $i, o$ respect to input and output modes
+respectively.
+\end{definition}
+
 
 \subsection{Range}
 \subsection{Properties}

@@ -62,7 +62,9 @@ precondition.
 
 \begin{definition}
 \label{def:type}
-A {\em type} is a non-empty set of terms.
+A {\em type} is a non-empty set of terms.\\
+A term $t$ belongs to a type $\tau$ ($t \in \tau$) if it belongs to the set of
+terms that define the type.
 \end{definition}
 
 
@@ -82,22 +84,43 @@ The effect of a procedure execution for types not covered by any of the
 specification clauses is considered undefined.
 
 
-\subsection{Domain Precondition}
+\subsection{Domain}
 
-The domain precondition is a restriction over the set of parameters of a
+The domain of a predicate is the set of parameters accepted by a
 predicate.
 %
-Correct typing of parameters may be insufficient to express allowed
-input.
+Correct typing of parameters is crucial but may be insufficient to
+express the allowed input.
 %
 Sometimes the arguments must obey a relation extending type information,
 based on the actual values of the parameters.
+%
+The domain precondition is a restriction over the set of parameters of a
+predicate.
 
 
 \begin{definition}
 \label{def:type}
-A {\em domain precondition} is a non-empty set of terms.
+A {\em domain} of a procedure p/n is a set of term
+n-tuples such that\\
+\qquad $\langle t_1,...,t_n \rangle \in (\tau_1 \times ... \times
+\tau_n)$\\
+\qquad $\langle t_1,...,t_n \rangle$ satisfies the input parameter relation
 \end{definition}
+
+
+This definition of a domain, similarly to what happens with types, is
+different from the regular notion of domain.
+%
+It focus on the shape of the input to a predicate and not the accepted
+answer set.
+%
+The \plqc{} domain of a predicate is then any set of terms produced by
+the generator that fulfils the domain precondition.
+%
+On the absence of a domain precondition relating parameters the domain
+is the set of terms generated.
+
 
 \subsection{Mode}
 \subsection{Range}

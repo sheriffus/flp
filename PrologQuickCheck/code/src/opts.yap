@@ -18,7 +18,7 @@
 %% infinity :: timeout()}).
 
 %% default options
-default({opts, format, false, 100, 1, some_seed, 42, 500, false, 50, false, {type, T}, infinity}) :-
+default({opts, format, false, 100, 1, some_seed, 42, 500, false, 50, false, {type, plqc:int}, infinity}) :-
         %% plqc_types:any_type(T).
         T=fix_default_any__opts.
 
@@ -167,14 +167,20 @@ parse_opts([UserOpt | Rest], OptsAcc, Opts) :-
         parse_opt(UserOpt, OptsAcc, OptsAcc1),
         parse_opts(Rest, OptsAcc1, Opts).
 
+quietfun(_,_).
+verbosefun(M,XS) :- format(M,XS).
+tofilefun(IoDev, M, XS) :- nl,print('TODO#tofilefun'),nl,nl.
+tostreamfun(Stream, M, XS) :- format(Stream, M, XS).
 
 parse_opt(quiet, OptsA, Opts) :-
-        new_output_fun(OptsA, quietfun, Opts).
+        new_output_fun(OptsA, opts:quietfun, Opts).
 parse_opt(verbose, OptsA, Opts) :-
-        new_output_fun(OptsA, verbosefun, Opts).
+        new_output_fun(OptsA, opts:verbosefun, Opts).
 parse_opt({to_file,IoDev}, OptsA, Opts) :-
-        new_output_fun(OptsA, tofilefun, Opts).
+        new_output_fun(OptsA, opts:tofilefun(IoDev), Opts).    % TODO
         %% fun(S,F) -> io:format(IoDev, S, F) end
+parse_opt({to_strem,Strem}, OptsA, Opts) :-
+        new_output_fun(OptsA, opts:tostreamfun(Stream), Opts).
 parse_opt({on_output,Print}, OptsA, Opts) :-
         new_output_fun(OptsA, Print, Opts).
 parse_opt(long_result, OptsA, Opts) :-

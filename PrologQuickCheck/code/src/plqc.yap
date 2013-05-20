@@ -1,7 +1,19 @@
 % -*- mode: prolog; mode: folding -*-
 
 
-:- module(plqc).
+:- module(plqc, [quickcheck/1, quickcheck/2,
+                 quickcheckResult/2, quickcheckResult/3,
+                 int/2,
+                 resize/4, choose/4,
+                 sample/2, sampleK/3, sampleKSized/4, showSample/1,
+                 suchThat/3, suchThat/4, suchThatMaybe/3, suchThatMaybe/4,
+                 oneof/3, frequency/3, variable/2, elements/3,
+                 listOf/3, listOf1/3, vectorOf/4,
+                 value/3, structure/3,
+                 qcforall/4
+                 ]).
+
+%% :- module(plqc).
 %% :- module(plqc,[quickcheck/1, quickcheck/2, zx/2]).
 
 :- reconsult(opts).
@@ -260,6 +272,7 @@ run(Test, Opts, Ctx, Result) :-
 run(Test, Opts, IState, OState, Result) :-
         ctx:default(Ctx),
         run(Test, Opts, Ctx, IState, OState, Result).
+
 %% current module
 run(Mod:Test, Opts, Ctx, IState, OState, Result) :- 
         ctx:new_module(Ctx, Mod, Ctx1),

@@ -1,5 +1,291 @@
-% -*- mode: latex; mode: folding -*-
+%% % -*- mode: latex; mode: folding -*-
 
 \section{Implementation}
 \label{sec:impl}
 
+The \plqc{} tool is very lightweight and, even though it will get more
+features in the future, together with the predicate specification
+translation it is currently less then a thousand lines of \Prolog{}
+code.
+\todo{is this really a small program in the prolog comunity?}
+\todo{should one even mention the thing we are trying to sell here is
+  small and simple?}
+%
+It is developed in \Yap~\Prolog{} but it is mostly comprised of standard
+\Prolog{} code and should be easy to use with other implementations.
+
+
+The single \plqc{} module has 4 interface predicates to run a property,
+depending on the user wants to override the defaults with specific
+options and/or have the result in a term.
+\todo{CA: I don't like the sentence...}
+%
+It exports the basic generator predicates and generator predicate
+combinators including, but not limited to, the ones presented in
+\refSec{sec:generators}.
+%
+The module also defines the operators needed to make predicate
+specifications together with the term expansion of such specifications
+into testable properties.
+
+
+
+One can \emph{quickcheck} a property by passing it as a parameter in a
+predicate of the \plqc{} testing interface: \yap{quickcheck/1},
+\yap{quickcheck/2}, \yap{quickcheckResult/2}, \yap{quickcheckResult/3}.
+%
+The predicate \yap{quickcheck/1} tests a property and prints the results
+to the standard output.
+%
+\begin{yapcode}
+ %% | Tests a property and prints the results
+ %% to 'stdout'.
+ quickcheck(Property) :-
+   quickcheck(Property, []).
+\end{yapcode}
+%
+It is a simplification of \yap{quickcheck/2} where the second argument
+is the empty list.
+\todo{'simplification' is not the word I am looking for...}
+%
+This list is expected to contain user options to change the default
+values of key features of the testing process, covered later.
+\begin{yapcode}
+ %% | Tests a property, using test arguments,
+ %% and prints the results to 'stdout'.
+ quickcheck(Property, UserOpts)  :-
+   quickcheckResult(Property, UserOpts, _Res).
+\end{yapcode}
+%
+The predicate is implemented in terms of the result returning
+counterpart by discarding the result.
+%
+Both \yap{quickcheck} predicates have a result returning counterpart,
+result that can be used internally.
+%
+The absence of user options defaults to the empty list of options, as in
+the previous interface predicates.
+\begin{yapcode}
+ %% | Tests a property, produces a test result,
+ %% and prints the results to 'stdout'.
+ quickcheckResult(Property, Result) :-
+   quickcheckResult(Property, [], Result).
+\end{yapcode}
+The predicate \yap{quickcheckResult/3} is the main interface predicate,
+since all the others end up using it by discarding the result or apply
+an empty list of options.
+\begin{yapcode}
+ %% | Tests a property, using test arguments,
+ %% produces a test result, and prints the
+ %% results to 'stdout'.
+ quickcheckResult(Prop, UserOpts, Result) :-
+   opts:parse(UserOpts, Opts),
+   state:init(Opts, IState),
+   test(Prop, Opts, IState, OState, Result).
+\end{yapcode}
+\todo{CA: keep the code for all these predicates?}
+\todo{CA: whole paragraph is messy...}
+
+
+The general process of testing a property with \yap{quickcheckResult/3}
+involves three main steps: parsing given option to build the option data
+structure; build initial testing state from parsed options; test the
+property w.r.t. the  options and initial state.
+%
+The option data structure is actually a structure holding information
+about key aspects of the testing process.
+%
+It includes the printing predicate, long/short result choice, number of
+tests, starting size for generated values, maximum size for generated
+values, shrink counterexample choice, maximum number of shrinks, number
+of constraint tries, and timeout limit.
+
+
+%{{{ options
+
+The default printing predicate is \yap{format/2}.
+%
+The default can be changed with the option
+\yap{\{on_output,Print\}}, where the new printing predicate,
+\yap{Print}, is supposed to accept the same kind of parameters of
+\yap{format/2}.
+%
+The first is the message structure with formatted values and the second
+is the list of values to the message with.
+\todo{put correct terms defining arguments of Print and format/2}
+%
+This option subsumes the options \yap{quiet}, \yap{verbose} and
+\yap{\{to_strem,Strem\}}, where the new printing predicate is set to a
+predicate that does nothing, \yap{format/2} and \yap{Stream} partially
+applied to \yap{format/3}, respectively.
+\todo{maybe simplify this sentence}
+
+
+For the result returning interface predicates one can choose between
+long and short result presentation.
+%
+The short version, set by default, is just a boolean account
+(\yap{true,false}) of the tests performed.
+%
+The long version attaches relevant information about a failed test
+suite.
+%
+The option to set the long result is \yap{long_result}.
+
+
+One of the most important constants necessary for running a set of tests
+is knowing the number of input cases to run the property with.
+%
+The 100 tests default can be changed by \yap{\{numtests,N\}} where
+\yap{N} is the new number of tests given by a positive integer.
+%
+The number of tests performed can drastically change the probability of
+getting a counter-example to a failing property.
+%
+Test generation can also be tuned to start at a different size parameter
+or a maximum for the size parameter.
+%
+These alterations are achieved with the options
+\yap{\{start_size,Size\}} and \yap{\{max_size,Size\}}.
+
+
+When a counterexample to a property is found the user may want \plqc{}
+to try to \emph{shrink} the result, making it easier to understand.
+%
+But this shrinking process is not exact and there may be many choices to
+make the generated values smaller.
+%
+For this reason we may want to impose different limits for the maximum
+number of shrinks performed, which is set to 500, either for getting to
+a smaller result or to make the process faster.
+%
+We change the limit with the option \yap{\{max_shrinks,N\}}.
+%
+One can also choose to simply not shrink counterexamples at all with
+\yap{noshrink}.
+
+%}}}
+
+We put two kinds of information at the disposal of \plqc{}: options and
+state.
+%
+Options refer to a set of constants that do not change along the testing
+process unless done explicitly by specific modifiers in the property.
+%
+On the other hand, state contains information that is more specific to
+the current test being performed.
+%
+It contains mutable information necessary to guide the testing process
+and is initially based on the available options.
+%
+The state main function is to keep track of the current size parameter
+for generating values.
+
+
+Testing is initiated with appropriate information in a predicate
+designed to loop the generation and application of input cases to the
+property being tested.
+%
+\begin{yapcode}
+ test(Property, Opts,
+      IState, OState, Result) :-
+   %% retrieve testing attributes
+   ...
+   %% perform tests on Property
+   perform(0, NumTests, N, Property, Opts,
+           IState, OState, Result1),
+   %% report result with printing predicate
+   ...
+   %% polish testing result into long/short
+   ...
+ .
+\end{yapcode}
+%
+The final result is reported with the printing predicate and refined
+into the return long/short form.
+
+
+The main test loop, \yap{perform/8}, operates by making a complete copy
+of the given property with fresh variables.
+%
+The copy is ran and the state information is recovered to continue the
+process.
+%
+The result is inspected and treated accordingly.
+%
+\begin{yapcode}
+ perform(Passed, ToPass, TriesLeft, Property,
+         Opts, IState, OState, Result) :-
+   duplicate_term(Property, Test),
+   run(Test, Opts, IState, State1, Res),
+   (
+    % passing result; count it
+    % proceed with updated loop information
+    % grow size; +1 passed; -1 tries left
+   ;
+    % failing result; count it
+    % build result and out state
+   ;
+    % error; deal with it
+   ).
+\end{yapcode}While a property is being processed, predicates from different modules
+are used
+
+%
+Other clauses of the main loop deal with the loop boundaries: number of
+tries and number of successful tests.
+
+
+Running a property once requires information from option constants, a state to
+keep track of the environment and a context for saving quantification
+variable bindings.
+%
+On the absence of some of these elements, defaults are used.
+%
+\begin{yapcode}
+run(Test, Opts, IState, OState, Result) :-
+        ctx:default(Ctx),
+        run(Test, Opts, Ctx,
+            IState, OState, Result).
+\end{yapcode}
+
+
+To run a property one descends its structure.
+%
+Properties in a conjunction are examined \emph{in order}.
+%
+Predicates appearing in a property are always used with the
+corresponding module
+%
+An explicit reference to a module in the property is taken into the
+property's context.
+%
+In the presence of a \plqc{} quantification binds the value that is given
+by the generator to the quantified variable, propagated by unification
+to the enclosed property.
+%
+\begin{yapcode}
+run(qcforall(Gen, Var, Test, Size),
+    Opts, Ctx, IState, OState, Result) :- 
+  !, bind_forall(Gen, Ctx, Var, Size),
+  ctx:bind(Ctx, Var, Ctx1),
+  run(Test, Opts, Ctx1, IState, OState, Result).
+\end{yapcode}
+The context is updated and we continue with the quantified property.
+%
+Base properties are merely called.
+%
+\todo{this paragraph just sucks...}
+
+
+\begin{yapcode}
+\end{yapcode}
+
+\begin{yapcode}
+\end{yapcode}
+
+\begin{yapcode}
+\end{yapcode}
+
+\begin{yapcode}
+\end{yapcode}

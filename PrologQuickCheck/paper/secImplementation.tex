@@ -273,9 +273,59 @@ run(qcforall(Gen, Var, Test, Size),
 \end{yapcode}
 The context is updated and we continue with the quantified property.
 %
-Base properties are merely called.
+Base properties are called and its outcome accounted for.
 %
 \todo{this paragraph just sucks...}
+
+
+\subsection{Predicate Specification Term Expansion}
+
+The predicate specification language that comes with \plqc{} is
+translated into a \plqc{} property by term expansion.
+%
+It transforms a specification clause in a testable property.
+
+
+The specification clause to be transformed is composed by the
+identification element (\yap{PredId}) and all the corresponding
+information (\yap{T}).
+%
+\begin{yapcode}
+user:term_expansion(
+      PredId of_type T,
+      (qcprop(PropName) :- PLQCProp) ) :-
+  ...
+.
+\end{yapcode}
+%
+From identification element we extract the predicate that is being
+specified and derive the name of the property.
+%
+\begin{yapcode}
+  pred_spec_name(PredId, Predicate, PropName),
+  spec_expand(Predicate, T, PLQCProp)
+\end{yapcode}
+%
+All the specification elements reside in \yap{T}.
+%
+Since the type of input to be generated is the only mandatory field, the
+priority of its operator relative to the other operators in a
+specification is devised in that direction.
+%
+In fact, operator priorities are stated in a way that suits the
+translation order, even if they could be swapped in some cases.
+%
+\begin{yapcode}
+:- op(910, xfx, of_type).
+:- op(700, xfx, such_that).
+:- op(750, xfx, where).
+:- op(800, xfx, has_range).
+:- op(850, xfx, limit).
+:- op(890, xfx, pre_cond).
+:- op(900, xfx, post_cond).
+\end{yapcode}
+
+
 
 
 \begin{yapcode}

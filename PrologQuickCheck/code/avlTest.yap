@@ -151,6 +151,86 @@ qcprop(rbt, {(tree, T), (parent, PColour), (black_path, N), (colour, GetColour),
 % }}}
 
 
-% {{{ testing a copy of Yaps avl.yap module
+% {{{ testing a copy of Yap's avl.yap module (copy in current directory)
+%% we have an interface with three predicates: avl_new/1, avl_insert/4 and avl_lookup/3
+%% we are supposed to create the tree and insert and lookup values
+
+  % {{{ generator for avl commands
+
+% we must create a generator of avl.yap uses (sequences of operations)
+% this is parameterised by two disjoint generators that will make the elements for the tree and the elements for failing lookups
+genAvl(KeyGen, ValGen, FGen, Calls, Size) :-
+% it always starts with creating a tree
+% this implies that when size is 0 the tree is still created
+        Calls = [(avl:avl_new) | Cs1],
+% and then is just a bunch of calls to insert and lookup values
+        genAvlCmds(KeyGen, ValGen, FGen, [], Cs1, Size).
+
+% generating random insertions and randomly choose some of those to lookup after, using difference lists for better append sublists
+% zero size means zero calls
+genAvlCmds(KeyGen, _ValGen, _FGen, _Lookups, [], 0) :- !. % cut - no other case if the size is 0
+genAvlCmds(KeyGen, ValGen, FGen, Lookups, Cs, Size) :-
+        genCmdHead(KeyGen, ValGen, FGen, Lookups, X, Size),
+        call(KeyGen, Key, Size),
+        (X = {i, Val},
+% commands are missing the continuations, these  will be controled by the property itself
+        Cs = [ {i, avl:avl_insert(Key, Val)} |CsS],
+% update the possible correct lookups
+        NewLookups = [ {Key,Val} | Lookups]
+    ;
+        X = {fl, {FK, FV}},
+% just put the failing lookup
+        Cs = [ {fl, avl:avl_lookup(FK, FV)} |CsS]
+    ;
+        X = {l, {K, V}},
+        Cs = [ {l, avl:avl_lookup(K, V)} |CsS]
+        ),
+        MinSize is Size // 2,
+        MaxSize is Size-1,
+        choose(MinSize, MaxSize, NewSize, Size),
+        genAvlCmds(KeyGen, ValGen, FGen, NewLookups, CsS, NewSize)
+.
+
+genCmdHead(KeyGen, ValGen, none, [], X, Size) :- !,
+        plqc:structure({plqc:value(i), ValGen}, X, Size).
+genCmdHead(KeyGen, ValGen, none, Lookups, X, Size) :- !,
+        Insert = plqc:structure({plqc:value(i), ValGen}),
+        FailLookup = plqc:structure({plqc:value(fl), {KeyGen, FGen}}),
+        Lookup = plqc:structure({plqc:value(l), plqc:elements(Lookups)}),
+        plqc:frequency([{6,Insert}, {4,Lookup}, {1, FailLookup}], X, Size).
+genCmdHead(KeyGen, ValGen, FGen, [], X, Size) :- !,
+        Insert = plqc:structure({plqc:value(i), ValGen}),
+        FailLookup = plqc:structure({plqc:value(fl), {KeyGen, FGen}}),
+        plqc:frequency([{9,Insert}, {1, FailLookup}], X, Size).
+genCmdHead(KeyGen, ValGen, FGen, Lookups, X, Size) :-
+        Insert = plqc:structure({plqc:value(i), ValGen}),
+        FailLookup = plqc:structure({plqc:value(fl), {KeyGen, FGen}}),
+        Lookup = plqc:structure({plqc:value(l), plqc:elements(Lookups)}),
+        plqc:frequency([{6,Insert}, {4,Lookup}, {1, FailLookup}], X, Size).
+
+
+genKey(Key, Size) :-
+        plqc:choose(0, 50000, Key, Size).
+
+genVal(Val, Size) :-
+        plqc:choose(0, Size, Val, Size).
+
+% qcprop(avl, {(tree, T), (height, H), (curr_key, GetKey), (cmp_key, CmpKeys), (left, L), (right, R), (is_nil, IsNil)})
+  % }}}
+
+%% we take the generator of the avl module uses and... use it :)
+
+qcprop(avlUses) :-
+        qcforall(avlTest:genAvl(genKey, genVal, structure([genVal])), Calls, qcprop({avlUses, Calls})).
+
+qcprop({avlUses, [(avl:avl_new(Tree))|Calls]}) :-
+        call(avl:avl_new(Tree)),
+        qcprop({avlUses, Tree, Calls}).
+
+qcprop({avlUses, Tree, [(Call)|Calls]}) :-
+        call(avl:avl_new(Tree)),
+        qcprop({avlUses, Tree, Calls}).
+
+%% [(avl:avl_new(_A)'|'[{i,avl:avl_insert(21915,15)},{i,avl:avl_insert(44184,12)},{fl,avl:avl_lookup(25986,[0])},{i,avl:avl_insert(38292,3)},{i,avl:avl_insert(12413,0)},{fl,avl:avl_lookup(46865,[1])}])],
 
 % }}}

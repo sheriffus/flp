@@ -72,7 +72,8 @@ test(Property, Opts, IState, OState, Result) :-
         %% perform tests on Property
         perform(0, NumTests, N, Property, Opts, IState, OState, Result1),
         %% report result with printing Print predicate
-        call_with_args(Print,"~n", []),
+        call(Print,"~n", []),
+        %% call_with_args(Print,"~n", []),
         report_result(Result1, Opts),
         %% polish gross result into long/short testing result
         refine_result(Result1, Property, Opts, ShortRes, LongRes),
@@ -120,11 +121,13 @@ report_result( Result, Opts ) :-
              (
               ( %% expected fail
                   ExpectF = true, !,
-                  call_with_args(Print, "Failed: All ~d tests passed when a failure was expected.~n", [Performed])
+                  call(Print, "Failed: All ~d tests passed when a failure was expected.~n", [Performed])
+                  %% call_with_args(Print, "Failed: All ~d tests passed when a failure was expected.~n", [Performed])
               )
              ;
               ( %% expected pass
-                  call_with_args(Print, "OK: Passed ~d test(s).~n", [Performed])
+                  call(Print, "OK: Passed ~d test(s).~n", [Performed])
+                  %% call_with_args(Print, "OK: Passed ~d test(s).~n", [Performed])
               )
              )
          )
@@ -135,11 +138,13 @@ report_result( Result, Opts ) :-
              (
               ( %% expected fail
                   ExpectF = true, !,
-                  call_with_args(Print, "OK: Failed as expected, after ~d test(s).~n", [Performed])
+                  call(Print, "OK: Failed as expected, after ~d test(s).~n", [Performed])
+                  %% call_with_args(Print, "OK: Failed as expected, after ~d test(s).~n", [Performed])
               )
              ;
               ( %% expected pass
-                  call_with_args(Print, "Failed: After ~d test(s).\n", [Performed]),
+                  call(Print, "Failed: After ~d test(s).\n", [Performed]),
+                  %% call_with_args(Print, "Failed: After ~d test(s).\n", [Performed]),
                   report_fail_reason(Reason, "", Print),
                   result:bound_fail(Result, Bound),
                   print_testcase(Bound, Print)%% ,
@@ -162,7 +167,8 @@ report_result( Result, Opts ) :-
 %% TODO: print each quantified variable separately
 print_testcase([], _Print).% :- !.
 print_testcase(Bound, Print) :-
-        call_with_args(Print, "Counterexample found: ~w \n", [Bound]).
+        call(Print, "Counterexample found: ~w \n", [Bound]).
+        %% call_with_args(Print, "Counterexample found: ~w \n", [Bound]).
 
     % }}}
 
@@ -177,15 +183,19 @@ report_error(Reason, Print) :- print(report_error_predicate_missing).
 report_fail_reason(false_prop, _Prefix, _Print) :- !.
 report_fail_reason(time_out, Prefix, Print) :-
         lists:append(Prefix, "Test execution timed out.~n", Msg),
-        call_with_args(Print, Msg, []).
+        call(Print, Msg, []).
+        %% call_with_args(Print, Msg, []).
 report_fail_reason({trapped,ExcReason}, Prefix, Print) :-
         lists:append(Prefix, "A linked process died with reason ~a.~n", Msg),
-        call_with_args(Print, Msg, [ExcReason]).
+        call(Print, Msg, [ExcReason]).
+        %% call_with_args(Print, Msg, [ExcReason]).
 report_fail_reason({exception,ExcKind,ExcReason,StackTrace}, Prefix, Print) :-
         lists:append(Prefix, "An exception was raised: ~a:~a.~n", Msg1),
-        call_with_args(Print, Msg1, [ExcKind,ExcReason]),
+        call(Print, Msg1, [ExcKind,ExcReason]),
+        %% call_with_args(Print, Msg1, [ExcKind,ExcReason]),
         lists:append(Prefix, "Stacktrace: ~a.~n", Msg2),
-        call_with_args(Print, Msg2, [StackTrace]).
+        call(Print, Msg2, [StackTrace]).
+        %% call_with_args(Print, Msg2, [StackTrace]).
 %% report_fail_reason({sub_props,SubReasons}, Prefix, Print) ->
 %%     Report =
 %% 	fun({Tag,Reason}) ->
@@ -221,7 +231,8 @@ perform(Passed, ToPass, TriesLeft, Property, Opts, IState, OState, Result) :-
             result:is_pass_res(Res),
             result:reason_pass(Res, true_prop), !,
             opts:output_fun(Opts, Print),
-            call_with_args(Print,".", []),
+            call(Print,".", []),
+            %% call_with_args(Print,".", []),
             state:grow_size(Opts, State1, State2),
             Passed1 is Passed + 1,
             TriesLeft1 is TriesLeft - 1,
@@ -229,14 +240,16 @@ perform(Passed, ToPass, TriesLeft, Property, Opts, IState, OState, Result) :-
         );(
             result:is_fail_res(Res), !,
             opts:output_fun(Opts, Print),
-            call_with_args(Print,"!", []),
+            call(Print,"!", []),
+            %% call_with_args(Print,"!", []),
             Passed1 is Passed + 1,
             result:new_performed_fail(Res, Passed1, Result),
             OState = State1
         );(
             Res = {error, rejected}, !,
             opts:output_fun(Opts, Print),
-            call_with_args(Print,"x", []),
+            call(Print,"x", []),
+            %% call_with_args(Print,"x", []),
             state:grow_size(Opts, State1, State2),
             TriesLeft1 is TriesLeft - 1,
             perform(Passed, ToPass, TriesLeft1, Test, Samples, Printers, Opts, State2, OState, Result)
@@ -327,10 +340,12 @@ cond_run(Result1, Tests, Opts, Ctx, IState, OState, Result) :-
 
   % {{{ bind_forall(Gen, Ctx, Var, Size)
 bind_forall(M:Gen, _Ctx, Var, Size) :- 
-        call_with_args(M:Gen, Var, Size).
+        call(M:Gen, Var, Size).
+        %% call_with_args(M:Gen, Var, Size).
 bind_forall(Gen, Ctx, Var, Size) :- 
         ctx:module(Ctx, M),
-        call_with_args(M:Gen, Var, Size).
+        call(M:Gen, Var, Size).
+        %% call_with_args(M:Gen, Var, Size).
   % }}}
 
 % }}}
@@ -375,7 +390,9 @@ int(I, shrink, [0]).
 
 %% | Overrides the size parameter. Returns a generator which uses
 %% the given size instead of the runtime-size parameter.
-resize(NewSize, GenA, A, _Size) :- call_with_args(GenA, A, NewSize).
+resize(NewSize, GenA, A, _Size) :-
+        call(GenA, A, NewSize).
+        %% call_with_args(GenA, A, NewSize).
 
 %% | Generates a random element in the given inclusive range.
 %% TODO - make this for other 'rangeable' types
@@ -399,7 +416,8 @@ sampleK(K, GenA, L) :-
 
 sampleKSized(0, _GenA, _Size, []) :- !.
 sampleKSized(K, GenA, Size, [A|AS]) :-
-        call_with_args(GenA, A, Size),
+        call(GenA, A, Size),
+        %% call_with_args(GenA, A, Size),
         sampleSizeStep(Size, S1),
         K1 is K-1,
         sampleKSized(K1, GenA, S1, AS).
@@ -434,19 +452,21 @@ suchThatMaybe(GenA, PredA, A) :-
         stDefaultSize(S),
         suchThatMaybe(GenA, PredA, A, S).
 suchThatMaybe(GenA, PredA, A, S) :-
-        call_with_args(GenA, A, S),
+        call(GenA, A, S),
+        %% call_with_args(GenA, A, S),
         duplicate_term(A, ATest),  % precaution against binding properties
-        call_with_args(PredA, ATest).
+        call(PredA, ATest).
+        %% call_with_args(PredA, ATest).
 
 %% | Randomly uses one of the given generators. The input list
 %% must be non-empty.
 %% TODO - oneof [] = error "plqc:oneof used with empty list"
 oneof(LGenA, A, S) :-
-        length(LGenA, Len),
-        Cap is Len-1,
-        choose(0,Cap,I,S),
-        lists:nth0(I, LGenA, GenA),
-        call_with_args(GenA, A, S).
+        length(LGenA, Cap),
+        choose(1,Cap,I,S),
+        lists:nth(I, LGenA, GenA),
+        call(GenA, A, S).
+        %% call_with_args(GenA, A, S).
 
 %% | Chooses one of the given generators, with a weighted random distribution.
 %% The input list must be non-empty. The weights must be positive integers.
@@ -455,16 +475,17 @@ frequency(FGL, A, S) :- % Frequency-Generator List
         %% make freq-index list according to weights and calculate choosing cap
         checkFreqWeights(FGL, FIL, Cap),
         choose(1,Cap,I,S), % choose an index
-        lists:nth0(I, FIL, GenA),
-        call_with_args(GenA, A, S).
+        lists:nth(I, FIL, GenA),
+        call(GenA, A, S).
+        %% call_with_args(GenA, A, S).
 
-checkFreqWeights([], [], -1).
+checkFreqWeights([], [], 0).
 checkFreqWeights([{W,Gen}|FGS], FIL, Cap) :-
         checkFreqWeights(FGS, FIL1, Cap1),
         addHeads(W,Gen, FIL1, FIL),
         Cap is Cap1 + W.
 
-addHeads(0, _Gen, L, L).
+addHeads(0, _Gen, L, L) :- !.
 addHeads(K, Gen, LI, LO) :-
         K1 is K-1,
         addHeads(K1, Gen, [Gen|LI], LO).
@@ -475,7 +496,7 @@ addHeads(K, Gen, LI, LO) :-
 elements(AS, A, S) :-
         length(AS, Cap),
         choose(1,Cap,I,S),
-        lists:nth1(I, AS, A).
+        lists:nth(I, AS, A).
         
 %% %% | Takes a list of elements of increasing size, and chooses
 %% %% among an initial segment of the list. The size of this initial
@@ -513,7 +534,8 @@ listOf1(GenA, AS, S) :-
 %% | Generates a list of the given length. Length must be non-negative
 vectorOf(0, _GenA, [], _Size) :- !.
 vectorOf(K, GenA, [A|AS], Size) :-
-        call_with_args(GenA, A, Size),
+        call(GenA, A, Size),
+        %% call_with_args(GenA, A, Size),
         K1 is K-1,
         vectorOf(K1, GenA, AS, Size).
 
@@ -524,7 +546,8 @@ value(A, A, _Size).
 variable(X, _Size) :- var(X).
 
 %% | Generates values with a certain structure
-structure(X, Y, Size) :- var(X), !, var(Y), X=Y.
+structure(X, Y, Size) :- var(X), !, var(Y), X=Y. % TODO - error when Y is not a var
+structure(X, Y, Size) :- var(X), !, var(Y), X=Y. % TODO - error when Y is not a var
 structure([], [], Size) :- !.
 structure([SX|SXS], [X|XS], Size) :-
         !,
@@ -551,7 +574,9 @@ structure(GenX, X, Size) :-
 
 % --==================================================--
 
-qcforall(Gen, Var, Prop, Size) :- call_with_args(Gen, Var, Size), call(Prop).
+qcforall(Gen, Var, Prop, Size) :-
+        call(Gen, Var, Size), call(Prop).
+        %% call_with_args(Gen, Var, Size), call(Prop).
 
 % }}}
 

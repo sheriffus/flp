@@ -27,6 +27,9 @@
 
 :- source.
 
+:- op(1010, xfy, qcand).
+:- op(1011, xfy, qcor).
+
 :- op(910, xfx, of_type).
 :- op(700, xfx, such_that).
 :- op(750, xfx, where).
@@ -165,7 +168,8 @@ report_result( Result, Opts ) :-
     % {{{ print_testcase
 
 %% TODO: print each quantified variable separately
-print_testcase([], _Print).% :- !.
+print_testcase([], Print) :-
+        call(Print, "No counterexample (empty bindings) \n", []).
 print_testcase(Bound, Print) :-
         call(Print, "Counterexample found: ~w \n", [Bound]).
         %% call_with_args(Print, "Counterexample found: ~w \n", [Bound]).
@@ -312,9 +316,28 @@ run(qcprop(Label), Opts, Ctx, IState, OState, Result) :-
         clause(M:qcprop(Label), Body),
         run(Body, Opts, Ctx, IState, OState, Result).
 %% conjunction - individual calls
-run((Test, Tests), Opts, Ctx, IState, OState, Result) :- 
+%% run((Test , Tests), Opts, Ctx, IState, OState, Result) :- 
+run((Test qcand Tests), Opts, Ctx, IState, OState, Result) :- 
         run(Test, Opts, Ctx, IState, State1, Result1),
-        cond_run(Result1, Tests, Opts, Ctx, State1, OState, Result).
+        (result:is_pass_res(Result1), !,
+        run(Tests, Opts, Ctx, State1, OState, Result)
+    ;
+        Result = Result1, OState = State1).
+%% disjunction - individual calls
+%% run((TestA ; TestB), Opts, Ctx, IState, OState, Result) :- 
+run((TestA qcor TestB), Opts, Ctx, IState, OState, Result) :- 
+        run(TestA, Opts, Ctx, IState, State1, Result1),
+        (result:is_fail_res(Result1), !,
+        run(TestB, Opts, Ctx, IState, OState, Result)
+    ;
+        Result = Result1, Ostate = State1).
+run(qcif(IfTest, TestA, TestB), Opts, Ctx, IState, OState, Result) :- 
+        run(IfTest, Opts, Ctx, IState, State1, Result1),
+        (result:is_pass_res(Result1), !,
+        run(TestA, Opts, Ctx, State1, OState, Result)
+    ;
+        run(TestB, Opts, Ctx, State1, OState, Result)
+        ).
 %% a leaf in the property syntax tree - a predicate call
 run(Test, Opts, Ctx, State, State, Result) :- 
         ctx:module(Ctx, M),
@@ -325,7 +348,6 @@ run(Test, Opts, Ctx, State, State, Result) :-
         (!,
         create_fail_result(Ctx, false_prop, Result)
         ).
-%% TODO: prolog conjunction and disjunction
 %% TODO: collect information for user analysis 
 
 cond_run(Result1, Tests, Opts, Ctx, IState, OState, Result) :-

@@ -43,6 +43,7 @@ LIACC - University of Porto}
 %include secPlqc.tex
 %include secPredSpec.tex
 %include secImplementation.tex
+%include secCaseStudies.tex
 %include secRelWork.tex
 %include secConclusion.tex
 %% %include sec3.tex

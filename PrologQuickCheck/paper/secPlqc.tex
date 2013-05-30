@@ -4,8 +4,11 @@
 \label{sec:properties}
 
 
-The expressive power of properties is the same as \Prolog{} predicates,
-since the whole language is allowed.
+The expressive power of properties is the same as \Prolog{}
+predicates.
+%
+A property can be a goal where the whole language is allowed or a
+composition of properties that the \plqc{} tool recursively inspects.
 %
 This enables the specification of a good range of properties about
 regular predicates through the use of meta-predicates, such as checking
@@ -62,9 +65,10 @@ accordingly.
 %
 We write a clause for the special predicate \yap{qcprop/1}.
 %
-A call to this predicate in a property causes \plqc{} to inspect the
-body of the clause, making it possible to abstract long or frequently
-used properties and compose complex properties from smaller elements.
+A call to this predicate in a \plqc{} property causes the tool to
+inspect the body of the clause, making it possible to abstract long or
+frequently used properties and compose complex properties from smaller
+elements.
 %
 This is still not complete to use with \plqc{} for random testing, we
 need to specify the set of values over which we abstract the property.
@@ -135,8 +139,9 @@ The size criteria causes it to be more likely to get lists with 0 or 1
 element early, which actually obeys the property.
 
 
-Since properties are \Prolog{} goals,  we get for free the built-in
-features to compose goals in a program.
+We can freely compose \Prolog{} goals as properties.
+%
+These goals are indivisible and the tool does not inspect their content.
 %
 We can make logical statements with built-in control predicates:
 truth values, conjunction, disjunction, implication or negation.
@@ -157,6 +162,19 @@ meta-predicates for properties.
 %
 In a setting with a strong static type system it can ensure that only
 safe properties, pure functions or predicates, are allowed.
+%
+If we want \plqc{} to inspect the structure of a property it has to be
+composed with the appropriate operators.
+%
+Available operators currently include conjunction, disjunction,
+conditional execution and quantification.
+%
+\begin{yapcode}
+   Prop1 qcand Prop2
+   Prop1 qcor Prop2
+   qcif(Cond, Porp1, Prop2)
+   qcforall(Gen, Var, Prop)
+\end{yapcode}
 %
 We choose to let the user be free to use more involved properties, who
 is then responsible to seek that the impure parts of a property are self

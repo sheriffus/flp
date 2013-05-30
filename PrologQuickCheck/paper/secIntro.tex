@@ -85,12 +85,15 @@ Tests are automatically run from formal specifications of general
 properties and feedback is given to the tool user about their
 evaluation.
 %
-Properties are stated through a domain-specific language wrapping a
-\Prolog{} goal, which \plqc{} checks for a number of inputs.
+Properties are stated through a domain-specific language wrapping
+\Prolog{} goals, which \plqc{} checks for a number of inputs.
 %
-Singleton properties are, even though nor enforced, pure predicate calls
-whose successful execution determines that the property holds for the
-given input.
+Singleton properties are, even though not enforced, pure predicate calls
+or composed goals whose successful execution determines that the
+property holds for the given input.
+%
+These properties can be composed in order to achieve more complex
+specifications.
 
 
 The automatic generation of input for a particular test case of a
@@ -121,8 +124,10 @@ property validity.
 With \Prolog{} there are no such restrictions: any goal may be a property.
 %
 Instead of expecting a reduced set of syntactic elements to describe
-properties, in \plqc{}, a property is a goal and it is satisfied when
+properties, in \plqc{} a property is a goal and it is satisfied when
 the execution of the goal, given all necessary input, succeeds.
+\todo{maybe mention something about property composition here, just to
+  be clear on the subject?}
 %
 Input to such goals is given based on \plqc{} value abstraction,
 quantification over a domain represented by a term generator.

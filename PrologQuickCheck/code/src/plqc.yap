@@ -621,7 +621,7 @@ pred_spec_name(Predicate, Predicate, PropName) :-
         pred_spec_name_aux(Predicate, [], PropName).
 
 pred_spec_name_aux(PredicateId, PostfixL, PropName) :-
-        (atom(PredicateId), !; print(predicate_name_not_an_atom)),
+        (callable(PredicateId), !; print(predicate_name_not_callable), nl),
         (PredicateId = Mod:Predicate, !;
          PredicateId = Predicate),
         name(Predicate, PredL),
@@ -740,7 +740,8 @@ spec_prop(Modifiers, Pred, Args, Property) :-
         spec_prop(Modifiers, Pred, Args, Pre, Post, MainProp, Property).
 
 spec_prop([], _Pred, _Args, Pre, Post, MainProp, (Pre, !, MainProp)) :-
-        var(Post), Post=true ; true.
+        (var(Pre), Pre=true ; true),
+        (var(Post), Post=true ; true).
 spec_prop([(Prop-pre)|MS], Pred, Args, Prop, Post, Main, Property) :-
         !, spec_prop(MS, Pred, Args, Prop, Post, Main, Property).
 spec_prop([(Prop-post)|MS], Pred, Args, Pre, Prop, Main, Property) :-

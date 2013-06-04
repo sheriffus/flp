@@ -425,8 +425,67 @@ assert the correction of value's types.
 %
 Based on the collected modifiers a goal can be attached both before and
 after the main call as the specified pre- and post-conditions.
+%
+The post-condition is checked for all the answers retrieved from the
+main call.
+%
+The main call is also improved by checks on the parameters before and
+after execution for the directionality of the input and all the answers.
 
+
+The range of a predicate is checked within a limit number of answers.
+%
+This is done within a loop predicate wrapping the main call and the
+inspection of the result for directionality and post-conditions.
+%
+The loop is a bounded version of the \yap{forall/3} built-in
+meta-predicate.
+%
+It stores relevant information with a stateful library before enforcing
+backtracking for alternatives.
+%
+At each iteration the current number of retrieved answers is checked
+against the bounds.
+\todo{what should we show, here?? All? Nothing? Some?}
+%
 \begin{yapcode}
+ bound_call(Lower, Upper, Limit, (Call, OutProp), Args) :-
+   duplicate_term(Args, OriginalArguments),
+   nb_setval(counter, 0),
+   nb:nb_queue(Ref),
+   (
+    call(Call),
+    nb_getval(counter, C1),
+    C2 is C1 +1,
+    nb_setval(counter, C2),
+    nb:nb_queue_enqueue(Ref, Args),
+    %% check counter
+    (
+     C2 > Upper, Upper >=0,
+     !,
+     print('Number of answers exceeds range upper bound for'), nl,
+     print(OriginalArguments), nl
+    ;
+     C2 > Limit,
+     !,
+     print('Reached limit for number of answers tested for'), nl,
+     print(OriginalArguments), nl
+    ;
+     call(OutProp),
+     fail
+    )
+   ;
+    nb_getval(counter, Count),
+    %% number of given answers is less than range lower bound
+    Lower - Count > 0, !,
+    print('Did not reach range lower bound for'), nl,
+    print(OriginalArguments), nl
+   ;
+    %% we are OK here (exceeding upper bound and limit is on the fly)
+    nb:nb_queue_close(Ref, Answers, []),
+    nb_getval(counter, Count),
+    Result = {Count, Answers}
+   ).
 \end{yapcode}
 \begin{yapcode}
 \end{yapcode}

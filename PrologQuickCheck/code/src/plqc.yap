@@ -621,6 +621,7 @@ pred_spec_name(Predicate, Predicate, PropName) :-
         pred_spec_name_aux(Predicate, [], PropName).
 
 pred_spec_name_aux(PredicateId, PostfixL, PropName) :-
+        (atom(PredicateId), !; print(predicate_name_not_an_atom)),
         (PredicateId = Mod:Predicate, !;
          PredicateId = Predicate),
         name(Predicate, PredL),
@@ -633,7 +634,7 @@ pred_spec_name_aux(PredicateId, PostfixL, PropName) :-
   % {{{ expand the specification by accumulating property/generator modifiers
     % {{{ spec_expand(Predicate, TypingSpec, Property)
 spec_expand(Predicate, TypingSpec, Property) :- 
-        %% Call and Args are holes for unifying later
+        %% mp - main property
         spec_expand([(dummy-mp)], Predicate, TypingSpec, Property).
 
 spec_expand(Modifiers, Pred, DomainRange pre_cond Prop, Property) :-
@@ -673,15 +674,15 @@ spec_expand(Modifiers, Pred, Typing, Property) :-
     % }}}
 
     % {{{ limit_mp(Modifiers, Range, NewModifiers)
-limit_mp([(Call-mp)|MS], Lim, NewMs) :-
-        !, NewMs = [((Lim-limit)-Call-mp)|MS].
+limit_mp([(MP-mp)|MS], Lim, NewMs) :-
+        !, NewMs = [((Lim-limit)-MP-mp)|MS].
 limit_mp([M|MS], Lim, [M|NewMs]) :-
         limit_mp(MS, Lim, NewMs).
     % }}}
 
     % {{{ range_mp(Modifiers, Range, NewModifiers)
-range_mp([(Call-mp)|MS], Range, NewMs) :-
-        !, NewMs = [((Range-range)-Call-mp)|MS].
+range_mp([(MP-mp)|MS], Range, NewMs) :-
+        !, NewMs = [((Range-range)-MP-mp)|MS].
 range_mp([M|MS], Range, [M|NewMs]) :-
         range_mp(MS, Range, NewMs).
     % }}}
@@ -735,18 +736,21 @@ modify_gen([], Gen, Gen).
     % }}}
 
     % {{{ spec_prop(Modifiers, Pred, Args, Property)
+spec_prop(Modifiers, Pred, Args, Property) :-
+        spec_prop(Modifiers, Pred, Args, Pre, Post, MainProp, Property).
 
-spec_prop([], _, _, true).
-spec_prop([(Prop-pre)|MS], Pred, Args, (Prop, PropS)) :-
-        !, spec_prop(MS, Pred, Args, PropS).
-spec_prop([(Prop-post)|MS], Pred, Args, (PropS, Prop)) :-
-        !, spec_prop(MS, Pred, Args, PropS).
+spec_prop([], _Pred, _Args, Pre, Post, MainProp, (Pre, !, MainProp)) :-
+        var(Post), Post=true ; true.
+spec_prop([(Prop-pre)|MS], Pred, Args, Prop, Post, Main, Property) :-
+        !, spec_prop(MS, Pred, Args, Prop, Post, Main, Property).
+spec_prop([(Prop-post)|MS], Pred, Args, Pre, Prop, Main, Property) :-
+        !, spec_prop(MS, Pred, Args, Pre, Prop, Main, Property).
 %% spec_prop([(Prop-prop)|MS], Pred, Args, (Prop, PropS)) :- % prop and props needed a reversed order
 %%         !, spec_prop(MS, Pred, Args, PropS).
-spec_prop([(MPinfo-mp)|MS], Pred, Args, (MP, PropS)) :-
+spec_prop([(MPinfo-mp)|MS], Pred, Args, Pre, Post, MP, Property) :-
         !, apply_args(Pred, Args, Call),
-        build_mp(MPinfo, Call, Args, MP),
-        spec_prop(MS, Pred, Args, PropS).
+        build_mp(MPinfo, Call, Args, Post, MP),
+        spec_prop(MS, Pred, Args, Pre, Post, MP, Property).
 spec_prop([_|MS], Pred, Args, PropS) :-
         spec_prop(MS, Pred, Args, PropS).
 
@@ -763,9 +767,9 @@ apply_args(Pred, [Arg|Args], Call, Acc) :-
       % {{{ build_mp(MPinfo, Call, Args, Prop)
 
 %% build_mp((Dir-dir)-R, Call, Args, Prop) :-
-build_mp(MP, Call, Args, Prop) :-
+build_mp(MP, Call, Args, Post, Prop) :-
         build_mp(MP, Args, In, Out, Range, Limit),
-        merge_mp(In, Out, Range, Limit, Call, Args, Prop).
+        merge_mp(In, Out, Range, Limit, Call, Args, Post, Prop).
 build_mp((Dir-dir)-R, Args, WIn, WOut, Range, Limit) :-
         in_out(Dir, InD, OutsD),
         build_in(InD, Args, In),
@@ -848,12 +852,12 @@ match_mode(ngv, A,  (not (ground(A); var(A)))).
 
         % {{{ merge_mp(In, Out, Range, Limit, Call, Args, Prop),
 
-merge_mp(true, Out, Range, Limit, Call, Args, Prop) :-
-        !, merge_mp2(Out, Range, Limit, Call, Args, Prop).
-merge_mp(none, Out, Range, Limit, Call, Args, Prop) :-
-        !, merge_mp2(Out, Range, Limit, Call, Args, Prop).
-merge_mp(In, Out, Range, Limit, Call, Args, Prop) :-
-        merge_mp2(Out, Range, Limit, Call, Args, Prop1),
+merge_mp(true, Out, Range, Limit, Call, Args, Post, Prop) :-
+        !, merge_mp2(Out, Range, Limit, Call, Args, Post, Prop).
+merge_mp(none, Out, Range, Limit, Call, Args, Post, Prop) :-
+        !, merge_mp2(Out, Range, Limit, Call, Args, Post, Prop).
+merge_mp(In, Out, Range, Limit, Call, Args, Post, Prop) :-
+        merge_mp2(Out, Range, Limit, Call, Args, Post, Prop1),
         Prop = (In, Prop1).
 
           % {{{ merge_mp2(Out, Range, Limit, Call, Args, Prop),
@@ -861,11 +865,11 @@ merge_mp(In, Out, Range, Limit, Call, Args, Prop) :-
 %% merge_mp2(true, Range, Limit, Call, Args, Prop) :-
 %%         !,
 %%         merge_mp3(Range, Limit, Call, Args, Prop).
-merge_mp2(none, Range, Limit, Call, Args, Prop) :-
-        !, merge_mp3(Range, Limit, (Call), Args, Prop).
-merge_mp2(OutProp, Range, Limit, Call, Args, Prop) :-
+merge_mp2(none, Range, Limit, Call, Args, Post, Prop) :-
+        !, merge_mp3(Range, Limit, (Call), Args, Post, Prop).
+merge_mp2(OutProp, Range, Limit, Call, Args, Post, Prop) :-
         %% print(Call),
-        merge_mp3(Range, Limit, (Call, OutProp), Args, Prop).
+        merge_mp3(Range, Limit, (Call, OutProp, Post), Args, Prop).
 
             % {{{ merge_mp3(Range, Limit, Call, Args, Prop),
 

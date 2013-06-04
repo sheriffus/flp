@@ -37,9 +37,9 @@ predicate of the \plqc{} testing interface: \yap{quickcheck/1},
 The predicate \yap{quickcheck/1} tests a property and prints the results
 to the standard output.
 %
-\begin{yapcode}
  %% | Tests a property and prints the results
  %% to 'stdout'.
+\begin{yapcode}
  quickcheck(Property) :-
    quickcheck(Property, []).
 \end{yapcode}
@@ -50,9 +50,9 @@ is the empty list.
 %
 This list is expected to contain user options to change the default
 values of key features of the testing process, covered later.
-\begin{yapcode}
  %% | Tests a property, using test arguments,
  %% and prints the results to 'stdout'.
+\begin{yapcode}
  quickcheck(Property, UserOpts)  :-
    quickcheckResult(Property, UserOpts, _Res).
 \end{yapcode}
@@ -65,19 +65,19 @@ result that can be used internally.
 %
 The absence of user options defaults to the empty list of options, as in
 the previous interface predicates.
-\begin{yapcode}
  %% | Tests a property, produces a test result,
  %% and prints the results to 'stdout'.
+\begin{yapcode}
  quickcheckResult(Property, Result) :-
    quickcheckResult(Property, [], Result).
 \end{yapcode}
 The predicate \yap{quickcheckResult/3} is the main interface predicate,
 since all the others end up using it by discarding the result or apply
 an empty list of options.
-\begin{yapcode}
  %% | Tests a property, using test arguments,
  %% produces a test result, and prints the
  %% results to 'stdout'.
+\begin{yapcode}
  quickcheckResult(Prop, UserOpts, Result) :-
    opts:parse(UserOpts, Opts),
    state:init(Opts, IState),
@@ -87,7 +87,7 @@ an empty list of options.
 \todo{CA: whole paragraph is messy...}
 
 
-The general process of testing a property with \yap{quickcheckResult/3}
+The process of testing a property with \yap{quickcheckResult/3}
 involves three main steps: parsing given option to build the option data
 structure; build initial testing state from parsed options; test the
 property w.r.t. the  options and initial state.
@@ -243,10 +243,9 @@ variable bindings.
 On the absence of some of these elements, defaults are used.
 %
 \begin{yapcode}
-run(Test, Opts, IState, OState, Result) :-
-        ctx:default(Ctx),
-        run(Test, Opts, Ctx,
-            IState, OState, Result).
+ run(Test, Opts, ISt, OSt, Result) :-
+   ctx:default(Ctx),
+   run(Test, Opts, Ctx, ISt, OSt, Result).
 \end{yapcode}
 
 
@@ -260,16 +259,17 @@ corresponding module
 An explicit reference to a module in the property is taken into the
 property's context.
 %
-In the presence of a \plqc{} quantification binds the value that is given
-by the generator to the quantified variable, propagated by unification
-to the enclosed property.
+In the presence of a \plqc{} quantification the value that is given by
+the generator is bound to the quantified variable, propagated by
+unification to the enclosed property.
 %
 \begin{yapcode}
-run(qcforall(Gen, Var, Test, Size),
-    Opts, Ctx, IState, OState, Result) :- 
-  !, bind_forall(Gen, Ctx, Var, Size),
-  ctx:bind(Ctx, Var, Ctx1),
-  run(Test, Opts, Ctx1, IState, OState, Result).
+ run(qcforall(Gen, Var, Test, Size),
+     Opts, Ctx, IState, OState, Result) :- 
+   !, bind_forall(Gen, Ctx, Var, Size),
+   ctx:bind(Ctx, Var, Ctx1),
+   run(Test, Opts, Ctx1,
+       IState, OState, Result).
 \end{yapcode}
 The context is updated and we continue with the quantified property.
 %
@@ -283,7 +283,7 @@ Base properties are called and its outcome accounted for.
 The predicate specification language that comes with \plqc{} is
 translated into a \plqc{} property by term expansion.
 %
-It transforms a specification clause in a testable property.
+It transforms a specification clause into a testable property.
 
 
 The specification clause to be transformed is composed by the
@@ -291,23 +291,45 @@ identification element (\yap{PredId}) and all the corresponding
 information (\yap{T}).
 %
 \begin{yapcode}
-user:term_expansion(
-      PredId of_type T,
-      (qcprop(PropName) :- PLQCProp) ) :-
-  ...
-.
+ user:term_expansion(
+       PredId of_type T,
+       (qcprop(PropName) :- PLQCProp) ) :-
+   ...
+ .
 \end{yapcode}
 %
-From identification element we extract the predicate that is being
+From the identification element we extract the predicate that is being
 specified and derive the name of the property.
 %
 \begin{yapcode}
-  pred_spec_name(PredId, Predicate, PropName),
-  spec_expand(Predicate, T, PLQCProp)
+   pred_spec_name(PredId, Pred, PropName),
+   spec_expand(Pred, T, PLQCProp)
 \end{yapcode}
 %
-All the specification elements reside in \yap{T}.
+All the actual specification elements reside in \yap{T} and that,
+together with the name of the predicate being specified, is expanded
+into the property to be tested.
+
+
+The predicate identification expects either the atom corresponding to
+the predicate name or a pair where the first component is the atom name
+and the second is an atomic symbol.
 %
+The first case can be used when there is only one specification clause
+(or on the most important) and the property identification is merely the
+name of the predicate.
+%
+Care is advised when choosing this identification form since it will not
+differentiate predicates with different arities nor multiple clauses of
+the same predicate.
+%
+When a pair is given, the second element is taken as a suffix to the
+name separated by an underscore character.
+%
+Exception is made when the suffix itself starts with the underscore
+symbol in which case it is just appended to the name as an atom.
+
+
 Since the type of input to be generated is the only mandatory field, the
 priority of its operator relative to the other operators in a
 specification is devised in that direction.
@@ -316,24 +338,96 @@ In fact, operator priorities are stated in a way that suits the
 translation order, even if they could be swapped in some cases.
 %
 \begin{yapcode}
-:- op(910, xfx, of_type).
-:- op(700, xfx, such_that).
-:- op(750, xfx, where).
-:- op(800, xfx, has_range).
-:- op(850, xfx, limit).
-:- op(890, xfx, pre_cond).
-:- op(900, xfx, post_cond).
+ :- op(910, xfx, of_type).
+ :- op(700, xfx, such_that).
+ :- op(750, xfx, where).
+ :- op(800, xfx, has_range).
+ :- op(850, xfx, limit).
+ :- op(890, xfx, pre_cond).
+ :- op(900, xfx, post_cond).
+\end{yapcode}
+%
+Even though the relative priorities of the specification operators are
+not arbitrary, their absolute values have no connection with other
+\Prolog{} operators.
+
+
+The specification expansion is aided by an accumulator of property
+modifiers which are examined when building the property for relations
+between modifiers.
+%
+Predicate directionality and range as well as the limit of the search
+space contribute to shape the main property, regarding the predicate
+call.
+%
+Pre- and post-conditions are then attached to the appropriate place: the
+beginning of the property and after every calculated answer,
+respectively.
+
+
+The specification expansion culminates with the actual typing of the
+specification clause and the collection of any other specification field
+characterised in the accumulated modifiers.
+%
+\begin{yapcode}
+ spec_expand(Modifs, Pred, Types, Prop) :-
+\end{yapcode}
+%
+The types are pre-processed into the type structure and argument labels.
+%
+The type structure then originates the generator of arguments.
+%
+A goal centred in the predicate and respecting the collected modifiers
+is wrapped in a quantification abstracting the arguments.
+%
+The resulting property is ready to be tested.
+%
+\begin{yapcode}
+   pp_typing(Types, TS, Args),
+   modify_gen(Modifs, structure(TS), ArgGen),
+   spec_prop(Modifs, Pred, Args, InnerProp),
+   Prop = qcforall(ArgGen, Args, InnerProp).
 \end{yapcode}
 
 
 
+Type pre-processing builds the list of type structures from the sequence
+given in the specification clause types.
+%
+This includes all necessary generators and possible parameter patterns,
+such as a list pattern.
+%
+In parallel is also built the list of arguments that parametrise the
+translated property.
+%
+The arguments are variables into which each generated argument will be
+bound to, taking into account explicit variable names provided in the
+type specification.
+
+
+
+The list containing the argument patterns and generators is assembled
+as a structure generator.
+%
+In the presence of a parameter relation, collected in the modifiers, the
+single generator is conditioned to values that satisfy the given
+relation with the \yap{suchThat/2} generator combinator.
+%
+The final property universal quantification binds values from the
+generator with the arguments, parametrising the test goal.
+
+
+
+The test goal effects all single test cases generated.
+%
+Its base is the main call, a call to the specified predicate in order to
+assert the correction of value's types.
+%
+Based on the collected modifiers a goal can be attached both before and
+after the main call as the specified pre- and post-conditions.
 
 \begin{yapcode}
 \end{yapcode}
-
-\begin{yapcode}
-\end{yapcode}
-
 \begin{yapcode}
 \end{yapcode}
 

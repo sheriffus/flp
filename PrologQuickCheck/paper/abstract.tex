@@ -1,17 +1,19 @@
-We present a tool for property-based testing of properties in the logic
-programming language \Prolog{}.
+
+This paper presents an automatic tool for property-based testing of
+properties in the logic programming language \Prolog{}.
 %
-Properties are described within \Prolog{} and automatically testable.
+The tool is based on the well known QuickCheck for the functional
+programming language Haskell, but addresses new features to deal with
+specific characteristics of Prolog such as the absence of a strong type
+discipline and being a relational language (in opposite to Haskell).
 
-In our tool, logic properties are goals in the logic programming
-language or properties composed with proper connectives.
+
+In this tool properties are described as \Prolog{} goals.
 %
-The truth values of particular instances of that property are respectful
-to the executions of the goal or the adequate combination of the results
-of the connected properties.
+We also enable the definition of custom test data generators using a
+predicate specification language that includes types, modes and
+constraints on the number of successful computations.
 
-
-We show some examples of properties of logic programs tested
-using \plqc{} as well as a case study on available libraries for search
-trees.
-
+Finally we present a number of  examples in which the tool is
+successfully used and a large case study on Prolog libraries for AVL
+search trees.

@@ -19,8 +19,7 @@ programming styles, such as one of the authors.
 
 
 \subsubsection{List Reverse}
-We start by extending the first example given in
-\refSec{sec:properties}.
+Here we return to the first example given in \refSec{sec:properties}.
 %
 In general people have a conception of what is reversing the order of
 elements, which is to observe the $i^th$ element of the original list as
@@ -38,9 +37,50 @@ transform an input list into its reversed counterpart.
 %
 This implies that the property has an input for random testing.
 %
-For the input we must 
+For the automatic generation of input we must decide what is the input.
+%
+When a procedure is polymorphic on the type of the elements of an
+argument list it is usually sufficient to check its behaviour for a
+single type of elements.
+%
+It is sometimes sufficient a finite number of values, but we can
+safely overestimate the size of the type.
+%
+We choose to test the list predicates with lists of integer elements.
+%
+Therefor we use the generator for integers, \yap{int}, with the
+parametric list generator, \yap{listOf(int)}.
+
+
+We start with two implementations of reverse.
+%
+The first uses an appending predicate, described later, and the second
+builds the result with an accumulator via an auxiliary predicate.
+%
+\begin{yapcode}
+ rev_app([],[]).
+ rev_app([X||XS], YS) :-
+   rev_app(XS,ZS), append(ZS, [X], YS).
+
+ rev_acc([], LR, LR).
+ rev_acc([X||XS], Acc, LR) :-
+   rev_acc(XS, [X||Acc], LR).
+
+ rev_acc(L, LR) :-
+   rev_acc(L, [], LR).
+\end{yapcode}
+
+
+
+
 \subsection{AVL Trees}
 \subsection{red-black Trees}
 
 
 
+\begin{yapcode}
+\end{yapcode}
+\begin{yapcode}
+\end{yapcode}
+\begin{yapcode}
+\end{yapcode}

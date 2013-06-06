@@ -752,8 +752,8 @@ spec_prop([(MPinfo-mp)|MS], Pred, Args, Pre, Post, MP, Property) :-
         !, apply_args(Pred, Args, Call),
         build_mp(MPinfo, Call, Args, Post, MP),
         spec_prop(MS, Pred, Args, Pre, Post, MP, Property).
-spec_prop([_|MS], Pred, Args, PropS) :-
-        spec_prop(MS, Pred, Args, PropS).
+spec_prop([_|MS], Pred, Args, Pre, Post, MP, PropS) :-
+        spec_prop(MS, Pred, Args, Pre, Post, MP, PropS).
 
       % {{{ apply_args(Pred, [Arg|Args], Call)
 %% arguments need to be applied in order and predicate calls revert the order
@@ -867,7 +867,7 @@ merge_mp(In, Out, Range, Limit, Call, Args, Post, Prop) :-
 %%         !,
 %%         merge_mp3(Range, Limit, Call, Args, Prop).
 merge_mp2(none, Range, Limit, Call, Args, Post, Prop) :-
-        !, merge_mp3(Range, Limit, (Call), Args, Post, Prop).
+        !, merge_mp3(Range, Limit, (Call, Post), Args, Prop).
 merge_mp2(OutProp, Range, Limit, Call, Args, Post, Prop) :-
         %% print(Call),
         merge_mp3(Range, Limit, (Call, OutProp, Post), Args, Prop).

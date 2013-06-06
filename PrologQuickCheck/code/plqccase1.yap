@@ -252,7 +252,7 @@ test(Arg1, [Arg2]) :- Arg2=0. %, print({t3, Arg1, Arg2}), nl.
     such_that plqccase1:odd_arg1
     where (i(g,v), o(g,v), o(g,ng), o(g,g))
     has_range {0,inf} % default 1-inf
-    limit 2
+    limit 3
     post_cond (L \= []).
 
 %% t1 :- {plqccase1:test, 1} of_type (plqc:listOf(int), plqc:variable).

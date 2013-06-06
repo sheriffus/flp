@@ -20,11 +20,11 @@
 
 \title{\papertitle}
 
-\authorinfo{Cl\'audio Amaral^{1,2} and M\'ario Florido^{1,2} and V\'itor Costa^{1,3}}
+\authorinfo{Cl\'audio Amaral$^{1,2}$ and M\'ario Florido$^{1,2}$ and V\'itor Costa$^{1,3}$}
 {DCC - Faculty of Science, University of Porto \and
 LIACC - University of Porto \and
 CRACS - University of Porto}
-{\{coa,amf\}@@ncc.up.pt \and vsc@dcc.fc.up.pt}
+{\{coa,amf\}@@ncc.up.pt \and vsc@@dcc.fc.up.pt}
 
 \maketitle
 \begin{abstract}

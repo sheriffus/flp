@@ -4,6 +4,41 @@
 \label{sec:case-studies}
 
 \subsection{List Processing}
+We started to write small predicates and specifications along with the
+tool development.
+%
+These small examples turned out to be interesting to show some of the
+potential of \plqc{}.
+%
+They helped to reveal discrepancies between intended and actual
+behaviour of the predicates.
+%
+The tool is specially useful for people that are beginning logic
+programming or have their logic programming polluted by other
+programming styles, such as one of the authors.
+
+
+\subsubsection{List Reverse}
+We start by extending the first example given in
+\refSec{sec:properties}.
+%
+In general people have a conception of what is reversing the order of
+elements, which is to observe the $i^th$ element of the original list as
+the $(1+n-i)^th$ element of the reversed one for a list of size $n$.
+%
+There is also the idea of how to code such a procedure, independently of
+the programming language.
+%
+In fact, there are quite a few ways to implement it and we played with
+some implementations of the procedure.
+
+
+What we intend to check about our reverse procedures is the ability to
+transform an input list into its reversed counterpart.
+%
+This implies that the property has an input for random testing.
+%
+For the input we must 
 \subsection{AVL Trees}
 \subsection{red-black Trees}
 

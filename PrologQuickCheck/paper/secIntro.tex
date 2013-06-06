@@ -10,25 +10,33 @@
 %  how  (are we doing it)
 
 % the Introduction intro, a bit of 'what'
-Maintenance is the biggest slice of the development cycle of software
-systems.
-\todo{find a good source to cite}
+The life-cycle, and often the cost, of most sofware systems is
+dominated by maintenance effort~\cite{}.  \todo{find a good source to cite}
 %
-Early detection and correction of bugs is then crucial to minimise
-maintenance efforts and therefore its associated costs.
+Maintenance may include porting a a program to new platforms, or
+adapting the program to unexpected tasks, but most often is about
+debugging flaws in the original program. Early detection and
+correction of bugs is thus crucial to minimize the total maintenance
+effort and its associated costs.
 %
-To detect or prevent such shortcomings testing has been widely used with
-growing importance in industry.
+Ideally, bug detection would be possible by automatic verification
+against a specification. High-level languages, such as logic and
+functional programming languages offer the promise to achieve this
+ultimate goal~\cite{}, but, in practice, testing is still necessary
+and often crucial for bug detection, and thus a fundamental component
+in software development. %, very widely used and with
+%growing importance in the industry.
  \todo{I do not like the word technique here; maybe change whole sentence}
  \todo{cite some quviq industry related testing job}
 %
+Notice that testing is not a one-shot operation in most software.
 Regardless of the formal and constructive nature of logic programming,
-rare cases and typing mistakes makes it necessary to regularly test
-during logic program development.
+rare cases and typing mistakes make it necessary to regularly test
+throughout logic program development.
 
 %  What (is the subject)
-Testing a software component or components consists of executing it for
-a pre-selected set of inputs (test suite) and inspect if the outputs
+Testing a software component or components consists of executing it on
+a pre-selected set of inputs (test suite) and inspecting whether the outputs
 respect the expected results.
 %
 %% Software testing can be classified by the granularity of test focus, the
@@ -42,36 +50,39 @@ respect the expected results.
 %% test its behaviour whereas the developer may want to check invariants
 %% and the integrity of internal data-structures.
 %
-The way individual test cases are chosen to be part of the test suite
-can be either manual, where the test developer designs test cases one by
-one, or with any degree of automation, resorting to tools for the
-effect.
+How to choose the test cases test suite is often a difficult
+question. The approach used
+can be  manual, with the test developer designing test cases one by
+one, or it can be automated to some extent, in this case resorting to
+tools for case generation.
 %
-Such tools reduce time needed for testing software components and make
-it easier to test developing programs.
+Such tools reduce the time needed for testing software components and make
+it easier to test programs being developed.
 %
-In this paper we describe \plqc{} (\Prolog\QuickCheck), a \Prolog{}
-version of the property based testing framework \QuickCheck, a tool for
-testing \Prolog{} programs.
+
+In this work we introduce \plqc{} (\Prolog\QuickCheck), a
+property based testing framework for \Prolog{}, inspired on
+ \QuickCheck.
 \todo{cite quickcheck}
 %
-We also present a language for the specification of \Prolog{} predicates
+We further present a language for the specification of \Prolog{} predicates
 together with a translation procedure for generating \plqc{} properties
 based on the specification.
 
 
 %  why  (are we exploring it) and 
-Programming in logic languages such as \Prolog{} can largely benefit
-from automatic testing.
+Automatic testing is particularly suitable to logic languages such as
+\Prolog{}. The high-level nature of the language makes it easy to
+specify test cases.
 %
-Due to its untyped nature the developer may be oblivious to important
-corner cases or odd behaviours.
+On the other hand, due to its un-typed nature the developer may be
+oblivious to important corner cases or odd behaviors.
 %
-The backtracking execution model can also interfere in less obvious
-ways, making the actual behaviour elude the programmer.
+The backtracking execution model may also interfere in less than obvious
+ways, making the run-time behavior elude the programmer.
 %
 Being able to automatically test a property about a predicate or set of
-predicates is a clear advantage during software development.
+predicates is thus a clear advantage during software development.
 %
 \Prolog{}'s ties to logic reduces the gap between the program and the
 specification of properties to be tested.
@@ -81,23 +92,27 @@ logic programmer.
 
 
 %  how  (are we doing it)
-Tests are automatically run from formal specifications of general
-properties and feedback is given to the tool user about their
+In a property-based framework tests are automatically generated and run from formal specifications of general
+properties of the program, and feedback is given to the user about their
 evaluation.
 %
 Properties are stated through a domain-specific language wrapping
 \Prolog{} goals, which \plqc{} checks for a number of inputs.
 %
-Singleton properties are, even though not enforced, pure predicate calls
+Singleton properties are 
+pure predicate calls
 or composed goals whose successful execution determines that the
 property holds for the given input.
 %
-These properties can be composed in order to achieve more complex
+These properties can be further composed in order to achieve more complex
 specifications.
 
 
-The automatic generation of input for a particular test case of a
-property is random w.r.t. a size parameter for the generated value.
+%
+% vsc: this seems too much detail for the Intro
+%
+Note that the automatic generation of input for a particular test case of a
+property is random w.r.t.\ a size parameter for the generated value.
 %
 The user has the freedom to decide how to compose the test data
 generators to best fit the tests' purpose.
@@ -105,7 +120,7 @@ generators to best fit the tests' purpose.
 From simple generators and using the provided predicate generator
 combinators it is possible to obtain generators for more complex
 domains, provide suitable value distributions for specific predicates or
-predicate uses and to ensure the relation between the arguments applied
+predicate usages and to ensure the relation between the arguments applied
 to the predicates being tested is valid.
 
 
@@ -137,6 +152,16 @@ potential inputs.
 
 
 %  overview
+The \plqc{} tool is inspired by \QuickCheck{} and retains its main
+ideas.
+%
+%It is an automatic software testing tool that generates test cases based
+%on properties written in a dialect of the programming language.
+%
+Nevertheless, since \Prolog{} does not possess a built-in static strong
+type system, the interface of \plqc{} differs from the \Haskell{}
+\QuickCheck{}.
+
 Following the original \QuickCheck{} implementation, our main tool is
 lightweight and completely integrated in \Prolog{}.
 %
@@ -146,18 +171,8 @@ specification testing.
 By specifying some aspects of a predicate in a proper specification
 language it is possible to generate a \plqc{} property and check it.
 %
-We have used \plqc{} and its predicate specification in a number of
+This has allowed us to  use \plqc{} and its predicate specification in a number of
 predicates and even libraries.
-
-The \plqc{} tool is inspired by \QuickCheck{} and retains its main
-ideas.
-%
-It is an automatic software testing tool that generates test cases based
-on properties written in a dialect of the programming language.
-%
-Nevertheless, since \Prolog{} does not possess a built-in static strong
-type system, the interface of \plqc{} differs from the \Haskell{}
-\QuickCheck{} one.
 
 
 %}}} introduction

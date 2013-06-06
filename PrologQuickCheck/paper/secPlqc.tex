@@ -11,7 +11,7 @@ A property can be a goal where the whole language is allowed or a
 composition of properties that the \plqc{} tool recursively inspects.
 %
 This enables the specification of a good range of properties about
-regular predicates through the use of meta-predicates, such as checking
+predicates through the use of meta-predicates, such as checking
 the mode of a term.
 %
 In this section we give some example how to define properties.
@@ -26,11 +26,12 @@ The property and predicate to be tested are in the same module,
 The \yap{rev/2} predicate has a desired behaviours, which
 coincides with laws of a reversing operation.
 {
-\aligncolumn{7}{@@{}>{\hspre}r<{\hspost}@@{}}
+\aligncolumn{10}{@@{}>{\hspre}r<{\hspost}@@{}}
+\aligncolumn{12}{@@{}>{\hspre}r<{\hspost}@@{}}
 \begin{code}
-      rev([])   == []
-  rev(XS++YX)   == rev(YS) ++ rev(XS)
-  rev(rev(XS))  == XS
+(1)        rev([])     == []
+(2)     rev(XS++YX)    == rev(YS) ++ rev(XS)
+(3)      rev(rev(XS))  == XS
 \end{code}
 }
 These laws are intended to be satisfied for ground, finite lists
@@ -39,17 +40,15 @@ These laws are intended to be satisfied for ground, finite lists
 We represent them as \Prolog{} goals we can run and check.
 %
 \begin{yapcode}
- rev([], [])
- append(XS, YS, ZS), rev(ZS, RZ),
-  rev(XS, RX), rev(YS, RY),
-   append(RY, RX, RZ)
- rev(XS, RX), rev(RX, XS)
+  (1)  rev([], [])
+  (2)  append(XS, YS, ZS), rev(ZS, RZ),
+        rev(XS, RX), rev(YS, RY),
+         append(RY, RX, RZ)
+  (3)  rev(XS, RX), rev(RX, XS)
 \end{yapcode}
 %
-Going into more detail on the third property, we need to match its
-semantics to the intended property.
-%
-As is, it can have multiple meanings depending on its arguments modes.
+Note that the third property can have multiple meanings depending on its
+parameters modes.
 %
 In this particular case we want to express the symmetry of the
 \yap{rev/2} relation in terms of its intended use: given a ground
@@ -81,10 +80,6 @@ need to specify the set of values over which we abstract the property.
 \end{yapcode}
 %
 We want to test our \yap{drev} property for random \yap{XS} lists.
-%
-When a polymorphic operation is being tested it is usually sufficient
-to test it for integers, so in this particular example
-we state the property in terms of lists of integers.
 %
 We use \plqc{}'s universal quantification to which we describe the
 \emph{type} of terms we want to get randomly generated,
@@ -147,11 +142,12 @@ We can make logical statements with built-in control predicates:
 truth values, conjunction, disjunction, implication or negation.
 %
 \begin{yapcode}
-   true; fail
-   rev(XS, RX), rev(RX, XS).
-   XS = []; XS = [H||T].
-   fail -> true
-   \+(fail)
+   true
+   fail
+   Goal1; Goal2
+   Goal1, Goal2
+   Goal1 -> Goal2
+   \+(Goal)
 \end{yapcode}
 %
 Other control predicates, such as cut (\yap{!}), are also allowed in
@@ -195,8 +191,8 @@ This is an example of a \emph{generator} in \plqc{}.
 There are also some differences between \plqc{} generators and the
 generators in a strongly typed version of the tool.
 %
-In a setting with static types, generators pick values inside a type
-according to some criteria.
+In \Haskell{} \QuickCheck{}, or any language with strong types,
+generators pick values inside a type according to some criteria.
 %
 In \plqc{} they are special predicates that randomly choose an element
 from a set of values.
@@ -216,7 +212,7 @@ In \plqc{} we differentiate generators from generator predicates.
 The bridge between the generator and the corresponding generator
 predicate is made by \plqc{}'s quantification.
 %
-A generator is any callable predicate that can generate a value given a
+A generator is any callable term that can generate a value given a
 size parameter.
 %
 The bridge consists of calling the generator it with the extra

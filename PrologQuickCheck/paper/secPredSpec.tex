@@ -14,8 +14,9 @@ It is just a form to express some predicate features we thought to be of
 importance in a way that suited our needs.
 
 
-Our general specification form of a predicate \yap{p/n} consists, in its
-core, of a set of specification clauses about input types.
+The general specification form of a predicate \yap{p/n} consists, in its
+core, of a set of uniquely identified specification clauses about input
+types or the shape of the parameter terms when evoking the predicate.
 %
 \begin{code}
 predicate specification clause
@@ -26,6 +27,17 @@ parameter input types
 %
 Various aspects of the predicate for the particular input type in
 question can be added to a specification clause.
+%
+If there is a relation that arguments must fulfil one can implement it
+as a predicate, say \yap{irel/1}, which checks if such a relation is
+valid for the list of arguments given as parameter.
+%
+The modes of each parameter can be given for the input terms and for any
+result answer as well as the number of answers of a predicate can also
+be stated.
+%
+Generic properties that should hold before and after the predicate is
+executed may also be provided.
 %
 \begin{code}
 parameter relation
@@ -41,10 +53,7 @@ pre/post conditions
 
 \subsection{Types}
 
-As mentioned in \refSec{sec:generators}, types in \plqc{} differ from
-the regular notion of type.
-%
-Our types are not defined by a set of \emph{ground} terms but rather by
+Types are not defined by a set of \emph{ground} terms but rather by
 the set of terms produced by a generator.
 %
 These are the types used in predicate specification and are also

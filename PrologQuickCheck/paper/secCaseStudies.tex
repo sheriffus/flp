@@ -71,6 +71,95 @@ builds the result with an accumulator via an auxiliary predicate.
 \end{yapcode}
 
 
+We can adapt the properties in \refSec{sec:properties} to both versions.
+%
+We do it by identifying the property names and called predicates
+appropriately.
+%
+For the \yap{rev_app/2} predicate we have.
+\begin{yapcode}
+ qcprop(double_rev_app) :-
+   plqc:qcforall( listOf(int), L,
+     mod:qcprop({double_rev_app_body, L})).
+
+ qcprop({double_rev_app_body, L}) :- 
+   mod:rev_app(L, LR),
+   !, % enforce first solution
+   mod:rev_app(LR, L2), !, L == L2.
+\end{yapcode}
+%
+The version for \yap{rev_acc/2} is obtained by changing the affix of
+identifiers from \yap{app} to \yap{acc}
+%
+Both properties underwent testing, passing all given tests.
+%
+%   ?- plqc:quickcheck(plqccase1:qcprop(double_rev_app), [{numtests, 1000}]), plqc:quickcheck(plqccase1:qcprop(double_rev_acc), [{numtests, 1000}]).
+\begin{yapcode}
+   ?- plqc:quickcheck(
+          (mod:qcprop(double_rev_app))
+        qcand (mod:qcprop(double_rev_acc)),
+          [{numtests, 1000}]).
+ OK: Passed 1000 test(s).
+ yes
+\end{yapcode}
+
+
+To check that the order is being reversed we can randomly choose an
+element (or even a random set of elements) and inspect if it is
+correctly positioned in the reversed list.
+%
+Choosing random elements prevent us from checking the whole list.
+%
+\begin{yapcode}
+ qcprop(rev_app_index) :-
+   plqc:qcforall(
+     suchThat(structure({listOf(int), int}),
+       plqccase1:valid_index),
+     {L,I},
+     mod:qcprop({double_rev_index_body, L, I})
+   ).
+ valid_index({L, I}) :-
+   length(L,X), I<X.
+
+ qcprop({double_rev_index_body, L, I}) :- 
+   mod:rev_app(L, LR),
+   length(L,X),
+   Index is I+1, RevIndex is X-I,
+   lists:nth(Index, L, Val),
+   lists:nth(RevIndex, LR, Val).
+\end{yapcode}
+%
+When performing a large number of tests this method should give good
+element coverage.
+%
+\begin{yapcode}
+   ?- plqc:quickcheck(
+        mod:qcprop(rev_app_index),
+        [{numtests, 1000}]).
+ OK: Passed 1000 test(s).
+ yes
+\end{yapcode}
+
+
+But since we have two implementations of the same concept we can explore
+this by only performing tests on one version and stating a property
+comparing their behaviours.
+%
+\begin{yapcode}
+ qcprop(equiv_acc_app) :-
+   plqc:qcforall( listOf(int), L,
+     (mod:rev_acc(L,LR), mod:rev_app(L,LR))).
+\end{yapcode}
+The comparison succeeds if both have the same behaviour.
+%
+\begin{yapcode}
+   ?- plqc:quickcheck(
+        mod:qcprop(equiv_acc_app),
+        [{numtests, 1000}]).
+ OK: Passed 1000 test(s).
+ yes
+\end{yapcode}
+
 
 
 \subsection{AVL Trees}

@@ -31,10 +31,11 @@ into testable properties.
 
 
 One can \emph{quickcheck} a property by passing it as a parameter in a
-predicate of the \plqc{} testing interface: \yap{quickcheck/1},
-\yap{quickcheck/2}, \yap{quickcheckResult/2}, \yap{quickcheckResult/3}.
+predicate of the \plqc{} testing interface: \yap{quickcheck/[1,2]},
+%% \yap{quickcheck/2}, \yap{quickcheckResult/2},
+ \yap{quickcheckResult/[2,3]}.
 %
-The predicate \yap{quickcheck/1} tests a property and prints the results
+The \yap{quickcheck/1} predicate tests a property and prints the results
 to the standard output.
 %
  %% | Tests a property and prints the results
@@ -280,7 +281,7 @@ Base properties are called and its outcome accounted for.
 
 \subsection{Predicate Specification Term Expansion}
 
-The predicate specification language that comes with \plqc{} is
+The predicate specification language defined together with \plqc{} is
 translated into a \plqc{} property by term expansion.
 %
 It transforms a specification clause into a testable property.
@@ -454,6 +455,7 @@ against the bounds.
 In case none of the number of answers high bound is passed, the result
 parameters are checked against result properties: directionality and
 post-condition.
+     %% answer counter (ac) exceeds upper bound
 \begin{yapcode}
  bound_call(Lower, Upper, Limit,
             (Call, OutProp), Args) :-
@@ -461,7 +463,7 @@ post-condition.
    (
     %% make call and update nb values
     (
-     %% answer counter (ac) exceeds upper bound
+     %% answer counter (ac) exceeds maximum
      %% report and finish
     ;
      %% ac exceeds defined limit

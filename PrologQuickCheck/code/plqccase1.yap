@@ -219,18 +219,50 @@ rev_dl([X|Xs],Rs-T) :- rev_dl(Xs,Rs-[X|T]).
 rev_acc(L, LR) :- rev_acc(L, [], LR).
 
 
+% {{{ double reverse is id
+
 qcprop(double_rev_app) :-
-        plqc:qcforall( listOf(int), L, plqccase1:qcprop({double_rev_app_body, L}), 10).
+        plqc:qcforall( listOf(int), L, plqccase1:qcprop({double_rev_app_body, L})).
 
 qcprop({double_rev_app_body, L}) :- 
         plqccase1:rev_app(L, LR), !, % first solution
         plqccase1:rev_app(LR, L2), !, L == L2.
 
-qcprop(equiv_acc_app_dapp_rev) :-
-        plqc:qcforall( listOf(int), L, (plqccase1:rev_acc(L,LR), plqccase1:rev_acc(LR,L))).
+qcprop(double_rev_acc) :-
+        plqc:qcforall( listOf(int), L, plqccase1:qcprop({double_rev_acc_body, L})).
+
+qcprop({double_rev_acc_body, L}) :- 
+        plqccase1:rev_acc(L, LR), !, % first solution
+        plqccase1:rev_acc(LR, L2), !, L == L2.
+
+% }}}
 
 qcprop(wrong_drev) :-
         plqc:qcforall( listOf(int), XS, (plqccase1:rev_acc(XS,RX), plqccase1:rev_app(RX,RX))).
+
+% {{{ reverse implementations should be equiv
+
+qcprop(equiv_acc_app) :-
+        plqc:qcforall( listOf(int), L, (plqccase1:rev_acc(L,LR), plqccase1:rev_app(L,LR))).
+
+% }}}
+
+% {{{ index check on reversed list
+
+qcprop(rev_app_index) :-
+        plqc:qcforall( suchThat(structure({listOf(int), int}), plqccase1:valid_index), {L,I},
+                       plqccase1:qcprop({double_rev_index_body, L, I})).
+valid_index({L, I}) :-
+        length(L,X), I<X. 
+
+qcprop({double_rev_index_body, L, I}) :- 
+        plqccase1:rev_app(L, LR), !, % first solution
+        length(L,X),
+        Index is I+1, RevIndex is X-I,
+        lists:nth(Index, L, Val),
+        lists:nth(RevIndex, LR, Val).
+
+% }}}
 
 %% ?- plqc:quickcheck(plqccase1:qcprop(l2dl2l)).
 %% ?- plqc:quickcheck(plqccase1:qcprop(double_rev)).

@@ -104,8 +104,8 @@ it impossible to be satisfied.
 \begin{yapcode}
  qcprop(wrong_drev) :-
    plqc:qcforall(listOf(int), XS,
-                 (plqccase1:rev(XS,RX),
-                  plqccase1:rev(RX,RX))).
+                 (mod:rev(XS,RX),
+                  mod:rev(RX,RX))).
 \end{yapcode}
 %
 Here we mistakenly make the second call to \yap{rev/2} with \yap{RX} as

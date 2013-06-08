@@ -18,6 +18,8 @@ programming or have their logic programming polluted by other
 programming styles, such as one of the authors.
 
 
+%{{{ List Reverse
+
 \subsubsection{List Reverse}
 Here we return to the first example given in \refSec{sec:properties}.
 %
@@ -160,6 +162,84 @@ The comparison succeeds if both have the same behaviour.
  yes
 \end{yapcode}
 
+%}}}
+
+\subsubsection{Append}
+The implementation of the appending predicate recurs on the first list
+and the appended list parameters, leaving the second list uninspected.
+%
+\begin{yapcode}
+ append([], YS, YS).
+ append([X||XS], YS, [X||AS]) :-
+   append(XS, YS, AS).
+\end{yapcode}
+%
+We check the behaviour of the \yap{append/3} predicate
+through its specification with the predicate specification language
+presented in \refSec{sec:pred-spec}.
+%
+The most obvious way to use append is by giving it two lists and expect
+the resulting appended list.
+%
+So the type of such a specification clause is
+(\yap{listOf(int),listOf(int),variable}).
+%
+We can assert that, in this \plqc{} type, parameters input modes are
+(\yap{ground, ground, var}) and the output modes (\yap{ground, ground,
+  ground}).
+%
+It should also be the case that this use of the predicate behaves as a
+function, expecting exactly one answer.
+%
+\begin{yapcode}
+ mod:append
+   of_type (A-(plqc:listOf(int)),
+     B-(plqc:listOf(int)), C-(plqc:variable))
+   where (i(g, g, v), o(g, g, g))
+   has_range {1,1}.
+\end{yapcode}
+%
+Quickchecking this specification clause bears no surprises.
+%
+\begin{yapcode}
+   ?- plqc:quickcheck(
+        mod:qcprop(spec_append),
+        [{numtests, 1000}]).
+ OK: Passed 1000 test(s).
+ yes
+\end{yapcode}
+
+
+Although \yap{append/3} has an intended usage, it may be successfully
+used in other situations.
+%
+For example, one can use it to create an open list, by giving a variable
+in place of the second list, which remains uninspected.
+%
+The result is a list with the ground elements of the first list and the
+second list variable as the tail, therefor it is neither ground nor
+variable.
+%
+This usage also behaves as a function, since the potentially mutating
+part of the input is not a target of pattern matches.
+%
+\begin{yapcode}
+ {mod:append, 1}
+   of_type (A-(plqc:listOf(int)),
+     B-(plqc:variable), C-(plqc:variable))
+   where (i(g, v, v), o(g, v, ngv))
+   has_range {1,1}.
+\end{yapcode}
+%
+% when L1 is [], LApp is L2, i.e. var
+\begin{yapcode}
+ {mod:append, 2}
+   of_type (A-(plqc:variable),
+     B-(plqc:listOf(int)), C-(plqc:variable))
+   where (i(v, g, v), o(g, g, g))
+   has_range {1,1}.
+\end{yapcode}
+ % default 1-inf
 
 
 \subsection{AVL Trees}
@@ -167,8 +247,6 @@ The comparison succeeds if both have the same behaviour.
 
 
 
-\begin{yapcode}
-\end{yapcode}
 \begin{yapcode}
 \end{yapcode}
 \begin{yapcode}

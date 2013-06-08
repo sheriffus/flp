@@ -806,8 +806,8 @@ default_limit(100).
         % }}}
 
         % {{{ wrap_mode_check(Dir, DProp, Args, Prop, WrappedProp)
-wrap_mode_check(in, Modes, Args, Prop, (Prop, !; print({failed_in_mode, Modes, Args}), nl)).
-wrap_mode_check(out, Modes, Args, Prop, (Prop, !; print({failed_out_modes, Modes, Args}), nl)).
+wrap_mode_check(in, Modes, Args, Prop, (Prop, !; print({failed_in_mode, Modes, Args}), nl, fail)).
+wrap_mode_check(out, Modes, Args, Prop, (Prop, !; print({failed_out_modes, Modes, Args}), nl, nb_setval(outprop, failed))).
         % }}}
 
         % {{{ build_Dir(Dirs, Args, DProp)
@@ -899,6 +899,7 @@ bound_max(A, B, C) :-
 bound_call(Lower, Upper, Limit, (Call, OutProp), Args) :-
         duplicate_term(Args, OriginalArguments),
         nb_setval(counter, 0),
+        nb_setval(outprop, ok),
         nb:nb_queue(Ref),
         (
             call(Call),
@@ -919,14 +920,18 @@ bound_call(Lower, Upper, Limit, (Call, OutProp), Args) :-
                 print(OriginalArguments), nl
             ;
                 call(OutProp),
-                fail
-            )
+                nb_getval(outprop, Status),
+                %% fail
+                ((Status=ok) -> fail; true)
+            ),
+            !, fail
         ;
             nb_getval(counter, Count),
             %% number of given answers is less than range lower bound
             Lower - Count > 0, !,
             print('Did not reach range lower bound for'), nl,
-            print(OriginalArguments), nl
+            print(OriginalArguments), nl,
+            fail
         ;
             %% we are OK here (exceeding upper bound and limit is on the fly)
             nb:nb_queue_close(Ref, Answers, []),

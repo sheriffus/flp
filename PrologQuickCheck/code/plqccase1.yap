@@ -136,6 +136,13 @@ append([], YS, YS).
 append([X|XS], YS, [X|AS]) :-
         append(XS, YS, AS).
 
+    % {{{ append _
+ plqccase1:append
+    of_type (A-(plqc:listOf(int)), B-(plqc:listOf(int)), C-(plqc:variable))
+    where (i(g, g, v), o(g, g, g))
+    has_range {1,1}.
+    % }}}
+
     % {{{ append 1
 {plqccase1:append, 1}
     of_type (A-(plqc:listOf(int)), B-(plqc:variable), C-(plqc:variable))

@@ -146,15 +146,15 @@ append([X|XS], YS, [X|AS]) :-
     % {{{ append 1
 {plqccase1:append, 1}
     of_type (A-(plqc:listOf(int)), B-(plqc:variable), C-(plqc:variable))
-    where (i(g, v, v), o(g, v, ngv)) % when L1 is [], LApp is L2, i.e. var
+    where (i(g, v, v), o(g, v, ngv), o(g, v, v)) % when L1 is [], LApp is L2, i.e. var
     has_range {1,1} % default 1-inf
     .
     % }}}
     % {{{ append 2
 {plqccase1:append, 2}
     of_type (A-(plqc:variable), B-(plqc:listOf(int)), C-(plqc:variable))
-    where (i(v, g, v), o(g, g, g))
-    has_range {1,1} % default 1-inf
+    where (i(v, g, v), o(g, g, g), o(ngv, g, ngv))
+    has_range {1,inf} % default 1-inf
     .
     % }}}
 %% preserves variables in original lists

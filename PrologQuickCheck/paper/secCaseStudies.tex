@@ -309,6 +309,7 @@ calls and inspect intermediate results.
 To inspect intermediate results it is necessary to perform some
 interface calls and study the result terms.
 
+\subsubsection*{Generator}
 
 Creating a valid sequence of interface calls is not difficult, but
 requires attention to detail.
@@ -320,71 +321,284 @@ from sparse valid values.
 %
 Usages the module \yap{avl.yap} have two sets of terms important to
 define: key terms and value terms.
-
+%
+We decided to parametrise these sets as generators.
+%
+Along with generators for keys and tree values we also parametrise a
+generator for failed lookups, that must be disjoint from the generator
+of values.
 \begin{yapcode}
-% we must create a generator of avl.yap uses (sequences of operations)
-% this is parameterised by two disjoint generators that will make the elements for the tree and the elements for failing lookups
-genAvl(KeyGen, ValGen, FGen, Calls, Size) :-
-% it always starts with creating a tree
-% this implies that when size is 0 the tree is still created
-        Calls = [(avl:avl_new) || Cs1],
-% and then is just a bunch of calls to insert and lookup values
-        genAvlCmds(KeyGen, ValGen, FGen, [], Cs1, Size).
+ genAvl(KeyGen, ValGen, FGen, Calls, Size) :-
+   Calls = [(avl:avl_new) || Cs1],
+   genAvlCmds(KeyGen, ValGen, FGen,
+              [], Cs1, Size).
 \end{yapcode}
+%
+In this generator we start by creating the tree, independently of the
+size parameter.
+%
+This implies that when size is 0 the tree is still created.
+%
+We append the tree creation to a sequence of calls to insert and look-up
+values.
+
+
+Generation of commands to insert and look-up values is passed the
+information about keys and values.
+%
+It works by randomly choosing between insert, valid look-up and invalid
+look-up.
+%
+After an insert command is added, the inserted key-value is saved in a
+look-up list to draw future valid look-ups from.
+%
+Valid look-ups are not generated if the look-up list is empty.
+%
+When the size parameter reaches zero, we generate an empty list of
+commands.
+%
+Otherwise a command is generated and the size is decreased at least by
+one and at most to half.
+%
+Commands are generated without the context tree, which is managed by property.
+%
 \begin{yapcode}
-
-% generating random insertions and randomly choose some of those to lookup after, using difference lists for better append sublists
-% zero size means zero calls
-genAvlCmds(KeyGen, _ValGen, _FGen, _Lookups, [], 0) :- !. % cut - no other case if the size is 0
-genAvlCmds(KeyGen, ValGen, FGen, Lookups, Cs, Size) :-
-        genCmdHead(KeyGen, ValGen, FGen, Lookups, X, Size),
-        call(KeyGen, Key, Size),
-        (X = {i, Val},
-% commands are missing the continuations, these  will be controled by the property itself
-        Cs = [ {i, avl:avl_insert(Key, Val)} ||CsS],
-% update the possible correct lookups
-        NewLookups = [ {Key,Val} || Lookups]
-    ;
-        X = {fl, {FK, FV}},
-% just put the failing lookup
-        Cs = [ {fl, avl:avl_lookup(FK, FV)} ||CsS]
-    ;
-        (X = {l1, {K, V}}, Lx=l1 ; X = {l2, {K, V}}, Lx=l2),
-        Cs = [ {Lx, avl:avl_lookup(K, V)} ||CsS]
-        ),
-        MinSize is Size // 2,
-        MaxSize is Size-1,
-        choose(MinSize, MaxSize, NewSize, Size),
-        genAvlCmds(KeyGen, ValGen, FGen, NewLookups, CsS, NewSize)
-.
-
-genCmdHead(KeyGen, ValGen, none, [], X, Size) :- !,
-        plqc:structure({plqc:value(i), ValGen}, X, Size).
-genCmdHead(KeyGen, ValGen, none, Lookups, X, Size) :- !,
-        Insert = plqc:structure({plqc:value(i), ValGen}),
-        FailLookup = plqc:structure({plqc:value(fl), {KeyGen, FGen}}),
-        Lookup1 = plqc:structure({plqc:value(l1), plqc:elements(Lookups)}),
-        Lookup2 = plqc:structure({plqc:value(l2), plqc:elements(Lookups)}),
-        plqc:frequency([{6,Insert}, {2,Lookup1}, {2,Lookup2}, {1, FailLookup}], X, Size).
-genCmdHead(KeyGen, ValGen, FGen, [], X, Size) :- !,
-        Insert = plqc:structure({plqc:value(i), ValGen}),
-        FailLookup = plqc:structure({plqc:value(fl), {KeyGen, FGen}}),
-        plqc:frequency([{9,Insert}, {1, FailLookup}], X, Size).
-genCmdHead(KeyGen, ValGen, FGen, Lookups, X, Size) :-
-        Insert = plqc:structure({plqc:value(i), ValGen}),
-        FailLookup = plqc:structure({plqc:value(fl), {KeyGen, FGen}}),
-        Lookup1 = plqc:structure({plqc:value(l1), plqc:elements(Lookups)}),
-        Lookup2 = plqc:structure({plqc:value(l2), plqc:elements(Lookups)}),
-        plqc:frequency([{6,Insert}, {2,Lookup1}, {2,Lookup2}, {1, FailLookup}], X, Size).
-
-
-genKey(Key, Size) :-
-        plqc:choose(0, 50000, Key, Size).
-
-genVal(Val, Size) :-
-        plqc:choose(0, Size, Val, Size).
+ genAvlCmds(KeyGen, _ValGen, _FGen,
+            _Lookups, [], 0) :- !.
+ genAvlCmds(KeyGen, ValGen, FGen,
+            Lookups, Cs, Size) :-
+   genCmdHead(KeyGen, ValGen, FGen,
+              Lookups, X, Size),
+   call(KeyGen, Key, Size),
+   (X = {i, Val},
+    Cs = [{i, avl:avl_insert(Key, Val)}||CsS],
+    NewLookups = [ {Key,Val} || Lookups]
+   ;
+    X = {fl, {FK, FV}},
+    Cs = [{fl, avl:avl_lookup(FK, FV)}||CsS]
+   ;
+    (X = {l1, {K, V}}, Lx=l1
+    ; X = {l2, {K, V}}, Lx=l2),
+    Cs = [{Lx, avl:avl_lookup(K, V)}||CsS]
+   ),
+   MinSize is Size // 2,
+   MaxSize is Size-1,
+   choose(MinSize, MaxSize, NewSize, Size),
+   genAvlCmds(KeyGen, ValGen, FGen,
+              NewLookups, CsS, NewSize)
+ .
 \end{yapcode}
 
+
+Choosing a single command follows a couple of restrictions.
+%
+If the generator for failing look-ups is missing, these commands will
+not be generated.
+%
+If the list of look-ups is empty, valid look-ups will not be generated.
+%
+Valid look-ups can take two forms: checking if the key-value is in the
+tree and ask for the value corresponding to some key.
+%
+All commands are branded by a command identifier, making it possible to
+distinguish between different kinds of look-up.
+%
+The possible choices are bundled in a \yap{frequency} generator.
+%
+Relative probabilities are such that a big variety of commands occurs in
+relatively small sequences.
+%
+\begin{yapcode}
+ genCmdHead(KeyGen, ValGen, none,
+           [], X, Size) :- !,
+   plqc:structure({plqc:value(i), ValGen},
+                  X, Size).
+ genCmdHead(KeyGen, ValGen, none,
+            Lookups, X, Size) :- !,
+   Insert =
+     plqc:structure({plqc:value(i),
+                     ValGen}),
+   Lookup1 =
+     plqc:structure({plqc:value(l1),
+                     plqc:elements(Lookups)}),
+   Lookup2 =
+     plqc:structure({plqc:value(l2),
+                     plqc:elements(Lookups)}),
+   plqc:frequency(
+     [{6,Insert}, {2,Lookup1}, {2,Lookup2}],
+     X, Size).
+ genCmdHead(KeyGen, ValGen, FGen,
+            [], X, Size) :- !,
+   Insert = ... ,
+   FailLookup =
+     plqc:structure({plqc:value(fl),
+                     {KeyGen, FGen}}),
+   plqc:frequency(
+     [{9,Insert}, {1, FailLookup}],
+     X, Size).
+ genCmdHead(KeyGen, ValGen, FGen,
+            Lookups, X, Size) :-
+   Insert = ... ,
+   FailLookup = ... ,
+   Lookup1 = ... ,
+   Lookup2 = ... ,
+   plqc:frequency(
+     [{6,Insert}, {2,Lookup1},
+       {2,Lookup2}, {1, FailLookup}],
+     X, Size).
+\end{yapcode}
+%% \begin{yapcode}
+%     plqc:structure({plqc:value(i), ValGen}),
+%     plqc:structure({plqc:value(i), ValGen}),
+%     plqc:structure({plqc:value(fl),
+%                     {KeyGen, FGen}}),
+%     plqc:structure({plqc:value(l1),
+%                     plqc:elements(Lookups)}),
+%     plqc:structure({plqc:value(l2),
+%                     plqc:elements(Lookups)}),
+%% \end{yapcode}
+
+
+Together with the generators for module usages we need the generators
+for keys and values.
+%
+Keys are integers between $0$ and $50000$, a large enough interval to
+generate a fair amount of unique keys in smaller test cases.
+%
+Values are non-negative integers bound by the size.
+%
+To make a disjoint generator for we use singleton lists with elements
+given by the value generator.
+\begin{yapcode}
+ genKey(Key, Size) :-
+   plqc:choose(0, 50000, Key, Size).
+
+ genVal(Val, Size) :-
+   plqc:choose(0, Size, Val, Size).
+\end{yapcode}
+
+
+\subsubsection*{Property}
+
+The avl property depends on many factors.
+%
+It is parametrised by the tree to check and operations to extract
+information from that tree.
+%
+These operation consist of: current node's key; key comparison; left and
+right sub-trees; empty tree test.
+%
+A side effect of the property is returning the height if the tree.
+%
+\begin{yapcode}
+ qcprop({avl, (tree, T), (height, H),
+      (curr_key, GetKey), (cmp_key, CmpKeys),
+      (left, L), (right, R),
+      (is_nil, IsNil)}) :- 
+   qcif(...).
+\end{yapcode}
+%
+The empty tree test is a callable term that checks if the tree in the
+first argument is empty and unifies the second argument to the
+appropriate truth value.
+%
+Key comparison is callable with three parameters: first key, second key
+and result.
+%
+The result of the comparison reflects the relation between the given
+keys : \yap{lt, gt, eq, lte, gte}.
+
+
+A tree may be empty, in which case we just unify the correct height.
+\begin{yapcode}
+   qcif( (call(IsNil, T, V), V = false)
+   ,(
+     ...
+   ),
+   (V=false, H = 0) )
+\end{yapcode}
+%
+In the case of a non-empty tree we retrieve its key and sub-trees.
+%
+\begin{yapcode}
+   qcif( ...
+   ,((call(GetKey, T, Key),
+       call(L, T, LT),  call(R, T, RT))
+   qcand
+     ...
+   qcand
+     ...
+   qcand
+     ...
+   ),
+     ... )
+\end{yapcode}
+%
+They are used in recursive checks of the property.
+%
+The recursive calls are for a different predicate, accumulating lists of
+keys that should be greater of less then the keys of the tree.
+%
+After checking the sub-trees, the returned heights are compared for
+balance and the current tree height computed.
+%
+\begin{yapcode}
+   qcif( ...
+   ,( ...
+   qcand
+     qcprop({avl, (gt, [Key]), (lt, []),
+ (tree, LT), (height, LH),
+ (curr_key, GetKey), (cmp_key, CmpKeys),
+ (left, L), (right, R), (is_nil, IsNil)})
+   qcand
+     qcprop({avl, (gt, []), (lt, [Key]),
+ (tree, RT), (height, RH),
+ (curr_key, GetKey), (cmp_key, CmpKeys),
+ (left, L),(right, R),(is_nil, IsNil)})
+   qcand
+     (( abs(LH-RH) =< 1, !
+     ; print(height_mismatch), nl, fail),
+     H is 1+ max(LH,RH))
+   ),
+     ... )
+\end{yapcode}
+
+
+The accumulating version of the property receives as extra arguments the
+lists of keys in the path up to the root that are greater and less then
+the current key.
+%
+This order criterion is what differentiates the accumulating property.
+%
+It is checked for the current key which is then added to the appropriate
+accumulators in the recursive calls.
+% (tree, T),
+%       (height, H), (curr_key, GetKey),
+%       (cmp_key, CmpKeys), (left, L),
+%       (right, R), (is_nil, IsNil)
+\begin{yapcode}
+ qcprop({avl, (gt, GTS), (lt, LTS), ...}) :-
+   qcif(
+     ...
+   ,(
+     (call(GetKey, T, Key), call(L, T, LT),
+      call(R, T, RT),
+      (forall(member(X, LTS),
+       call(CmpKeys, X, Key, lte)), !
+      ; print(avl_key_not_inorder1), nl, fail),
+      (forall(member(X, GTS),
+       call(CmpKeys, X, Key, gt)), !
+      ; print(avl_key_not_inorder2), nl, fail))
+   qcand
+     ...
+   qcand
+     ...
+   qcand
+     ...
+   ),
+     ...
+   ).
+\end{yapcode}
 
 %% \subsection{red-black Trees}
 

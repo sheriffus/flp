@@ -95,7 +95,7 @@ identifiers from \yap{app} to \yap{acc}
 %
 Both properties underwent testing, passing all given tests.
 %
-%   ?- plqc:quickcheck(plqccase1:qcprop(double_rev_app), [{numtests, 1000}]), plqc:quickcheck(plqccase1:qcprop(double_rev_acc), [{numtests, 1000}]).
+%   ?- plqc:quickcheck(mod:qcprop(double_rev_app), [{numtests, 1000}]), plqc:quickcheck(mod:qcprop(double_rev_acc), [{numtests, 1000}]).
 \begin{yapcode}
    ?- plqc:quickcheck(
           (mod:qcprop(double_rev_app))
@@ -116,7 +116,7 @@ Choosing random elements prevent us from checking the whole list.
  qcprop(rev_app_index) :-
    plqc:qcforall(
      suchThat(structure({listOf(int), int}),
-       plqccase1:valid_index),
+       mod:valid_index),
      {L,I},
      mod:qcprop({double_rev_index_body, L, I})
    ).
@@ -231,19 +231,64 @@ part of the input is not a target of pattern matches.
    has_range {1,1}.
 \end{yapcode}
 %
-% when L1 is [], LApp is L2, i.e. var
+Testing this specification clause reveals that the \emph{out} part of
+the directionality is not satisfied.
+%
 \begin{yapcode}
- {mod:append, 2}
-   of_type (A-(plqc:variable),
-     B-(plqc:listOf(int)), C-(plqc:variable))
-   where (i(v, g, v), o(g, g, g))
-   has_range {1,1}.
+   ?- plqc:quickcheck(
+        mod:qcprop(spec_append_1),
+        [{numtests, 1000}]).
+ ..{failed_out_modes,[[o,g,v,ngv]],
+                     [[],_10258,_10258]}
+ !
+ Failed: After 3 test(s).
+ Counterexample found: [[[],_10258,_10260]] 
+ yes
 \end{yapcode}
- % default 1-inf
+%
+The counterexample given shows that when the first argument is the empty
+list, and the other two variables, the output modes do not comply with
+the specification.
+% when L1 is [], LApp is L2, i.e. var
+%
+Upon closer inspection it is noted that the base case of the recursion
+on the first argument simply unifies the second and third parameters
+when it matches an empty list.
+%
+There are two simple ways of solving this.
+%
+One is to split the specification clause between input types that only
+have empty lists or non-empty lists separately.
+%
+The other is to add the directionality missing.
+%
+The correct choice in general is to split the input types, since this is
+a matter between disjoint sets of terms.
+%
+Multiple output directionalities are mainly intended for multiple modes
+of the parameters of multiple answers.
+%
+Given the simplicity of the example we decided to add a directionality.
+%
+\begin{yapcode}
+   where (i(g, v, v), o(g, v, ngv)), o(g,v,v)
+\end{yapcode}
+
+
+%% \begin{yapcode}
+%%  {mod:append, 2}
+%%    of_type (A-(plqc:variable),
+%%      B-(plqc:listOf(int)), C-(plqc:variable))
+%%    where (i(v, g, v), o(g, g, g), o(ngv, g, g))
+%%    has_range {1,1}.
+%% \end{yapcode}
+%%  % default 1-inf
 
 
 \subsection{AVL Trees}
-\subsection{red-black Trees}
+
+
+%% \subsection{red-black Trees}
 
 
 

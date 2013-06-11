@@ -20,7 +20,8 @@
 
 \title{\papertitle}
 
-\authorinfo{Cl\'audio Amaral$^{1,2}$ and M\'ario Florido$^{1,2}$ and V\'itor Costa$^{1,3}$}
+\authorinfo{Cl\'audio Amaral$^{1,2}$ and M\'ario Florido$^{1,2}$ and
+  V\'itor Santos Costa$^{1,3}$}
 {DCC - Faculty of Science, University of Porto \and
 LIACC - University of Porto \and
 CRACS - University of Porto}
@@ -53,7 +54,8 @@ CRACS - University of Porto}
 %% %include sec6.tex
 
 
-%% \bibliographystyle{abbrvnat}
+\bibliographystyle{abbrvnat}
+\bibliography{plqc}
 %% \bibliography{../../../gitroot/bibtex/jp,../../../gitroot/bibtex/genprog,../../../gitroot/bibtex/misc}
 
 

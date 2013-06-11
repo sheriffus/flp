@@ -1,30 +1,63 @@
 % -*- mode: latex; mode: folding -*-
 
+% should first explain quickcheck and random arguments
+
+
 \section{Properties}
 \label{sec:properties}
 
-
-The expressive power of properties is the same as \Prolog{}
+\plqc{} is a property based testing framework.
+%
+% vsc: define what property is first:
+Properties are logical statements about software.
+%
+In order to automate the testing process these are observable properties
+inside the language.
+%
+They specify the behaviour of or the relation between software
+elements.
+%
+The tool automatically generates input for the properties to be tested
+and executes them to assess their validity.
+% coa: delete comments if sufficient, re-comment otherwise
+%
+A primitive property is an arbitrary \Prolog{} goal (hence, the whole
+language can be used to define properties).
+%
+Properties can be composed according to composition
+rules described in the continuation.
+%
+%% In the latter case the \plqc{} tool recursively inspects
+%% properties according to the composition rules.
+%
+% vsc: define the composition rules: anything goes?
+% coa: later?
+%
+The expressive power of properties is thus the same as \Prolog{}
 predicates.
 %
-A property can be a goal where the whole language is allowed or a
-composition of properties that the \plqc{} tool recursively inspects.
-%
-This enables the specification of a good range of properties about
+This enables the specification of a wide range of properties about
 predicates through the use of meta-predicates, such as checking
-the mode of a term.
+the mode of a goal. % coa: here I was thinking of ground(X) and var(Y);
+                    % isn't this the mode of a term?
 %
-In this section we give some example how to define properties.
+Next, in this section we discuss in detail an example of how to define
+properties in \plqc{}.
 
 
-Let us start with an example about reversing lists, for which we assume the
-predicate \yap{rev/2}, relating two lists with reversed element order.
+The example is a predicate to reverse lists.
+%
+We assume the existence of a predicate \yap{rev/2}, relating two lists
+with reversed element order.
 %
 The property and predicate to be tested are in the same module,
-\yap{mod}, and use the \plqc{} tool module.
+\yap{mod}, and will have access to the \plqc{} tool module.
 %
-The \yap{rev/2} predicate has a desired behaviours, which
-coincides with laws of a reversing operation.
+The \yap{rev/2} predicate has a set of desired behaviours, which
+correspond to the laws of a reversing operation (we use \texttt{++} to
+represent composition of lists).
+%
+Using a functional notation:
 {
 \aligncolumn{10}{@@{}>{\hspre}r<{\hspost}@@{}}
 \aligncolumn{12}{@@{}>{\hspre}r<{\hspost}@@{}}
@@ -37,7 +70,8 @@ coincides with laws of a reversing operation.
 These laws are intended to be satisfied for ground, finite lists
 \yap{XS} and \yap{YS}.
 %
-We represent them as \Prolog{} goals we can run and check.
+We can represent the above properties as conjunctions of \Prolog{}
+goals:
 %
 \begin{yapcode}
   (1)  rev([], [])
@@ -47,31 +81,40 @@ We represent them as \Prolog{} goals we can run and check.
   (3)  rev(XS, RX), rev(RX, XS)
 \end{yapcode}
 %
-Note that the third property can have multiple meanings depending on its
-parameters modes.
+Note that verifying the properties for a certain input consists of
+executing the code in a \Prolog{} interpreter.
+%
+Moreover, note that the third property can have multiple meanings
+depending on its parameters modes.
 %
 In this particular case we want to express the symmetry of the
 \yap{rev/2} relation in terms of its intended use: given a ground
 list in one argument retrieve a result in the other.
 %
-The next step is optional, to generalise the goal and parametrise it
-accordingly.
+The next step is optional.
+%
+The idea is to generalise the goal and parametrise it accordingly.
 %
 \begin{yapcode}
  qcprop({drev, XS}) :-
    rev(XS, RX), rev(RX, XS).
 \end{yapcode}
 %
-We write a clause for the special predicate \yap{qcprop/1}.
+Note that the generalised call is  written as a clause for the special
+predicate \yap{qcprop/1}. % vsc: explain why?
+                          % coa: this sentence was missing; does it need more?
 %
-A call to this predicate in a \plqc{} property causes the tool to
-inspect the body of the clause, making it possible to abstract long or
+This is \plqc{}'s predicate for labelling properties.
+%
+When a call to this predicate is found during testing, \plqc{} inspects
+the body of the clause, making it possible to abstract long or
 frequently used properties and compose complex properties from smaller
 elements.
 %
-This is still not complete to use with \plqc{} for random testing, we
+This is still not sufficient to verify properties with \plqc{}.
+%
+In order to enable random testing, we
 need to specify the set of values over which we abstract the property.
-\todo{CA: I don't like this sentence much...}
 %
 \begin{yapcode}
  qcprop(double_rev) :-
@@ -79,14 +122,25 @@ need to specify the set of values over which we abstract the property.
                  mod:qcprop({drev, XS}))
 \end{yapcode}
 %
-We want to test our \yap{drev} property for random \yap{XS} lists.
+This more precise definition says that we want to test our \yap{drev}
+property over all random lists of integers \yap{XS}.
 %
-We use \plqc{}'s universal quantification to which we describe the
-\emph{type} of terms we want to get randomly generated,
-\yap{listOf(int)}, the variable to bind the value to, \yap{XS},
-and finally the property.
+More precisely, we use \plqc{}'s universal quantification,
+\yap{qcforall/3}.
 %
-Now we can check the property using its alias \yap{mod:qcprop(double_rev)}.
+The first argument describes the \emph{type} of terms we want to
+generate randomly, in this case lists of integers,
+\yap{listOf(int)}.
+%
+The second names the variable of interest, in this case \yap{XS}.
+%
+The third names the property we want to verify.
+
+
+Next, we can check the property.
+%
+This is done by calling \plqc{} using the alias
+\yap{mod:qcprop(double_rev)} to define the property.
 \begin{yapcode}
    ?- plqc:quickcheck(mod:qcprop(double_rev)).
  OK: Passed 100 test(s).
@@ -98,8 +152,8 @@ The \yap{plqc:quickcheck/1} predicate is the simplest property tester in
 number (100 is the default number) of generated test cases.
 
 
-We could make the mistake of typing the property wrong, which would deem
-it impossible to be satisfied.
+We could have made a mistake and mis-typed the property, which would deem
+it impossible to be satisfied:
 %
 \begin{yapcode}
  qcprop(wrong_drev) :-
@@ -124,21 +178,21 @@ In this example it is just a list with four elements, but it can show
 the sequence of values instantiated in each universal quantification of
 the property.
 %
-A thing to notice here is that a counterexample is only found after a
-few tests.
+We must observe at this point that a counterexample is only found
+after trying seven tests.
 %
 This is due to the fact that test cases are randomly generated based on
-a maximum size.
+a maximum term size.
 %
 The size criteria causes it to be more likely to get lists with 0 or 1
-element early, which actually obeys the property.
+element early-on, and these small lists actually obey the property.
 
 
 We can freely compose \Prolog{} goals as properties.
 %
 These goals are indivisible and the tool does not inspect their content.
 %
-We can make logical statements with built-in control predicates:
+Namely, we can make logical statements with built-in control predicates:
 truth values, conjunction, disjunction, implication or negation.
 %
 \begin{yapcode}
@@ -156,12 +210,26 @@ order to refine the meaning of a property.
 Extreme care is advised when choosing goals containing impure or
 meta-predicates for properties.
 %
-In a setting with a strong static type system it can ensure that only
+For example, when applying a cut this only affects the primitive
+property it is inserted in, not the whole property.
+%
+In a setting with a strong static type system one can ensure that only
 safe properties, pure functions or predicates, are allowed.
 %
-If we want \plqc{} to inspect the structure of a property it has to be
-composed with the appropriate operators.
+But this is not the case in \Prolog{}.
 %
+If we want \plqc{} to be able to inspect the structure of a property
+it has to be composed with \plqc{} operators.
+%
+We choose to let the user be free to use more simpler or more involved
+properties.
+%
+This provides extra flexibility but, ultimately, the user
+is the one responsible to guarantee that the impure code in a property
+is self-contained and thus does not interfere with posterior test
+cases and is not influenced by previous ones.
+
+
 Available operators currently include conjunction, disjunction,
 conditional execution and quantification.
 %
@@ -170,13 +238,35 @@ conditional execution and quantification.
    Prop1 qcor Prop2
    qcif(Cond, Porp1, Prop2)
    qcforall(Gen, Var, Prop)
+   qcprop(Label)
 \end{yapcode}
 %
-We choose to let the user be free to use more involved properties, who
-is then responsible to seek that the impure parts of a property are self
-contained and do not interfere with posterior test cases and are not
-influenced by previous ones.
-\todo{CA: last paragraph a little off the story line}
+Quantification is explained in the example presented in this section.
+%
+Property labelling is also considered an operation.
+%
+It has no real effect on the labelled property, but is at the level of
+composed properties in the sense that it has an effect in the tool.
+%
+\plqc{} inspects its body for the occurrence of other tool specific
+operations.
+
+
+Conjunction and disjunction of properties is used in the place where
+conjunction and disjunction of goals is expected.
+%
+The main difference is that \plqc{} descends on the structure of
+properties and not on the structure of goals.
+%
+Using property connectives one can compose labelled properties or any
+other \plqc{} property operations.
+
+
+The conditional \yap{qcif/3} has a similar behaviour to its ISO
+\Prolog{} counterpart, only at the level of \plqc{} properties.
+%
+It enables conditional properties without cut, which would not be
+coincident with its semantics in \Prolog{} goals.
 
 
 \section{Generators}
@@ -188,7 +278,7 @@ This is an example of a \emph{generator} in \plqc{}.
 
 
 
-There are also some differences between \plqc{} generators and the
+There are  differences between \plqc{} generators and the
 generators in a strongly typed version of the tool.
 %
 In \Haskell{} \QuickCheck{}, or any language with strong types,
@@ -207,7 +297,8 @@ is supposed to exactly represent the form of an input parameter to a
 property.
 
 
-In \plqc{} we differentiate generators from generator predicates.
+In \plqc{} we differentiate between generators and generator
+predicates.
 %
 The bridge between the generator and the corresponding generator
 predicate is made by \plqc{}'s quantification.
@@ -215,20 +306,21 @@ predicate is made by \plqc{}'s quantification.
 A generator is any callable term that can generate a value given a
 size parameter.
 %
-The bridge consists of calling the generator it with the extra
+The bridge consists of calling the generator with twp extra
 arguments: the quantified variable and the current size parameter.
 %
-The generator predicate can use the size to guide the value
+The generator predicate can use the size to guide value
 construction.
 %
 The value is passed to the property by the \plqc{} quantification
 through unification.
-\todo{CA: this paragraph sound awkward... need to rephrase somehow}
 
 
-
+% vsc: say which ones
+% coa: it was in a spoken todo between me and amf, now it is written
+% coa: delete comments if OK, re-comment if not
 Together with the generator predicates for basic sets of values, we make
-available some predicate combinators to construct more complex kinds of
+available some generator combinators to construct more complex
 generators.
 %
 Generator predicates can have multiple parameters in order to build
@@ -240,24 +332,214 @@ generated value and the size.
 \end{yapcode}
 %
 When a generator predicate uses another generator predicate to build a
-value, the parameter passed is the generator form as seen in the example
-where the generator for lists, \yap{lisstOf(int)}, is parametrised by a
-generator for its elements.
-\todo{CA: long sentence, would be happy to rephrase}
+value, the parameter passed is in generator form.
 %
+This is shown in the example,
+where the generator for lists, \yap{lisstOf(int)}, is parametrised by a
+generator for the integers.
+
+
+\subsection{Combinators}
+
+\plqc{}'s generator combinators are generator predicates that are
+parametrised by other generators.
+%
+They are used to build generator predicates for complex data and to
+adjust the probability distribution of a generator to fit the needs of
+the tester.
+%
+Follows a list with some of the combinators distributed with the tool.
+
+
+During testing, the tool keeps a record of the size parameter, which
+increases with each test case.
+%
+If the values or part of the values to be generated have to be of a
+certain size, we override this parameter with the \yap{resize/4}
+combinator.
+%
+\begin{yapcode}
+ resize(NewSize, GenA, A, _Size) :-
+   call(GenA, A, NewSize).
+\end{yapcode}
+
+
+Picking an integer in an interval is probably the most common operation
+in generators.
+%
+The \yap{choose/4} predicate discards the size parameter and randomly
+chooses an integer between the inclusive range given by the first two
+arguments.
+%
+\begin{yapcode}
+ choose(Min,Max, A, _Size) :-
+   Cap is Max+1,
+   random:random(Min,Cap,A).
+\end{yapcode}
+
+
+We can restrict the values of a generator by some predicate.
+%
+If not all generated elements for a generator are useful, wrapping it
+with \yap{suchThat/4} will select the elements of the generator in the
+first argument that satisfy the predicate in the second.
+%
+\begin{yapcode}
+ suchThat(GenA, PredA, A, S) :-
+   (
+    suchThatMaybe(GenA, PredA, A, S), !
+   ;
+    stSizeStep(S, S1),
+    suchThat(GenA, PredA, A, S1)            
+   ).
+\end{yapcode}
+%
+If a generated value is valid, given by a successful call to
+\yap{suchThatMaybe/4}, it is returned; if not, the size parameter is
+slowly increased to avoid a size without valid values.
+%
+This is a dangerous combinator in the sense that it can loop
+indefinitely  if the the valid values generated are too sparse.
+
+
+It is hard to find a good generator.
+%
+Many times, choosing from a set of generators that complement each other
+is the best way to generate values with a good distribution.
+%
+Grouping generators can be done in several ways.
+%
+We can randomly choose from a list of generators with \yap{oneof/3}.
+%
+The list of generators given in the first argument must be non-empty.
+%
+\begin{yapcode}
+ oneof(LGenA, A, S) :-
+   length(LGenA, Cap),
+   choose(1,Cap,I,S),
+   lists:nth(I, LGenA, GenA),
+   call(GenA, A, S).
+\end{yapcode}
+%
+If a uniform distribution between the generators is not suitable one can
+specifically state the proportions of the probabilities to choose each
+generator.
+%
+The first argument of \yap{frequency/3} is a list of pairs
+\yap{\{}\emph{weight}\yap{,}\emph{generator}\yap{\}} representing such
+proportions.
+%
+The input list must also be non-empty.
+%
+A frequency-index list is created with the correct proportions.
+%
+A generator is then randomly chosen from that list and called
+\begin{yapcode}
+ frequency(FGL, A, S) :-
+   checkFreqWeights(FGL, FIL, Cap),
+   choose(1,Cap,I,S),
+   lists:nth(I, FIL, GenA),
+   call(GenA, A, S).
+
+ checkFreqWeights([], [], 0).
+ checkFreqWeights([{W,Gen}||FGS], FIL, Cap) :-
+   checkFreqWeights(FGS, FIL1, Cap1),
+   addHeads(W,Gen, FIL1, FIL),
+   Cap is Cap1 + W.
+
+ addHeads(0, _Gen, L, L) :- !.
+ addHeads(K, Gen, LI, LO) :-
+   K1 is K-1,
+   addHeads(K1, Gen, [Gen||LI], LO).
+\end{yapcode}
+
+
+The \yap{elements/3} generator predicate, similarly to what
+\yap{oneof/3} does to generators, randomly chooses an element to
+generate from a non-empty list of possible elements.
+%
+\begin{yapcode}
+ elements(AS, A, S) :-
+   length(AS, Cap),
+   choose(1,Cap,I,S),
+   lists:nth(I, AS, A).
+\end{yapcode}
 
 
 
-%% \begin{yapcode}
-%% \end{yapcode}
+To generate lists we have, for example, generators for arbitrary and
+fixed length lists.
+%
+They are all parametrised by a generator for the list elements.
+%
+Random size lists can be generated by \yap{listOf/3}, which randomly
+chooses a list length and uses the \yap{vectorOf/4} fixed length
+generator predicate.
+%
+The latter recurs on the integer given as the first argument, generating
+list elements until the list has enough elements.
+\begin{yapcode}
+ listOf(GenA, AS, S) :-
+   choose(0, S, K, S),
+   vectorOf(K, GenA, AS, S).
 
-%% \begin{yapcode}
-%% \end{yapcode}
+ vectorOf(0, _GenA, [], _Size) :- !.
+ vectorOf(K, GenA, [A||AS], Size) :-
+   call(GenA, A, Size),
+   K1 is K-1,
+   vectorOf(K1, GenA, AS, Size).
+\end{yapcode}
 
 
-%% \begin{yapcode}
-%% \end{yapcode}
+To build a generator that only produces a certain value, ground or not,
+we use \yap{value/3}, giving the element as the first argument.
+%
+If a fresh variable is needed, one can use the \yap{variable}
+generator.
+\begin{yapcode}
+ value(A, A, _Size).
 
-%% \begin{yapcode}
-%% \end{yapcode}
+ variable(X, _Size) :- var(X).
+\end{yapcode}
+%
+In the case where we want to generate values with a certain fixed
+structure with random parts we can use \yap{structure/3}
+%
+This generator predicate descends on the structure of the first
+argument, list or tuple, replicating it for the generated value.
+%
+When there are no more patters, the generator found is evoked and the
+generated value put in its place in the value being built.
+%
+\begin{yapcode}
+ structure(X, Y, Size) :-
+   var(X), !, var(Y), X=Y.
+ structure(X, Y, Size) :-
+   var(X), !, var(Y), X=Y.
+ structure([], [], Size) :- !.
+ structure([SX||SXS], [X||XS], Size) :-
+   !,
+   structure(SX, X, Size),
+   structure(SXS, XS, Size).
+ structure({ST}, {T}, Size) :-
+   !,
+   structure(ST, T, Size),
+   structure(SXS, XS, Size).
+ structure( (SX, SXS), (X, XS), Size) :-
+   !,
+   structure(SX, X, Size),
+   structure(SXS, XS, Size).
+ structure(GenX, X, Size) :-
+   call(GenX, X, Size).
+\end{yapcode}
+
+
+
+\begin{yapcode}
+\end{yapcode}
+
+\begin{yapcode}
+\end{yapcode}
+\begin{yapcode}
+\end{yapcode}
 

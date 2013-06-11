@@ -916,15 +916,16 @@ bound_call(Lower, Upper, Limit, (Call, OutProp), Args) :-
             ;
                 C2 > Limit,
                 !,
-                print('Reached limit for number of answers tested for'), nl,
-                print(OriginalArguments), nl
+                print(inf)
+                %% print('Reached limit for number of answers tested for'), nl,
+                %% print(OriginalArguments), nl
             ;
                 call(OutProp),
                 nb_getval(outprop, Status),
                 %% fail
                 ((Status=ok) -> fail; true)
             ),
-            !, fail
+            !, (C2 > Upper, Upper >=0 -> fail; true)
         ;
             nb_getval(counter, Count),
             %% number of given answers is less than range lower bound

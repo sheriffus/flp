@@ -286,6 +286,104 @@ Given the simplicity of the example we decided to add a directionality.
 
 
 \subsection{AVL Trees}
+AVL trees are implemented in a \Yap{} module, making it interesting to
+test in order to show black-box testing with \plqc{}.
+%
+Its interface is small, with only three predicates, to create an empty
+tree, insert an element and look up an element.
+%
+The predicates are \yap{avl_new/1}, \yap{avl_insert/4} and
+\yap{avl_lookup/3} respectively.
+%
+With only this interface and knowledge about the trees' shape we can
+test weather the module implements AVL trees correctly.
+
+
+When performing this kind of test one does not simply test individual
+predicates (http://imgflip.com/i/1vrhm), we test usages of the module.
+\todo{remove joke}
+%
+In order to do this we must be able to create sequences of interface
+calls and inspect intermediate results.
+%
+To inspect intermediate results it is necessary to perform some
+interface calls and study the result terms.
+
+
+Creating a valid sequence of interface calls is not difficult, but
+requires attention to detail.
+%
+First, we only want to generate valid sequences.
+%
+This is important to save effort of checking validity and not suffer
+from sparse valid values.
+%
+Usages the module \yap{avl.yap} have two sets of terms important to
+define: key terms and value terms.
+
+\begin{yapcode}
+% we must create a generator of avl.yap uses (sequences of operations)
+% this is parameterised by two disjoint generators that will make the elements for the tree and the elements for failing lookups
+genAvl(KeyGen, ValGen, FGen, Calls, Size) :-
+% it always starts with creating a tree
+% this implies that when size is 0 the tree is still created
+        Calls = [(avl:avl_new) || Cs1],
+% and then is just a bunch of calls to insert and lookup values
+        genAvlCmds(KeyGen, ValGen, FGen, [], Cs1, Size).
+\end{yapcode}
+\begin{yapcode}
+
+% generating random insertions and randomly choose some of those to lookup after, using difference lists for better append sublists
+% zero size means zero calls
+genAvlCmds(KeyGen, _ValGen, _FGen, _Lookups, [], 0) :- !. % cut - no other case if the size is 0
+genAvlCmds(KeyGen, ValGen, FGen, Lookups, Cs, Size) :-
+        genCmdHead(KeyGen, ValGen, FGen, Lookups, X, Size),
+        call(KeyGen, Key, Size),
+        (X = {i, Val},
+% commands are missing the continuations, these  will be controled by the property itself
+        Cs = [ {i, avl:avl_insert(Key, Val)} ||CsS],
+% update the possible correct lookups
+        NewLookups = [ {Key,Val} || Lookups]
+    ;
+        X = {fl, {FK, FV}},
+% just put the failing lookup
+        Cs = [ {fl, avl:avl_lookup(FK, FV)} ||CsS]
+    ;
+        (X = {l1, {K, V}}, Lx=l1 ; X = {l2, {K, V}}, Lx=l2),
+        Cs = [ {Lx, avl:avl_lookup(K, V)} ||CsS]
+        ),
+        MinSize is Size // 2,
+        MaxSize is Size-1,
+        choose(MinSize, MaxSize, NewSize, Size),
+        genAvlCmds(KeyGen, ValGen, FGen, NewLookups, CsS, NewSize)
+.
+
+genCmdHead(KeyGen, ValGen, none, [], X, Size) :- !,
+        plqc:structure({plqc:value(i), ValGen}, X, Size).
+genCmdHead(KeyGen, ValGen, none, Lookups, X, Size) :- !,
+        Insert = plqc:structure({plqc:value(i), ValGen}),
+        FailLookup = plqc:structure({plqc:value(fl), {KeyGen, FGen}}),
+        Lookup1 = plqc:structure({plqc:value(l1), plqc:elements(Lookups)}),
+        Lookup2 = plqc:structure({plqc:value(l2), plqc:elements(Lookups)}),
+        plqc:frequency([{6,Insert}, {2,Lookup1}, {2,Lookup2}, {1, FailLookup}], X, Size).
+genCmdHead(KeyGen, ValGen, FGen, [], X, Size) :- !,
+        Insert = plqc:structure({plqc:value(i), ValGen}),
+        FailLookup = plqc:structure({plqc:value(fl), {KeyGen, FGen}}),
+        plqc:frequency([{9,Insert}, {1, FailLookup}], X, Size).
+genCmdHead(KeyGen, ValGen, FGen, Lookups, X, Size) :-
+        Insert = plqc:structure({plqc:value(i), ValGen}),
+        FailLookup = plqc:structure({plqc:value(fl), {KeyGen, FGen}}),
+        Lookup1 = plqc:structure({plqc:value(l1), plqc:elements(Lookups)}),
+        Lookup2 = plqc:structure({plqc:value(l2), plqc:elements(Lookups)}),
+        plqc:frequency([{6,Insert}, {2,Lookup1}, {2,Lookup2}, {1, FailLookup}], X, Size).
+
+
+genKey(Key, Size) :-
+        plqc:choose(0, 50000, Key, Size).
+
+genVal(Val, Size) :-
+        plqc:choose(0, Size, Val, Size).
+\end{yapcode}
 
 
 %% \subsection{red-black Trees}

@@ -201,7 +201,7 @@ genCmdHead(KeyGen, ValGen, none, [], X, Size) :- !,
         plqc:structure({plqc:value(i), ValGen}, X, Size).
 genCmdHead(KeyGen, ValGen, none, Lookups, X, Size) :- !,
         Insert = plqc:structure({plqc:value(i), ValGen}),
-        FailLookup = plqc:structure({plqc:value(fl), {KeyGen, FGen}}),
+        %% FailLookup = plqc:structure({plqc:value(fl), {KeyGen, FGen}}),
         Lookup1 = plqc:structure({plqc:value(l1), plqc:elements(Lookups)}),
         Lookup2 = plqc:structure({plqc:value(l2), plqc:elements(Lookups)}),
         plqc:frequency([{6,Insert}, {2,Lookup1}, {2,Lookup2}, {1, FailLookup}], X, Size).
@@ -298,3 +298,8 @@ qcprop({avlUses, Tree, [{fl,avl:avl_lookup(Key,Val)}|Calls]}) :-
 %% [(avl:avl_new(_A)'|'[{i,avl:avl_insert(21915,15)},{i,avl:avl_insert(44184,12)},{fl,avl:avl_lookup(25986,[0])},{i,avl:avl_insert(38292,3)},{i,avl:avl_insert(12413,0)},{fl,avl:avl_lookup(46865,[1])}])],
 
 % }}}
+
+% {{{ 
+% }}}
+
+

@@ -258,44 +258,53 @@ qcprop({avlUses, [(avl:avl_new)|Calls]}) :-
         qcif(
           qcprop({avl, (tree, Tree), (height, 0), (curr_key, avlTest:get_key), (cmp_key, avlTest:cmp_keys),
                        (left, avlTest:left), (right, avlTest:right), (is_nil, avlTest:is_nil)})
-        , true
+        , (qcprop({avlUses, Tree, Calls}))
         , (print(avl_new_fail_invariant), nl, fail))
-          qcand
-        qcprop({avlUses, Tree, Calls}).
+          %% qcand
+        .
 
 
 qcprop({avlUses, Tree, []}).
 qcprop({avlUses, Tree, [{i,avl:avl_insert(Key,Val)}|Calls]}) :-
-        call(avl:avl_insert(Key,Val), Tree, ContinuationTree)
+        ( call(avl:avl_insert(Key,Val), Tree, ContinuationTree)
+        )%; nl, print(failed_insert), nl, print({Tree, Key, Val}), nl, nl, fail)
           qcand
         qcif(
           qcprop({avl, (tree, ContinuationTree), (height, H), (curr_key, avlTest:get_key), (cmp_key, avlTest:cmp_keys), (left, avlTest:left), (right, avlTest:right), (is_nil, avlTest:is_nil)})
-        , (true)
-        , (print(avl_insert_fail_invariant), nl, fail))
-          qcand
-        qcprop({avlUses, ContinuationTree, Calls}).
+        , (qcprop({avlUses, ContinuationTree, Calls}))
+        , (print(avl_insert_fail_invariant), nl,
+          print({Tree, ContinuationTree}), nl, nl,
+          fail))
+          %% qcand
+        .
 qcprop({avlUses, Tree, [{l1,avl:avl_lookup(Key,Val)}|Calls]}) :-
         (call(avl:avl_lookup(Key,Val), Tree); print(avl_lookup_not_found_fail), nl, fail)
           qcand
-        qcprop({avl, (tree, Tree), (height, _H), (curr_key, avlTest:get_key), (cmp_key, avlTest:cmp_keys), (left, avlTest:left), (right, avlTest:right), (is_nil, avlTest:is_nil)})
-          qcand
+        %% qcprop({avl, (tree, Tree), (height, _H), (curr_key, avlTest:get_key), (cmp_key, avlTest:cmp_keys), (left, avlTest:left), (right, avlTest:right), (is_nil, avlTest:is_nil)})
+        %%   qcand
         qcprop({avlUses, Tree, Calls}).
 qcprop({avlUses, Tree, [{l2,avl:avl_lookup(Key,Val)}|Calls]}) :-
         ((call(avl:avl_lookup(Key,XVal), Tree)
         ; print(avl_lookup_not_bound_fail), nl, fail), XVal = Val)
           qcand
-        qcprop({avl, (tree, Tree), (height, _H), (curr_key, avlTest:get_key), (cmp_key, avlTest:cmp_keys), (left, avlTest:left), (right, avlTest:right), (is_nil, avlTest:is_nil)})
-          qcand
+        %% qcprop({avl, (tree, Tree), (height, _H), (curr_key, avlTest:get_key), (cmp_key, avlTest:cmp_keys), (left, avlTest:left), (right, avlTest:right), (is_nil, avlTest:is_nil)})
+        %%   qcand
         qcprop({avlUses, Tree, Calls}).
 qcprop({avlUses, Tree, [{fl,avl:avl_lookup(Key,Val)}|Calls]}) :-
         (call(avl:avl_lookup(Key,Val), Tree), print(avl_lookup_found_fail), nl, !, fail
     ;   true)
-          qcand
-        qcprop({avl, (tree, Tree), (height, _H), (curr_key, avlTest:get_key), (cmp_key, avlTest:cmp_keys), (left, avlTest:left), (right, avlTest:right), (is_nil, avlTest:is_nil)})
+        %%   qcand
+        %% qcprop({avl, (tree, Tree), (height, _H), (curr_key, avlTest:get_key), (cmp_key, avlTest:cmp_keys), (left, avlTest:left), (right, avlTest:right), (is_nil, avlTest:is_nil)})
           qcand
         qcprop({avlUses, Tree, Calls}).
 
 %% [(avl:avl_new(_A)'|'[{i,avl:avl_insert(21915,15)},{i,avl:avl_insert(44184,12)},{fl,avl:avl_lookup(25986,[0])},{i,avl:avl_insert(38292,3)},{i,avl:avl_insert(12413,0)},{fl,avl:avl_lookup(46865,[1])}])],
+%%    ?- plqc:quickcheck( avlTest:(qcprop(avlUses)), [{numtests, 1000}] ).
+%% ...........................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................avl_lookup_not_bound_fail
+%% !
+%% Failed: After 732 test(s).
+%% Counterexample found: [[avl:avl_new,{i,avl:avl_insert(45157,19)},{i,avl:avl_insert(44162,17)},{i,avl:avl_insert(40204,6)},{l1,avl:avl_lookup(40204,6)},{i,avl:avl_insert(40988,8)},{i,avl:avl_insert(21486,9)},{i,avl:avl_insert(34355,2)},{l2,avl:avl_lookup(40988,8)},{i,avl:avl_insert(45157,0)},{i,avl:avl_insert(7342,0)},{l2,avl:avl_lookup(45157,0)}]] 
+%% yes
 
 % }}}
 

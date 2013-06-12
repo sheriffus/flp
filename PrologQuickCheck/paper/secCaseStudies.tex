@@ -4,23 +4,24 @@
 \label{sec:case-studies}
 
 \subsection{List Processing}
-We started to write small predicates and specifications along with the
-tool development.
+We start by write \todo{writing?} small predicates and specifications in order to show
+the tool.
 %
-These small examples turned out to be interesting to show some of the
+These small examples are interesting to demonstrate some of the
 potential of \plqc{}.
 %
-They helped to reveal discrepancies between intended and actual
+They help in revealing discrepancies between intended and actual
 behaviour of the predicates.
 %
 The tool is specially useful for people that are beginning logic
-programming or have their logic programming polluted by other
-programming styles, such as one of the authors.
+programming or that have their logic programming polluted by other
+programming styles (arguably,  such as one of the authors).
 
 
 %{{{ List Reverse
 
 \subsubsection{List Reverse}
+
 Here we return to the first example given in \refSec{sec:properties}.
 %
 In general people have a conception of what is reversing the order of
@@ -30,16 +31,17 @@ the $(1+n-i)^th$ element of the reversed one for a list of size $n$.
 There is also the idea of how to code such a procedure, independently of
 the programming language.
 %
-In fact, there are quite a few ways to implement it and we played with
-some implementations of the procedure.
+In fact, there are quite a few ways to implement this procedure and we
+discuss several implementations of the procedure.
 
 
 What we intend to check about our reverse procedures is the ability to
 transform an input list into its reversed counterpart.
 %
-This implies that the property has an input for random testing.
+This implies that the property must have an input for random testing.
 %
-For the automatic generation of input we must decide what is the input.
+First, for the automatic generation of input we must decide what
+exactly  will be the input.
 %
 When a procedure is polymorphic on the type of the elements of an
 argument list it is usually sufficient to check its behaviour for a
@@ -50,7 +52,7 @@ safely overestimate the size of the type.
 %
 We choose to test the list predicates with lists of integer elements.
 %
-Therefor we use the generator for integers, \yap{int}, with the
+Therefore, we use the generator for integers, \yap{int}, with the
 parametric list generator, \yap{listOf(int)}.
 
 

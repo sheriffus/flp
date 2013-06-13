@@ -3,31 +3,29 @@
 \section{Implementation}
 \label{sec:impl}
 
-The \plqc{} tool is very lightweight and, even though it will get more
-features in the future, together with the predicate specification
-translation it is currently less then a thousand lines of \Prolog{}
-code.
-\todo{is this really a small program in the prolog comunity?}
-\todo{should one even mention the thing we are trying to sell here is
-  small and simple?}
+The \plqc{} tool is very lightweight and, even though we expect that
+it will get more features in the future, \plqc{} together with the predicate
+specification translation it is currently less then a thousand lines
+of \Prolog{} code.  \todo{is this really a small program in the prolog
+  comunity?}  \todo{should one even mention the thing we are trying to
+  sell here is small and simple?}
 %
-It is developed in \Yap~\Prolog{} but it is mostly comprised of standard
-\Prolog{} code and should be easy to use with other implementations.
+It is developed in \Yap~\Prolog{} but it is mostly comprised of
+standard \Prolog{} code and should be easy to port to other
+implementations.
 
 
-The single \plqc{} module has 4 interface predicates to run a property,
-depending on the user wants to override the defaults with specific
-options and/or have the result in a term.
-\todo{CA: I don't like the sentence...}
+There is a single \plqc{} module, which has 4 interface predicates to
+run a property, depending on whether the user wants to override the defaults
+with specific options and/or have the result in a term.
 %
-It exports the basic generator predicates and generator predicate
-combinators including, but not limited to, the ones presented in
-\refSec{sec:generators}.
+The main module exports the basic generator predicates and generator
+predicate combinators including, but not limited to, the ones
+presented in \refSec{sec:generators}.
 %
-The module also defines the operators needed to make predicate
+The module also defines the operators needed to write predicate
 specifications together with the term expansion of such specifications
 into testable properties.
-
 
 
 One can \emph{quickcheck} a property by passing it as a parameter in a
@@ -45,11 +43,10 @@ to the standard output.
    quickcheck(Property, []).
 \end{yapcode}
 %
-It is a simplification of \yap{quickcheck/2} where the second argument
-is the empty list.
-\todo{'simplification' is not the word I am looking for...}
+It is a default interface to \yap{quickcheck/2}, such that the second argument
+is the empty list (has no user options).
 %
-This list is expected to contain user options to change the default
+In general, this list is expected to contain user options to change the default
 values of key features of the testing process, covered later.
  %% | Tests a property, using test arguments,
  %% and prints the results to 'stdout'.
@@ -59,7 +56,7 @@ values of key features of the testing process, covered later.
 \end{yapcode}
 %
 The predicate is implemented in terms of the result returning
-counterpart by discarding the result.
+counterpart, simply by discarding the result.
 %
 Both \yap{quickcheck} predicates have a result returning counterpart,
 result that can be used internally.
@@ -73,7 +70,7 @@ the previous interface predicates.
    quickcheckResult(Property, [], Result).
 \end{yapcode}
 The predicate \yap{quickcheckResult/3} is the main interface predicate,
-since all the others end up using it by discarding the result or apply
+since all the others call it, either by discarding the result or by applying
 an empty list of options.
  %% | Tests a property, using test arguments,
  %% produces a test result, and prints the
@@ -89,9 +86,9 @@ an empty list of options.
 
 
 The process of testing a property with \yap{quickcheckResult/3}
-involves three main steps: parsing given option to build the option data
-structure; build initial testing state from parsed options; test the
-property w.r.t. the  options and initial state.
+involves three main steps: parsing the given options to build the option data
+structure; building the initial testing state from the parsed options; testing the
+property w.r.t.\ the  options and initial state.
 %
 The option data structure is actually a structure holding information
 about key aspects of the testing process.
@@ -101,7 +98,7 @@ tests, starting size for generated values, maximum size for generated
 values, shrink counterexample choice, maximum number of shrinks, number
 of constraint tries, and timeout limit.
 
-
+\paragraph{\plqc{} Options}
 %{{{ options
 
 The default printing predicate is \yap{format/2}.
@@ -111,9 +108,8 @@ The default can be changed with the option
 \yap{Print}, is supposed to accept the same kind of parameters of
 \yap{format/2}.
 %
-The first is the message structure with formatted values and the second
-is the list of values to the message with.
-\todo{put correct terms defining arguments of Print and format/2}
+The first is the message structure with formatting fields and the second
+is the list of values to output in the message.
 %
 This option subsumes the options \yap{quiet}, \yap{verbose} and
 \yap{\{to_strem,Strem\}}, where the new printing predicate is set to a
@@ -165,9 +161,11 @@ We change the limit with the option \yap{\{max_shrinks,N\}}.
 One can also choose to simply not shrink counterexamples at all with
 \yap{noshrink}.
 
+\subsection{Implementation}
+
 %}}}
 
-We put two kinds of information at the disposal of \plqc{}: options and
+We have two kinds of information at the disposal of \plqc{}: options and
 state.
 %
 Options refer to a set of constants that do not change along the testing
@@ -179,7 +177,7 @@ the current test being performed.
 It contains mutable information necessary to guide the testing process
 and is initially based on the available options.
 %
-The state main function is to keep track of the current size parameter
+The state main function keeps track of the current size parameter
 for generating values.
 
 
@@ -206,6 +204,8 @@ The final result is reported with the printing predicate and refined
 into the return long/short form.
 
 
+\paragraph{Algorithm}
+
 The main test loop, \yap{perform/8}, operates by making a complete copy
 of the given property with fresh variables.
 %
@@ -230,7 +230,7 @@ The result is inspected and treated accordingly.
     % error; deal with it
    ).
 \end{yapcode}While a property is being processed, predicates from different modules
-are used
+are used.
 
 %
 Other clauses of the main loop deal with the loop boundaries: number of
@@ -281,14 +281,15 @@ Base properties are called and its outcome accounted for.
 
 \subsection{Predicate Specification Term Expansion}
 
-The predicate specification language defined together with \plqc{} is
-translated into a \plqc{} property by term expansion.
+The predicate specification language defined in \plqc{} is
+translated into a \plqc{} property by the term expansion mechanism.
 %
-It transforms a specification clause into a testable property.
+At compilation, this mechanism transforms a specification clause into
+a runnable code that implements a testable property.
 
 
 The specification clause to be transformed is composed by the
-identification element (\yap{PredId}) and all the corresponding
+identification element (\yap{PredId}) and its corresponding
 information (\yap{T}).
 %
 \begin{yapcode}
@@ -317,6 +318,9 @@ the predicate name or a pair where the first component is the atom name
 and the second is an atomic symbol.
 %
 The first case can be used when there is only one specification clause
+% vsc: how do you define the most important?
+% coa: by some user criterion... just want to say that it can be used
+% with the other form, but only one of the clauses can be like that
 (or on the most important) and the property identification is merely the
 name of the predicate.
 %
@@ -327,16 +331,16 @@ the same predicate.
 When a pair is given, the second element is taken as a suffix to the
 name separated by an underscore character.
 %
-Exception is made when the suffix itself starts with the underscore
+An exception is made when the suffix itself starts with the underscore
 symbol in which case it is just appended to the name as an atom.
 
 
 Since the type of input to be generated is the only mandatory field, the
 priority of its operator relative to the other operators in a
-specification is devised in that direction.
+specification accomodates this functionality.
 %
-In fact, operator priorities are stated in a way that suits the
-translation order, even if they could be swapped in some cases.
+In fact, operator priorities are stated in a way that intuitively suits the
+translation order, even if they could arguably be swapped in some cases.
 %
 \begin{yapcode}
  :- op(910, xfx, of_type).
@@ -348,8 +352,9 @@ translation order, even if they could be swapped in some cases.
  :- op(900, xfx, post_cond).
 \end{yapcode}
 %
-Even though the relative priorities of the specification operators are
-not arbitrary, their absolute values have no connection with other
+Even though the relative priorities of the specification operators is
+important, their absolute values are not, as they are not supposed to
+be used together with other
 \Prolog{} operators.
 
 
@@ -361,13 +366,13 @@ Predicate directionality and range as well as the limit of the search
 space contribute to shape the main property, regarding the predicate
 call.
 %
-Pre- and post-conditions are then attached to the appropriate place: the
+Next, re- and post-conditions are attached to the appropriate place: the
 beginning of the property and after every calculated answer,
 respectively.
 
 
-The specification expansion culminates with the actual typing of the
-specification clause and the collection of any other specification field
+The specification expansion terminates with the actual typing of the
+specification clause and the collection of any other specification fields
 characterised in the accumulated modifiers.
 %
 \begin{yapcode}
@@ -396,9 +401,9 @@ Type pre-processing builds the list of type structures from the sequence
 given in the specification clause types.
 %
 This includes all necessary generators and possible parameter patterns,
-such as a list pattern.
+such as the list pattern.
 %
-In parallel is also built the list of arguments that parametrise the
+In parallel it is also built the list of arguments that parametrise the
 translated property.
 %
 The arguments are variables into which each generated argument will be
@@ -452,7 +457,7 @@ occurs.
 At each iteration the current number of retrieved answers is checked
 against the bounds.
 %
-In case none of the number of answers high bound is passed, the result
+In case none of the upper bounds on the number of answers are passed, the result
 parameters are checked against result properties: directionality and
 post-condition.
      %% answer counter (ac) exceeds upper bound

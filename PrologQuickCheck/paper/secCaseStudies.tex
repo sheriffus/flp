@@ -169,7 +169,7 @@ The comparison succeeds if both have the same behaviour.
 %{{{ append
 
 \subsubsection{Append}
-The implementation of the appending predicate recurs on the first list
+The \Prolog{} implementation of the list concatenation predicate recurs on the first list
 and the appended list parameters, leaving the second list uninspected.
 %
 \begin{yapcode}
@@ -182,7 +182,7 @@ We check the behaviour of the \yap{append/3} predicate
 through its specification with the predicate specification language
 presented in \refSec{sec:pred-spec}.
 %
-The most obvious way to use append is by giving it two lists and expect
+The most obvious way to use \yap{append/3} is by giving it two lists and expect
 the resulting appended list.
 %
 So the type of such a specification clause is
@@ -259,12 +259,12 @@ Upon closer inspection it is noted that the base case of the recursion
 on the first argument simply unifies the second and third parameters
 when it matches an empty list.
 %
-There are two simple ways of solving this.
+There are two simple ways of solving this problem.
 %
 One is to split the specification clause between input types that only
 have empty lists or non-empty lists separately.
 %
-The other is to add the directionality missing.
+The other is to add the missing directionality.
 %
 The correct choice in general is to split the input types, since this is
 a matter between disjoint sets of terms.
@@ -325,8 +325,8 @@ First, we only want to generate valid sequences.
 This is important to save effort of checking validity and not suffer
 from sparse valid values.
 %
-Usages the module \yap{avl.yap} have two sets of terms important to
-define: key terms and value terms.
+Usages of the module \yap{avl.yap} have two sets of terms important to
+define: key terms, and value terms.
 %
 We decided to parametrise these sets as generators.
 %
@@ -343,16 +343,16 @@ of values.
 In this generator we start by creating the tree, independently of the
 size parameter.
 %
-This implies that when size is 0 the tree is still created.
+This implies that when size is 0 an empty AVL-tree is still created.
 %
-We append the tree creation to a sequence of calls to insert and look-up
+Thus, we always append the tree creation to a sequence of calls to insert and look-up
 values.
 
 
 Generation of commands to insert and look-up values is passed the
 information about keys and values.
 %
-It works by randomly choosing between insert, valid look-up and invalid
+Each element of the sequence is obtained by randomly choosing between insert, valid look-up and invalid
 look-up.
 %
 After an insert command is added, the inserted key-value is saved in a
@@ -366,7 +366,8 @@ commands.
 Otherwise a command is generated and the size is decreased at least by
 one and at most to half.
 %
-Commands are generated without the context tree, which is managed by property.
+Commands are generated without the context tree, which is managed by
+the property.
 %
 \begin{yapcode}
  genAvlCmds(KeyGen, _ValGen, _FGen,
@@ -404,14 +405,14 @@ not be generated.
 If the list of look-ups is empty, valid look-ups will not be generated.
 %
 Valid look-ups can take two forms: checking if the key-value is in the
-tree and ask for the value corresponding to some key.
+tree and asking for the value corresponding to some key.
 %
 All commands are branded by a command identifier, making it possible to
 distinguish between different kinds of look-up.
 %
 The possible choices are bundled in a \yap{frequency} generator.
 %
-Relative probabilities are such that a big variety of commands occurs in
+The relative probabilities are such that a big variety of commands occurs within
 relatively small sequences.
 %
 \begin{yapcode}
@@ -473,7 +474,7 @@ generate a fair amount of unique keys in smaller test cases.
 %
 Values are non-negative integers bound by the size.
 %
-To make a disjoint generator for we use singleton lists with elements
+To construct a disjoint generator we use singleton lists with elements
 given by the value generator.
 \begin{yapcode}
  genKey(Key, Size) :-

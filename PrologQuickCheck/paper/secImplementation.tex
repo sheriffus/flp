@@ -112,7 +112,7 @@ The first is the message structure with formatting fields and the second
 is the list of values to output in the message.
 %
 This option subsumes the options \yap{quiet}, \yap{verbose} and
-\yap{\{to_strem,Strem\}}, where the new printing predicate is set to a
+\yap{\{to_stream,Stream\}}, where the new printing predicate is set to a
 predicate that does nothing, \yap{format/2} and \yap{Stream} partially
 applied to \yap{format/3}, respectively.
 \todo{maybe simplify this sentence}
@@ -169,15 +169,15 @@ We have two kinds of information at the disposal of \plqc{}: options and
 state.
 %
 Options refer to a set of constants that do not change along the testing
-process unless done explicitly by specific modifiers in the property.
+process.% unless done explicitly by specific modifiers in the property.
 %
-On the other hand, state contains information that is more specific to
+On the other hand, state contains information that is specific to
 the current test being performed.
 %
 It contains mutable information necessary to guide the testing process
 and is initially based on the available options.
 %
-The state main function keeps track of the current size parameter
+The state mainly keeps track of the current size parameter
 for generating values.
 
 
@@ -220,18 +220,19 @@ The result is inspected and treated accordingly.
    duplicate_term(Property, Test),
    run(Test, Opts, IState, State1, Res),
    (
-    % passing result; count it
+    % passing result; count test
     % proceed with updated loop information
     % grow size; +1 passed; -1 tries left
    ;
-    % failing result; count it
+    % failing result; count test
     % build result and out state
    ;
     % error; deal with it
    ).
-\end{yapcode}While a property is being processed, predicates from different modules
-are used.
-
+\end{yapcode}
+%
+%% While a property is being processed, predicates from different modules
+%% are used.
 %
 Other clauses of the main loop deal with the loop boundaries: number of
 tries and number of successful tests.
@@ -254,8 +255,8 @@ To run a property one descends its structure.
 %
 Properties in a conjunction are examined \emph{in order}.
 %
-Predicates appearing in a property are always used with the
-corresponding module
+All predicate calls in a property are used with the
+corresponding module.
 %
 An explicit reference to a module in the property is taken into the
 property's context.
@@ -272,7 +273,8 @@ unification to the enclosed property.
    run(Test, Opts, Ctx1,
        IState, OState, Result).
 \end{yapcode}
-The context is updated and we continue with the quantified property.
+%
+The binding is saved in the context.
 %
 Base properties are called and its outcome accounted for.
 %
@@ -285,7 +287,7 @@ The predicate specification language defined in \plqc{} is
 translated into a \plqc{} property by the term expansion mechanism.
 %
 At compilation, this mechanism transforms a specification clause into
-a runnable code that implements a testable property.
+code that implements a testable property.
 
 
 The specification clause to be transformed is composed by the
@@ -317,12 +319,8 @@ The predicate identification expects either the atom corresponding to
 the predicate name or a pair where the first component is the atom name
 and the second is an atomic symbol.
 %
-The first case can be used when there is only one specification clause
-% vsc: how do you define the most important?
-% coa: by some user criterion... just want to say that it can be used
-% with the other form, but only one of the clauses can be like that
-(or on the most important) and the property identification is merely the
-name of the predicate.
+The first case can only be used by one specification clause and the
+property identification is merely the name of the predicate.
 %
 Care is advised when choosing this identification form since it will not
 differentiate predicates with different arities nor multiple clauses of

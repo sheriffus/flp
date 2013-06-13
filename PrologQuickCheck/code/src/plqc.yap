@@ -602,6 +602,7 @@ qcforall(Gen, Var, Prop, Size) :-
 
 % }}}
 
+%% BIG TODO - pre/post-conditions are generic PrologCheck properties and not just Prolog goals
 % {{{ predicate specification language
 
 user:term_expansion( PredicateId of_type Typing,

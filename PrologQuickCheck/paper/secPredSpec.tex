@@ -3,9 +3,10 @@
 \section{Predicate Specification}
 \label{sec:pred-spec}
 
-Here we describe our predicate specification language. Throughout, we
-follow some of the principles presented in.  \todo{cite Yves Deville's ``logic
-  programming''}
+Here we describe our predicate specification language.
+%
+Throughout, we follow some of the principles presented
+in~\cite{Deville1990logprog}.
 %
 There are several ways to state a predicate's specification, we do not
 argue that our specification process is superior to other approaches.
@@ -16,7 +17,7 @@ form to express the predicate features we thought to be of importance.
 
 The general specification form of a predicate \yap{p/n} consists, at its
 core, of a set of uniquely identified specification clauses about input
-types or the shape of the parameter terms when evoking the predicate.
+types or the shape of the parameters when evoking the predicate.
 %
 \begin{code}
 predicate specification clause
@@ -224,8 +225,9 @@ Knowing a predicate has a finite search space is a termination
 guarantee for predicates using it.
 %
 Conventionally, multiplicity information, or \emph{range}, is given for
-each directionality~\cite{}. % vsc: mercury
-\todo{in the comment}
+each directionality~\cite{somogyi1995mercury}.
+% vsc: mercury
+% coa: this ref? 
 %
 In \plqc{} we do not require that a directionality is given, in which
 case no tests are performed regarding parameter form and the \emph{any}
@@ -263,3 +265,21 @@ integer.
 
 \subsection{Properties}
 
+Along with all the other features of a predicate we can have a
+connection between the relations represented by the predicate being
+specified and other predicates.
+%
+These relations can be valid prior to or after execution.
+%
+In the predicate specification language they are pre- and
+post-conditions and are expressed as \plqc{} properties.
+
+
+A pre-condition is a property that does only inspects its input.
+%
+It does not change the generated values to be applied to the specified
+predicate.
+%
+Post-conditions can use also use any of the specified parameters.
+%
+Since they are no longer used, it does not matter if they are changed.

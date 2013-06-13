@@ -545,24 +545,23 @@ generated value put in its place in the value being built.
 \begin{yapcode}
  structure(X, Y, Size) :-
    var(X), !, var(Y), X=Y.
- structure(X, Y, Size) :-
-   var(X), !, var(Y), X=Y.
  structure([], [], Size) :- !.
  structure([SX||SXS], [X||XS], Size) :-
    !,
    structure(SX, X, Size),
    structure(SXS, XS, Size).
- structure({ST}, {T}, Size) :-
-   !,
-   structure(ST, T, Size),
-   structure(SXS, XS, Size).
- structure( (SX, SXS), (X, XS), Size) :-
-   !,
-   structure(SX, X, Size),
-   structure(SXS, XS, Size).
+ ...
  structure(GenX, X, Size) :-
    call(GenX, X, Size).
 \end{yapcode}
+ %% structure({ST}, {T}, Size) :-
+ %%   !,
+ %%   structure(ST, T, Size),
+ %%   structure(SXS, XS, Size).
+ %% structure( (SX, SXS), (X, XS), Size) :-
+ %%   !,
+ %%   structure(SX, X, Size),
+ %%   structure(SXS, XS, Size).
 
 
 

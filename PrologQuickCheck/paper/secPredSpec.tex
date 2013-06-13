@@ -3,18 +3,18 @@
 \section{Predicate Specification}
 \label{sec:pred-spec}
 
-Here we describe our predicate specification language following some of
-the principles in.
-\todo{cite Yves Deville's ``logic programming''}
+Here we describe our predicate specification language. Throughout, we
+follow some of the principles presented in.  \todo{cite Yves Deville's ``logic
+  programming''}
 %
 There are several ways to state a predicate's specification, we do not
-declare our specification process to be superior to others in any way.
+argue that our specification process is superior to other approaches.
 %
-It is just a form to express some predicate features we thought to be of
-importance in a way that suited our needs.
+We do believe that this approach fits naturally our needs, namely as a
+form to express the predicate features we thought to be of importance.
 
 
-The general specification form of a predicate \yap{p/n} consists, in its
+The general specification form of a predicate \yap{p/n} consists, at its
 core, of a set of uniquely identified specification clauses about input
 types or the shape of the parameter terms when evoking the predicate.
 %
@@ -32,12 +32,12 @@ If there is a relation that arguments must fulfil one can implement it
 as a predicate, say \yap{irel/1}, which checks if such a relation is
 valid for the list of arguments given as parameter.
 %
-The modes of each parameter can be given for the input terms and for any
-result answer as well as the number of answers of a predicate can also
-be stated.
+The modes of each parameter can be given for the input terms and also
+for any output answer. The language also allows stating the number of
+answers of a predicate.
 %
-Generic properties that should hold before and after the predicate is
-executed may also be provided.
+Last, the user may state invariant properties that should hold both
+before and after the predicate is executed.
 %
 \begin{code}
 parameter relation
@@ -49,25 +49,11 @@ range
 pre/post conditions
   Goal
 \end{code}
-
+Next, we discuss the main properties that we allow in our framework.
 
 \subsection{Types}
 
-Types are not defined by a set of \emph{ground} terms but rather by
-the set of terms produced by a generator.
-%
-These are the types used in predicate specification and are also
-the only mandatory part of the specification.
-%
-The reason for this is the goal of the specification, which is to be
-automatically tested.
-%
-Types defined in this manner depict perfectly possible forms of
-predicate input.
-%
-This approach for types already encloses, by domain definition, the type
-precondition.
-
+We define a type as follows: 
 
 \begin{definition}
 \label{def:type}
@@ -75,6 +61,24 @@ A {\em type} is a non-empty set of terms.\\
 A term $t$ belongs to a type $\tau$ ($t \in \tau$) if it belongs to the set of
 terms that define the type.
 \end{definition}
+
+
+% vsc: refer prior work on generative types in Prolog?
+% coa: I do not know anything about that, if it fits here I will not be against
+Types are not defined as a set of \emph{ground} terms but rather by
+the set of terms produced by a generator.
+%
+These are the types used in predicate specifications where they are
+the only mandatory part of the specification.
+%
+Types are mandatory in order to guarantee that the specification may be
+automatically tested.
+%
+Note that types defined in this manner depict perfectly possible forms of
+predicate input.
+%
+This approach for types already encloses, by domain definition, the type
+precondition.
 
 
 The types mentioned in a predicate specification clause are \plqc{}
@@ -95,14 +99,14 @@ specification clauses is considered undefined.
 
 \subsection{Domain}
 
-The domain of a predicate is the set of parameters accepted by a
-predicate.
-%
 Correct typing of parameters is crucial but may be insufficient to
 express the allowed input.
 %
 Sometimes the arguments must obey a relation extending type information,
 based on the actual values of the parameters.
+%
+The domain of a predicate is the set of parameters accepted by a
+predicate.
 %
 The domain precondition is a restriction over the set of parameters of a
 predicate.
@@ -132,6 +136,7 @@ is the set of terms generated.
 
 
 \subsection{Directionality}
+
 The directionality of a predicate describes its possible uses by
 specifying the possible forms of the parameters before and after
 execution.
@@ -157,9 +162,9 @@ The \emph{modes} or \emph{forms} a term may present are denoted by\\
 \end{definition}
 
 
-There are two parts of a directionality: input and output.
+There are two components to a directionality: input and output.
 %
-They must hold for a predicate's parameters before and after execution
+They must hold for a predicate's parameters before and after execution,
 respectively.
 %
 This means a full directionality denotes a pre- and a post-condition to
@@ -170,7 +175,7 @@ specified before and after calling the predicate, accordingly.
 
 
 Input directionality acts as a sanity check for the elements of the
-domain, meaning the generators must be constructed to conform to the
+domain, meaning that the generators must be constructed to conform to the
 specified input modes.
 %
 Each specification clause is allowed one input directionality.
@@ -180,7 +185,7 @@ be divided into the number of input forms and its generators adapted
 accordingly.
 %
 This results in bigger predicate specifications with possibly many
-duplicated parts, but is a very simple way express what happens to the
+duplicated parts, but is a very simple way to express what happens to the
 parameters in finer detail.
 
 
@@ -219,7 +224,8 @@ Knowing a predicate has a finite search space is a termination
 guarantee for predicates using it.
 %
 Conventionally, multiplicity information, or \emph{range}, is given for
-each directionality.
+each directionality~\cite{}. % vsc: mercury
+\todo{in the comment}
 %
 In \plqc{} we do not require that a directionality is given, in which
 case no tests are performed regarding parameter form and the \emph{any}
@@ -251,7 +257,7 @@ specified but no multiplicity, expecting at least one solution.
 It is necessary to impose a limit when the upper bound is infinity or an
 excessively large number.
 %
-One can state the maximum number of answers necessary to assume the
+One can state the maximum number of answers necessary to assume that the
 answer range is sufficiently close to the upper bound with a positive
 integer.
 

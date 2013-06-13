@@ -2,9 +2,40 @@
 
 % should first explain quickcheck and random arguments
 
-
-\section{Properties}
+\section{\plqc{} Properties}
 \label{sec:properties}
+
+The basic idea of property-based testing is to add property definitions
+to program code.
+%
+Properties are specifications in a custom language or in a programming
+language.
+%
+For example in QuickCheck, properties are simply Haskell programs such as:
+%
+\begin{code}
+ prop_pos_square :: Int -> Bool
+ prop_pos_square x = x*x >= 0
+\end{code}
+
+Properties are then tested by an automatic tool.
+%
+Again for \Haskell \QuickCheck that would only be a call:
+%
+\begin{code}
+ >> quickCheck prop_pos_square
+ +++ OK, passed 100 tests.
+\end{code}
+%
+This tests the \emph{positive square} property in 100 randomly
+generated cases.
+%
+The input for the property is generated based on its type by
+\QuickCheck{} through type machinery.
+%
+The test data generators are tied to a specific type and randomly pick a
+value from that type.
+
 
 \plqc{} is a property based testing framework.
 %

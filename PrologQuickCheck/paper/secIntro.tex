@@ -11,25 +11,34 @@
 
 % the Introduction intro, a bit of 'what'
 The life-cycle, and often the cost, of most sofware systems is
-dominated by maintenance effort~\cite{}.  \todo{find a good source to cite}
+dominated by maintenance effort~\cite{wasnik2013software}.
 %
 Maintenance may include porting a a program to new platforms, or
 adapting the program to unexpected tasks, but most often is about
-debugging flaws in the original program. Early detection and
+debugging flaws in the original program.
+%
+Early detection and
 correction of bugs is thus crucial to minimize the total maintenance
 effort and its associated costs.
 %
 Ideally, bug detection would be possible by automatic verification
-against a specification. High-level languages, such as logic and
-functional programming languages offer the promise to achieve this
-ultimate goal~\cite{}, but, in practice, testing is still necessary
-and often crucial for bug detection, and thus a fundamental component
-in software development. %, very widely used and with
+against a specification.
+%
+High-level languages, such as logic and functional programming languages
+offer the promise to achieve this ultimate
+goal~\cite{wadler1989theorems,cortesi1997specification}
+%
+In practice, testing is still necessary and often crucial for bug
+detection, and thus a fundamental component in software development.
+%
+ %, very widely used and with
 %growing importance in the industry.
- \todo{I do not like the word technique here; maybe change whole sentence}
- \todo{cite some quviq industry related testing job}
+% coa: could not introduce industry examples in this text, maybe it is
+%      not needed
+% \cite{arts2006testing}
 %
 Notice that testing is not a one-shot operation in most software.
+%
 Regardless of the formal and constructive nature of logic programming,
 rare cases and typing mistakes make it necessary to regularly test
 throughout logic program development.
@@ -51,19 +60,20 @@ respect the expected results.
 %% and the integrity of internal data-structures.
 %
 How to choose the test cases test suite is often a difficult
-question. The approach used
+question.
+%
+The approach used
 can be  manual, with the test developer designing test cases one by
 one, or it can be automated to some extent, in this case resorting to
 tools for case generation.
 %
 Such tools reduce the time needed for testing software components and make
 it easier to test programs being developed.
-%
+
 
 In this work we introduce \plqc{} (\Prolog\QuickCheck), a
 property based testing framework for \Prolog{}, inspired on
- \QuickCheck.
-\todo{cite quickcheck}
+ \QuickCheck \cite{quickcheck}.
 %
 We further present a language for the specification of \Prolog{} predicates
 together with a translation procedure for generating \plqc{} properties
@@ -96,11 +106,13 @@ In a property-based framework tests are automatically generated and run from for
 properties of the program, and feedback is given to the user about their
 evaluation.
 %
+We implement a randomised test case generation, which frees the user
+from choosing input manually.
+%
 Properties are stated through a domain-specific language wrapping
 \Prolog{} goals, which \plqc{} checks for a number of inputs.
 %
-Singleton properties are 
-pure predicate calls
+Singleton properties are pure predicate calls
 or composed goals whose successful execution determines that the
 property holds for the given input.
 %
@@ -108,20 +120,20 @@ These properties can be further composed in order to achieve more complex
 specifications.
 
 
-%
-% vsc: this seems too much detail for the Intro
-%
-Note that the automatic generation of input for a particular test case of a
-property is random w.r.t.\ a size parameter for the generated value.
-%
-The user has the freedom to decide how to compose the test data
-generators to best fit the tests' purpose.
-%
-From simple generators and using the provided predicate generator
-combinators it is possible to obtain generators for more complex
-domains, provide suitable value distributions for specific predicates or
-predicate usages and to ensure the relation between the arguments applied
-to the predicates being tested is valid.
+%% %
+%% % vsc: this seems too much detail for the Intro
+%% %
+%% Note that the automatic generation of input for a particular test case of a
+%% property is random w.r.t.\ a size parameter for the generated value.
+%% %
+%% The user has the freedom to decide how to compose the test data
+%% generators to best fit the tests' purpose.
+%% %
+%% From simple generators and using the provided predicate generator
+%% combinators it is possible to obtain generators for more complex
+%% domains, provide suitable value distributions for specific predicates or
+%% predicate usages and to ensure the relation between the arguments applied
+%% to the predicates being tested is valid.
 
 
 %  something different
@@ -139,13 +151,15 @@ property validity.
 With \Prolog{} there are no such restrictions: any goal may be a property.
 %
 Instead of expecting a reduced set of syntactic elements to describe
-properties, in \plqc{} a property is a goal and it is satisfied when
-the execution of the goal, given all necessary input, succeeds.
-\todo{maybe mention something about property composition here, just to
-  be clear on the subject?}
+properties, in \plqc{} a property is a goal or a composition of
+properties and it is satisfied when the execution of the goal, given all
+necessary input, succeeds or when the composition rules are met.
 %
 Input to such goals is given based on \plqc{} value abstraction,
 quantification over a domain represented by a term generator.
+%
+Properties can be composed and their validity is defined by the
+composition operation.
 %
 Testing will consist on repetitively calling the goal for multiple
 potential inputs.
@@ -161,6 +175,7 @@ ideas.
 Nevertheless, since \Prolog{} does not possess a built-in static strong
 type system, the interface of \plqc{} differs from the \Haskell{}
 \QuickCheck{}.
+
 
 Following the original \QuickCheck{} implementation, our main tool is
 lightweight and completely integrated in \Prolog{}.
@@ -179,8 +194,8 @@ predicates and even libraries.
 
 
 %{{{ paper outline
-This paper is organised as follows.
-%
+%% This paper is organised as follows.
+%% %
 %% \refSecI{}
 %}}} outline
 

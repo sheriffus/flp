@@ -490,15 +490,15 @@ given by the value generator.
 
 \subsubsection*{Property}
 
-The avl property depends on many factors.
+The avl property depends on several factors.
 %
-It is parametrised by the tree to check and operations to extract
+It is parametrised by the tree to check and by operations to extract
 information from that tree.
 %
 These operation consist of: current node's key; key comparison; left and
 right sub-trees; empty tree test.
 %
-A side effect of the property is returning the height if the tree.
+A side effect of the property is returning the height of the tree.
 %
 \begin{yapcode}
  qcprop({avl, (tree, T), (height, H),
@@ -641,7 +641,7 @@ We complement this with the key comparison and empty tree check.
 
 
 
-With the generator, generic property and access predicates we proceed to
+With the generator, generic property, and access predicates we proceed to
 define the top property we will test.
 %
 We quantify over module uses, which are processed in its body.
@@ -654,7 +654,7 @@ We quantify over module uses, which are processed in its body.
 \end{yapcode}
 %
 The body is composed by a start and a loop, dealing respectively with
-the tree creation and insert/look-up commands.
+ tree creation and insert/look-up commands.
 %
 The start consumes the tree creation command and checks if the generated
 tree is an empty avl tree.
@@ -820,7 +820,7 @@ combination appearing starts to show.
 We decide to do nothing about it since it is a very uncommon event.
 %
 We could have increased the interval for the generation of keys, which
-would be quick yet would not fix the specification bug, it would just
+would be a quick fix yet would not fix the specification bug, instead it would just
 make it less common.
 %
 The best way to fix the specification is to not adding existing keys to
@@ -843,14 +843,24 @@ are still performed without knowledge of the module's source.
 It is the same as testing different closed implementations.
 
 
-% begin ramble
-The first bug was introduced in a table that VSC will say something
-about and that I ramble here to try to reserve some space for the actual
-explanation.
+We changed a line in the table that states how the tree will be
+re-balanced upon insertion of a new element.
 %
-We changed a line that states something about the balance shift upon an
-insertion to ignoring the change.
-% end ramble
+The first arguments of the table are input.
+%
+The first is the state of the balance, and the second where we insert
+the new element.
+%
+The other three columns state if the new state of the tree is balanced,
+if the tree increased in height, and if the tree needs further
+re-balancing.
+%
+For example, the two first rows describe a situation where a totally
+balanced tree receives a new element.
+%
+The tree will increase in size and will not be balanced, but we cannot
+improve on that, so no re-balancing will be needed.
+
 \begin{yapcode}
  table( -  , left   , -  , yes  , no   ).
 % table( -  , left   , <  , yes  , no   ).
@@ -862,8 +872,8 @@ insertion to ignoring the change.
 \end{yapcode}
 %
 %
-Testing this implementation shows a counterexample after less than 100
-test cases on average.
+Testing this version of the implementation shows a counterexample after
+less than 100 test cases on average.
 %
 \begin{yapcode}
    ?- plqc:quickcheck(

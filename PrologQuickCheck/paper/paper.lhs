@@ -25,7 +25,7 @@
 {DCC - Faculty of Science, University of Porto \and
 LIACC - University of Porto \and
 CRACS - University of Porto}
-{\{coa,amf\}@@ncc.up.pt \and vsc@@dcc.fc.up.pt}
+{\{coa,amf,vsc\}@@dcc.fc.up.pt}
 
 \maketitle
 \begin{abstract}

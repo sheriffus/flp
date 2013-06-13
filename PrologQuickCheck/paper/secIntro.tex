@@ -11,7 +11,7 @@
 
 % the Introduction intro, a bit of 'what'
 The life-cycle, and often the cost, of most sofware systems is
-dominated by maintenance effort~\cite{wasnik2013software}.
+dominated by maintenance effort~\cite{wasnik2013software, DBLP:journals/tplp/SerebrenikSD08}.
 %
 Maintenance may include porting a a program to new platforms, or
 adapting the program to unexpected tasks, but most often is about
@@ -71,7 +71,7 @@ Such tools reduce the time needed for testing software components and make
 it easier to test programs being developed.
 
 
-In this work we introduce \plqc{} (\Prolog\QuickCheck), a
+In this work we introduce \plqc{}, a
 property based testing framework for \Prolog{}, inspired on
  \QuickCheck \cite{quickcheck}.
 %
@@ -85,10 +85,10 @@ Automatic testing is particularly suitable to logic languages such as
 \Prolog{}. The high-level nature of the language makes it easy to
 specify test cases.
 %
-On the other hand, due to its un-typed nature the developer may be
+On the other hand, due to its untyped nature the developer may be
 oblivious to important corner cases or odd behaviors.
 %
-The backtracking execution model may also interfere in less than obvious
+Prolog backtracking may also interfere in less than obvious
 ways, making the run-time behavior elude the programmer.
 %
 Being able to automatically test a property about a predicate or set of
@@ -166,18 +166,18 @@ potential inputs.
 
 
 %  overview
-The \plqc{} tool is inspired by \QuickCheck{} and retains its main
+\plqc{} tool is inspired by \QuickCheck{} and retains its main
 ideas.
 %
 %It is an automatic software testing tool that generates test cases based
 %on properties written in a dialect of the programming language.
 %
-Nevertheless, since \Prolog{} does not possess a built-in static strong
+Nevertheless, since \Prolog{} does not possess a static strong
 type system, the interface of \plqc{} differs from the \Haskell{}
 \QuickCheck{}.
 
 
-Following the original \QuickCheck{} implementation, our main tool is
+Our tool is
 lightweight and completely integrated in \Prolog{}.
 %
 On top of this lightweight testing tool we have built predicate

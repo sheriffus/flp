@@ -11,9 +11,9 @@
 
 % the Introduction intro, a bit of 'what'
 The life-cycle, and often the cost, of most sofware systems is
-dominated by maintenance effort~\cite{wasnik2013software, DBLP:journals/tplp/SerebrenikSD08}.
+dominated by maintenance effort~\cite{wasnik2013software,DBLP:journals/tplp/SerebrenikSD08,swi-prolog}.
 %
-Maintenance may include porting a a program to new platforms, or
+Maintenance may include porting a program to new platforms, or
 adapting the program to unexpected tasks, but most often is about
 debugging flaws in the original program.
 %
@@ -26,7 +26,7 @@ against a specification.
 %
 High-level languages, such as logic and functional programming languages
 offer the promise to achieve this ultimate
-goal~\cite{wadler1989theorems,cortesi1997specification}
+goal~\cite{wadler1989theorems,cortesi1997specification}.
 %
 In practice, testing is still necessary and often crucial for bug
 detection, and thus a fundamental component in software development.
@@ -44,7 +44,7 @@ rare cases and typing mistakes make it necessary to regularly test
 throughout logic program development.
 
 %  What (is the subject)
-Testing a software component or components consists of executing it on
+Testing a software component, or components, consists of executing it on
 a pre-selected set of inputs (test suite) and inspecting whether the outputs
 respect the expected results.
 %
@@ -59,7 +59,7 @@ respect the expected results.
 %% test its behaviour whereas the developer may want to check invariants
 %% and the integrity of internal data-structures.
 %
-How to choose the test cases test suite is often a difficult
+How to choose the test cases in a test suite is often a difficult
 question.
 %
 The approach used
@@ -72,7 +72,7 @@ it easier to test programs being developed.
 
 
 In this work we introduce \plqc{}, a
-property based testing framework for \Prolog{}, inspired on
+property-based testing framework for \Prolog{} inspired on
  \QuickCheck~\cite{quickcheck}.
 %
 We further present a language for the specification of \Prolog{} predicates
@@ -152,14 +152,15 @@ With \Prolog{} there are no such restrictions: any goal may be a property.
 %
 Instead of expecting a reduced set of syntactic elements to describe
 properties, in \plqc{} a property is a goal or a composition of
-properties and it is satisfied when the execution of the goal, given all
-necessary input, succeeds or when the composition rules are met.
+properties.
+A property is satisfied when the execution of the goal, given all
+necessary input, succeeds or the composition rules are met.
 %
 Input to such goals is given based on \plqc{} value abstraction,
 quantification over a domain represented by a term generator.
 %
-Properties can be composed and their validity is defined by the
-composition operation.
+%% Properties can be composed and their validity is defined by the
+%% composition operation.
 %
 Testing will consist on repetitively calling the goal for multiple
 potential inputs.
@@ -173,7 +174,8 @@ ideas.
 %on properties written in a dialect of the programming language.
 %
 Nevertheless, since \Prolog{} does not possess a static strong
-type system, the interface of \plqc{} differs from the \Haskell\QuickCheck{}.
+type system, the interface of \plqc{} differs from the \Haskell{}
+\QuickCheck{}.
 
 
 Our tool is

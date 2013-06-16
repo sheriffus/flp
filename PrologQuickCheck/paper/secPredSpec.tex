@@ -3,7 +3,7 @@
 \section{Predicate Specification}
 \label{sec:pred-spec}
 
-Here we describe our predicate specification language.
+In this section we describe our predicate specification language.
 %
 Throughout, we follow some of the principles presented
 in~\cite{Deville1990logprog}.
@@ -69,8 +69,9 @@ terms that define the type.
 Types are not defined as a set of \emph{ground} terms but rather by
 the set of terms produced by a generator.
 %
-These are the types used in predicate specifications where they are
-the only mandatory part of the specification.
+These are the types used in predicate specifications.
+%
+They are the only mandatory part of the specification.
 %
 Types are mandatory in order to guarantee that the specification may be
 automatically tested.
@@ -147,7 +148,7 @@ nor variable.
 %
 Conjunction of modes is also possible and all combinations are achieved
 by the notation for ground and variable as well as the negation:
-\emph{g}, \emph{v} and \emph{n\_}.
+\emph{g}, \emph{v} and \emph{n?}.
 %
 This results in the main modes and their pairwise combinations: \emph{g},
 \emph{v}, \emph{ngv},  \emph{ng}, \emph{nv}, \emph{gv}.
@@ -213,9 +214,9 @@ respectively.
 \end{definition}
 
 
-\todo{talk a little about inconsistent directionalities ($v<ngv<g$),
-  which are only caught during testing...}
-\todo{maybe also about minimality and how we just don't care, we test}
+%% \todo{talk a little about inconsistent directionalities (v<ngv<g),
+%%   which are only caught during testing...}
+%% \todo{maybe also about minimality and how we just don't care, we test}
 
 \subsection{Multiplicity}
 The number of answers a predicate call has can also be valuable
@@ -246,13 +247,13 @@ The lower bound should not exceed the upper bound and they both take
 non-negative integer values up to infinity (denoted by the atom
 \yap{inf}).
 %
-When no explicit multiplicity is given the default we chose to follow is
+When no explicit multiplicity is given the default we choose to follow is
 $\langle 1, inf \rangle $.
 %
 When testing a specification clause, the default minimal expected
 behaviour is that the domain is successfully accepted by the predicate.
 %
-Therefore we tried to mirror this when there are other features
+Therefore we try to mirror this when there are other features
 specified but no multiplicity, expecting at least one solution.
 
 
@@ -263,7 +264,7 @@ One can state the maximum number of answers necessary to assume that the
 answer range is sufficiently close to the upper bound with a positive
 integer.
 
-\subsection{Properties}
+\subsection{Pre- and Post-conditions}
 
 Along with all the other features of a predicate we can have a
 connection between the relations represented by the predicate being
@@ -280,6 +281,8 @@ A pre-condition is a property that does only inspects its input.
 It does not change the generated values to be applied to the specified
 predicate.
 %
-Post-conditions can use also use any of the specified parameters.
+Post-conditions can also use any of the specified parameters.
 %
-Since they are no longer used, it does not matter if they are changed.
+Since they are no longer used, it does not matter if they are changed by
+the answer substitution.
+

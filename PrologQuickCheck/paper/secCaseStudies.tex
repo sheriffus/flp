@@ -3,44 +3,40 @@
 \section{Case Studies}
 \label{sec:case-studies}
 
-\subsection{List Processing}
-We start by write \todo{writing?} small predicates and specifications in order to show
-the tool.
-%
-These small examples are interesting to demonstrate some of the
-potential of \plqc{}.
-%
-They help in revealing discrepancies between intended and actual
-behaviour of the predicates.
-%
-The tool is specially useful for people that are beginning logic
-programming or that have their logic programming polluted by other
-programming styles (arguably,  such as one of the authors).
+%% \subsection{List Processing}
+%% We start with small predicates and specifications.%%  in order to show the
+%% %% tool.
+%% %
+%% These small examples demonstrate some of the potential of \plqc{}.
+%% %
+%% They help in revealing discrepancies between predicate's intended and
+%% actual behaviour.
 
 
 %{{{ List Reverse
 
-\subsubsection{List Reverse}
+\subsection{List Reverse}
 
 Here we return to the first example given in \refSec{sec:properties}.
 %
 In general people have a conception of what is reversing the order of
-elements, which is to observe the $i^th$ element of the original list as
+elements, reversing a list is to observe the $i^th$ element of the original list as
 the $(1+n-i)^th$ element of the reversed one for a list of size $n$.
 %
 There is also the idea of how to code such a procedure, independently of
 the programming language.
 %
 In fact, there are quite a few ways to implement this procedure and we
-discuss several implementations of the procedure.
+discuss several implementations.% of the procedure.
 
 
-What we intend to check about our reverse procedures is the ability to
-transform an input list into its reversed counterpart.
+We want to check attributes of a reversing procedure.
+%% What we intend to check about our reverse procedures is the ability to
+%% transform an input list into its reversed counterpart.
 %
-This implies that the property must have an input for random testing.
-%
-First, for the automatic generation of input we must decide what
+%% This implies that the property must have an input for random testing.
+%irst, f
+For the automatic generation of input we must decide what
 exactly  will be the input.
 %
 When a procedure is polymorphic on the type of the elements of an
@@ -50,15 +46,16 @@ single type of elements.
 It is sometimes sufficient a finite number of values, but we can
 safely overestimate the size of the type.
 %
-We choose to test the list predicates with lists of integer elements.
+%% We choose to test the list predicates with lists of integer elements.
 %
-Therefore, we use the generator for integers, \yap{int}, with the
-parametric list generator, \yap{listOf(int)}.
+Therefore, we use the generator for integers, \yap{int}, as the elements
+of the parametric list generator, \yap{listOf(int)}.
 
 
-We start with two implementations of reverse.
-%
-The first uses an appending predicate, described later, and the second
+%% We start with
+We have two implementations of reverse.
+%, described later, 
+The first uses concatenation and the second
 builds the result with an accumulator via an auxiliary predicate.
 %
 \begin{yapcode}
@@ -77,8 +74,8 @@ builds the result with an accumulator via an auxiliary predicate.
 
 We can adapt the properties in \refSec{sec:properties} to both versions.
 %
-We do it by identifying the property names and called predicates
-appropriately.
+%% We do it by identifying the property names and called predicates
+%% appropriately.
 %
 For the \yap{rev_app/2} predicate we have.
 \begin{yapcode}
@@ -101,31 +98,35 @@ Both properties underwent testing, passing all given tests.
 \begin{yapcode}
    ?- plqc:quickcheck(
           (mod:qcprop(double_rev_app))
-        qcand (mod:qcprop(double_rev_acc)),
-          [{numtests, 1000}]).
- OK: Passed 1000 test(s).
+        qcand (mod:qcprop(double_rev_acc))).
+ OK: Passed 100 test(s).
  yes
 \end{yapcode}
-
+%% ,
+%%           [{numtests, 1000}]
+ %% OK: Passed 1000 test(s).
+ %% yes
 
 To check that the order is being reversed we can randomly choose an
-element (or even a random set of elements) and inspect if it is
-correctly positioned in the reversed list.
+element (or a %even a random
+ set of elements) and inspect
+ its position in the parameters.
+%% if it is correctly positioned in the reversed list.
 %
 Choosing random elements prevent us from checking the whole list.
 %
 \begin{yapcode}
- qcprop(rev_app_index) :-
+ qcprop(rev_app_i) :-
    plqc:qcforall(
      suchThat(structure({listOf(int), int}),
        mod:valid_index),
      {L,I},
-     mod:qcprop({double_rev_index_body, L, I})
+     mod:qcprop({double_rev_i_body, L, I})
    ).
  valid_index({L, I}) :-
    length(L,X), I<X.
 
- qcprop({double_rev_index_body, L, I}) :- 
+ qcprop({double_rev_i_body, L, I}) :- 
    mod:rev_app(L, LR),
    length(L,X),
    Index is I+1, RevIndex is X-I,
@@ -137,10 +138,8 @@ When performing a large number of tests this method should give good
 element coverage.
 %
 \begin{yapcode}
-   ?- plqc:quickcheck(
-        mod:qcprop(rev_app_index),
-        [{numtests, 1000}]).
- OK: Passed 1000 test(s).
+   ?- plqc:quickcheck(mod:qcprop(rev_app_i)).
+ OK: Passed 100 test(s).
  yes
 \end{yapcode}
 
@@ -150,17 +149,15 @@ this by only performing tests on one version and stating a property
 comparing their behaviours.
 %
 \begin{yapcode}
- qcprop(equiv_acc_app) :-
+ qcprop(eqv_acc_app) :-
    plqc:qcforall( listOf(int), L,
      (mod:rev_acc(L,LR), mod:rev_app(L,LR))).
 \end{yapcode}
 The comparison succeeds if both have the same behaviour.
 %
 \begin{yapcode}
-   ?- plqc:quickcheck(
-        mod:qcprop(equiv_acc_app),
-        [{numtests, 1000}]).
- OK: Passed 1000 test(s).
+   ?- plqc:quickcheck(mod:qcprop(eqv_acc_app)).
+ OK: Passed 100 test(s).
  yes
 \end{yapcode}
 
@@ -168,8 +165,9 @@ The comparison succeeds if both have the same behaviour.
 
 %{{{ append
 
-\subsubsection{Append}
-The \Prolog{} implementation of the list concatenation predicate recurs on the first list
+\subsection{Append}
+The %% \Prolog{}
+implementation of the list concatenation predicate recurs on the first list
 and the appended list parameters, leaving the second list uninspected.
 %
 \begin{yapcode}
@@ -179,9 +177,11 @@ and the appended list parameters, leaving the second list uninspected.
 \end{yapcode}
 %
 We check the behaviour of the \yap{append/3} predicate
-through its specification with the predicate specification language
-presented in \refSec{sec:pred-spec}.
+through its specification with the predicate specification language.
+%% presented in \refSec{sec:pred-spec}.
 %
+
+
 The most obvious way to use \yap{append/3} is by giving it two lists and expect
 the resulting appended list.
 %
@@ -206,10 +206,8 @@ function, expecting exactly one answer.
 Quickchecking this specification clause bears no surprises.
 %
 \begin{yapcode}
-   ?- plqc:quickcheck(
-        mod:qcprop(spec_append),
-        [{numtests, 1000}]).
- OK: Passed 1000 test(s).
+   ?- plqc:quickcheck(mod:qcprop(spec_append)).
+ OK: Passed 100 test(s).
  yes
 \end{yapcode}
 
@@ -237,29 +235,30 @@ part of the input is not a target of pattern matches.
 %
 Testing this specification clause reveals that the \emph{out} part of
 the directionality is not satisfied.
-%
+%   ?- plqc:quickcheck(mod:qcprop(spec_append_1)).
 \begin{yapcode}
-   ?- plqc:quickcheck(
-        mod:qcprop(spec_append_1),
-        [{numtests, 1000}]).
- ..{failed_out_modes,[[o,g,v,ngv]],
-                     [[],_10258,_10258]}
+  ?- plqc:quickcheck(mod:qcprop(spec_append_1).
+ {failed_out_modes,[[o,g,v,ngv]],
+                   [[],_10258,_10258]}
  !
  Failed: After 3 test(s).
  Counterexample found: [[[],_10258,_10260]] 
  yes
 \end{yapcode}
 %
-The counterexample given shows that when the first argument is the empty
-list, and the other two variables, the output modes do not comply with
+The counterexample shows that when the first argument is the empty
+list, %% and the other two variables,
+the output modes do not comply with
 the specification.
 % when L1 is [], LApp is L2, i.e. var
 %
 Upon closer inspection it is noted that the base case of the recursion
-on the first argument simply unifies the second and third parameters
-when it matches an empty list.
+%% on the first argument simply
+unifies the second and third parameters.
+%% when it matches an empty list.
 %
-There are two simple ways of solving this problem.
+There are two %% simple
+ways of solving this problem.
 %
 One is to split the specification clause between input types that only
 have empty lists or non-empty lists separately.
@@ -270,7 +269,8 @@ The correct choice in general is to split the input types, since this is
 a matter between disjoint sets of terms.
 %
 Multiple output directionalities are mainly intended for multiple modes
-of the parameters of multiple answers.
+%% of the parameters
+of multiple answers.
 %
 Given the simplicity of the example we decided to add a directionality.
 %
@@ -292,53 +292,51 @@ Given the simplicity of the example we decided to add a directionality.
 
 
 \subsection{AVL Trees}
-AVL trees are implemented in a \Yap{} module, making it interesting to
-test in order to show black-box testing with \plqc{}.
+AVL trees are implemented in a \Yap{} module,  \yap{avl.yap}, making it interesting to
+%% test in order to
+show black-box testing with \plqc{}.
 %
-Its interface is small, with only three predicates, to create an empty
-tree, insert an element and look up an element.
+Its interface is small, with predicates%% only three predicates, 
+to create an empty
+tree, insert an element and look up an element, respectively
+\yap{avl_new/1}, \yap{avl_insert/4} and \yap{avl_lookup/3}.
 %
-The predicates are \yap{avl_new/1}, \yap{avl_insert/4} and
-\yap{avl_lookup/3} respectively.
+%% With only this interface and knowledge about the trees' shape we can
+%% test weather the module implements AVL trees correctly.
 %
-With only this interface and knowledge about the trees' shape we can
-test weather the module implements AVL trees correctly.
-
-
 When performing this kind of test one does not simply test individual
-predicates (http://imgflip.com/i/1vrhm), we test usages of the module.
-\todo{remove joke}
+predicates, we test usages of the module.
 %
-In order to do this we must be able to create sequences of interface
+%% In order t
+To do this we must be able to create sequences of interface
 calls and inspect intermediate results.
 %
-To inspect intermediate results it is necessary to perform some
-interface calls and study the result terms.
+%% To inspect intermediate results it is necessary to perform some
+%% interface calls and study the result terms.
+Knowledge about the shape of trees is gathered by manual testing.
 
 \subsubsection*{Generator}
+
+%{{{
 
 Creating a valid sequence of interface calls is not difficult, but
 requires attention to detail.
 %
-First, we only want to generate valid sequences.
+First, we only want to generate valid sequences
 %
-This is important to save effort of checking validity and not suffer
+%% This is important
+to save effort of checking validity and not suffer
 from sparse valid values.
 %
-Usages of the module \yap{avl.yap} have two sets of terms important to
-define: key terms, and value terms.
+Usages of the module have two sets of important terms: key
+terms, and value terms.
 %
 We decided to parametrise these sets as generators.
 %
-Along with generators for keys and tree values we also parametrise a
-generator for failed lookups, that must be disjoint from the generator
+%% Along with generators for keys and tree values
+We also parametrise a
+generator for failed look-ups that must be disjoint from the generator
 of values.
-\begin{yapcode}
- genAvl(KeyGen, ValGen, FGen, Calls, Size) :-
-   Calls = [(avl:avl_new) || Cs1],
-   genAvlCmds(KeyGen, ValGen, FGen,
-              [], Cs1, Size).
-\end{yapcode}
 %
 In this generator we start by creating the tree, independently of the
 size parameter.
@@ -347,11 +345,18 @@ This implies that when size is 0 an empty AVL-tree is still created.
 %
 Thus, we always append the tree creation to a sequence of calls to insert and look-up
 values.
-
-
-Generation of commands to insert and look-up values is passed the
-information about keys and values.
 %
+\begin{yapcode}
+ genAvl(KeyGen, ValGen, FGen, Calls, Size) :-
+   Calls = [(avl:avl_new) || Cs1],
+   genAvlCmds(KeyGen, ValGen, FGen,
+              [], Cs1, Size).
+\end{yapcode}
+
+
+%% Generation of commands to insert and look-up values is passed the
+%% information about keys and values.
+%% %
 Each element of the sequence is obtained by randomly choosing between insert, valid look-up and invalid
 look-up.
 %
@@ -359,12 +364,12 @@ After an insert command is added, the inserted key-value is saved in a
 look-up list to draw future valid look-ups from.
 %
 Valid look-ups are not generated if the look-up list is empty.
-%
-When the size parameter reaches zero, we generate an empty list of
-commands.
-%
-Otherwise a command is generated and the size is decreased at least by
-one and at most to half.
+%% %
+%% When the size parameter reaches zero, we generate an empty list of
+%% commands.
+%% %
+%% Otherwise a command is generated and the size is decreased at least by
+%% one and at most to half.
 %
 Commands are generated without the context tree, which is managed by
 the property.
@@ -388,8 +393,7 @@ the property.
     ; X = {l2, {K, V}}, Lx=l2),
     Cs = [{Lx, avl:avl_lookup(K, V)}||CsS]
    ),
-   MinSize is Size // 2,
-   MaxSize is Size-1,
+   MinSize is Size // 2, MaxSize is Size-1,
    choose(MinSize, MaxSize, NewSize, Size),
    genAvlCmds(KeyGen, ValGen, FGen,
               NewLookups, CsS, NewSize)
@@ -412,7 +416,7 @@ distinguish between different kinds of look-up.
 %
 The possible choices are bundled in a \yap{frequency} generator.
 %
-The relative probabilities are such that a big variety of commands occurs within
+The relative probabilities are such that we get a big variety of commands within
 relatively small sequences.
 %
 \begin{yapcode}
@@ -423,36 +427,26 @@ relatively small sequences.
  genCmdHead(KeyGen, ValGen, none,
             Lookups, X, Size) :- !,
    Insert =
-     plqc:structure({plqc:value(i),
-                     ValGen}),
-   Lookup1 =
-     plqc:structure({plqc:value(l1),
-                     plqc:elements(Lookups)}),
-   Lookup2 =
-     plqc:structure({plqc:value(l2),
-                     plqc:elements(Lookups)}),
-   plqc:frequency(
-     [{6,Insert}, {2,Lookup1}, {2,Lookup2}],
-     X, Size).
+     plqc:structure({plqc:value(i), ValGen}),
+   Lookup1 = plqc:structure(
+     {plqc:value(l1), plqc:elements(Lookups)}),
+   Lookup2 = plqc:structure(
+     {plqc:value(l2), plqc:elements(Lookups)}),
+   plqc:frequency([{6,Insert}, {2,Lookup1},
+       {2,Lookup2}], X, Size).
  genCmdHead(KeyGen, ValGen, FGen,
             [], X, Size) :- !,
-   Insert = ... ,
-   FailLookup =
-     plqc:structure({plqc:value(fl),
-                     {KeyGen, FGen}}),
+   Insert = (...),
+   FailLookup = plqc:structure(
+     {plqc:value(fl), {KeyGen, FGen}}),
    plqc:frequency(
-     [{9,Insert}, {1, FailLookup}],
-     X, Size).
+     [{9,Insert}, {1, FailLookup}], X, Size).
  genCmdHead(KeyGen, ValGen, FGen,
             Lookups, X, Size) :-
-   Insert = ... ,
-   FailLookup = ... ,
-   Lookup1 = ... ,
-   Lookup2 = ... ,
-   plqc:frequency(
-     [{6,Insert}, {2,Lookup1},
-       {2,Lookup2}, {1, FailLookup}],
-     X, Size).
+   Insert = (...), FailLookup = (...),
+   Lookup1 = (...), Lookup2 = (...),
+   plqc:frequency([{6,Insert}, {2,Lookup1},
+      {2,Lookup2}, {1, FailLookup}], X, Size).
 \end{yapcode}
 %% \begin{yapcode}
 %     plqc:structure({plqc:value(i), ValGen}),
@@ -487,26 +481,22 @@ given by the value generator.
    plqc:choose(0, Size, Val, Size).
 \end{yapcode}
 
+%}}}
+
 
 \subsubsection*{Property}
 
+%{{{ generic property
+
 The avl property depends on several factors.
 %
-It is parametrised by the tree to check and by operations to extract
+It is parame\-trised by the tree to check and by operations to extract
 information from that tree.
 %
 These operation consist of: current node's key; key comparison; left and
 right sub-trees; empty tree test.
 %
 A side effect of the property is returning the height of the tree.
-%
-\begin{yapcode}
- qcprop({avl, (tree, T), (height, H),
-      (curr_key, GetKey), (cmp_key, CmpKeys),
-      (left, L), (right, R),
-      (is_nil, IsNil)}) :- 
-   qcif(...).
-\end{yapcode}
 %
 The empty tree test is a callable term that checks if the tree in the
 first argument is empty and unifies the second argument to the
@@ -517,32 +507,19 @@ and result.
 %
 The result of the comparison reflects the relation between the given
 keys : \yap{lt, gt, eq, lte, gte}.
+%
+\begin{yapcode}
+ qcprop({avl, (tree, T), (height, H),
+      (curr_key, GetKey), (cmp_key, CmpKeys),
+      (left, L), (right, R),
+      (is_nil, IsNil)}) :- 
+   qcif(...).
+\end{yapcode}
 
 
 A tree may be empty, in which case we just unify the correct height.
-\begin{yapcode}
-   qcif( (call(IsNil, T, V), V = false)
-   ,(
-     ...
-   ),
-   (V=false, H = 0) )
-\end{yapcode}
 %
 In the case of a non-empty tree we retrieve its key and sub-trees.
-%
-\begin{yapcode}
-   qcif( ...
-   ,((call(GetKey, T, Key),
-       call(L, T, LT),  call(R, T, RT))
-   qcand
-     ...
-   qcand
-     ...
-   qcand
-     ...
-   ),
-     ... )
-\end{yapcode}
 %
 They are used in recursive checks of the property.
 %
@@ -553,8 +530,9 @@ After checking the sub-trees, the returned heights are compared for
 balance and the current tree height computed.
 %
 \begin{yapcode}
-   qcif( ...
-   ,( ...
+   qcif( (call(IsNil, T, V), V = false)
+   ,((call(GetKey, T, Key),
+       call(L, T, LT),  call(R, T, RT))
    qcand
      qcprop({avl, (gt, [Key]), (lt, []),
  (tree, LT), (height, LH),
@@ -570,8 +548,42 @@ balance and the current tree height computed.
      ; print(height_mismatch), nl, fail),
      H is 1+ max(LH,RH))
    ),
-     ... )
+   (V=false, H = 0) )
 \end{yapcode}
+%% \begin{yapcode}
+%%    qcif( (...)
+%%    ,((call(GetKey, T, Key),
+%%        call(L, T, LT),  call(R, T, RT))
+%%    qcand
+%%      (...)
+%%    qcand
+%%      (...)
+%%    qcand
+%%      (...)
+%%    ),
+%%      (...) )
+%% \end{yapcode}
+%
+%% \begin{yapcode}
+%%    qcif( (...)
+%%    ,( (...)
+%%    qcand
+%%      qcprop({avl, (gt, [Key]), (lt, []),
+%%  (tree, LT), (height, LH),
+%%  (curr_key, GetKey), (cmp_key, CmpKeys),
+%%  (left, L), (right, R), (is_nil, IsNil)})
+%%    qcand
+%%      qcprop({avl, (gt, []), (lt, [Key]),
+%%  (tree, RT), (height, RH),
+%%  (curr_key, GetKey), (cmp_key, CmpKeys),
+%%  (left, L),(right, R),(is_nil, IsNil)})
+%%    qcand
+%%      (( abs(LH-RH) =< 1, !
+%%      ; print(height_mismatch), nl, fail),
+%%      H is 1+ max(LH,RH))
+%%    ),
+%%      (...) )
+%% \end{yapcode}
 
 
 The accumulating version of the property receives as extra arguments the
@@ -589,7 +601,7 @@ accumulators in the recursive calls.
 \begin{yapcode}
  qcprop({avl, (gt, GTS), (lt, LTS), ...}) :-
    qcif(
-     ...
+     (...)
    ,(
      (call(GetKey, T, Key), call(L, T, LT),
       call(R, T, RT),
@@ -599,14 +611,11 @@ accumulators in the recursive calls.
       (forall(member(X, GTS),
        call(CmpKeys, X, Key, gt)), !
       ; print(avl_key_not_inorder2), nl, fail))
-   qcand
-     ...
-   qcand
-     ...
-   qcand
-     ...
+   qcand (...)
+   qcand (...)
+   qcand (...)
    ),
-     ...
+     (...)
    ).
 \end{yapcode}
 
@@ -639,19 +648,14 @@ We complement this with the key comparison and empty tree check.
  is_nil([], true).
 \end{yapcode}
 
+%}}}
 
 
 With the generator, generic property, and access predicates we proceed to
-define the top property we will test.
+define the %% top property we will
+main test.
 %
 We quantify over module uses, which are processed in its body.
-%
-\begin{yapcode}
- qcprop(avlUses) :-
-   qcforall(avlTest:genAvl(avlTest:genKey,
-              avlTest:genVal, avlTest:genFVal),
-            Calls, qcprop({avlUses, Calls})).
-\end{yapcode}
 %
 The body is composed by a start and a loop, dealing respectively with
  tree creation and insert/look-up commands.
@@ -662,7 +666,69 @@ tree is an empty avl tree.
 The resulting empty tree is fed to the loop with any remaining interface
 calls.
 %
+The loop consumes the command list a command at a time.
+%
+An insert command requires that the resulting tree be checked for the
+avl property.
+%
+%% \end{yapcode}
+%% %
+%% \begin{yapcode}
+%% \end{yapcode}
+%% %
+%% %             (height, H),
+%% %             (curr_key, avlTest:get_key),
+%% %             (cmp_key, avlTest:cmp_keys),
+%% %             (left, avlTest:left),
+%% %             (right, avlTest:right),
+%% %             (is_nil, avlTest:is_nil)
+%% \begin{yapcode}
+%% \end{yapcode}
+%
+Looking-up a key-value depends on the given label.
+%
+The labels \yap{l1} and \yap{l2} indicate valid look-ups.
+%
+In \yap{l1} the key-value look-up is performed directly, in contrast
+with \yap{l2} which looks-up the key and matches the returning value
+against the expected value.
+%%  %% (height, _H),
+%%  %%           (curr_key, avlTest:get_key),
+%%  %%           (cmp_key, avlTest:cmp_keys),
+%%  %%           (left, avlTest:left),
+%%  %%           (right, avlTest:right),
+%%  %%           (is_nil, avlTest:is_nil)
+%%    %% qcprop({avl, (tree, Tree), (...) })
+%%    %%   qcand
+%% \begin{yapcode}
+%% \end{yapcode}
+%%  %% (height, _H),
+%%  %%           (curr_key, avlTest:get_key),
+%%  %%           (cmp_key, avlTest:cmp_keys),
+%%  %%           (left, avlTest:left),
+%%  %%           (right, avlTest:right),
+%%  %%           (is_nil, avlTest:is_nil)
+%%    %% qcprop({avl, (tree, Tree), (...)})
+%%    %%   qcand
+%% \begin{yapcode}
+%% \end{yapcode}
+%
+Invalid look-ups are validated by their execution failure.
+%%  %% (height, _H),
+%%  %%           (curr_key, avlTest:get_key),
+%%  %%           (cmp_key, avlTest:cmp_keys),
+%%  %%           (left, avlTest:left),
+%%  %%           (right, avlTest:right),
+%%  %%           (is_nil, avlTest:is_nil)
+%%    %% qcprop({avl, (tree, Tree), (...)})
+%%    %%   qcand
+%% \begin{yapcode}
 \begin{yapcode}
+ qcprop(avlUses) :-
+   qcforall(avlTest:genAvl(avlTest:genKey,
+              avlTest:genVal, avlTest:genFVal),
+            Calls, qcprop({avlUses, Calls})).
+
  qcprop({avlUses, [(avl:avl_new)||Calls]}) :-
    call(avl:avl_new(Tree))
   qcand
@@ -673,23 +739,8 @@ calls.
                   (left, avlTest:left),
                   (right, avlTest:right),
                   (is_nil, avlTest:is_nil)})
-   , (qcprop({avlUses, Tree, Calls}))
-   , (print(avl_new_fail_invariant), nl, fail))
-   .
-\end{yapcode}
-%
-The loop consumes the command list a command at a time.
-%
-An insert command requires that the resulting tree be checked for the
-avl property.
-%
-%             (height, H),
-%             (curr_key, avlTest:get_key),
-%             (cmp_key, avlTest:cmp_keys),
-%             (left, avlTest:left),
-%             (right, avlTest:right),
-%             (is_nil, avlTest:is_nil)
-\begin{yapcode}
+   ,(qcprop({avlUses, Tree, Calls}))
+   ,(print(avl_new_fail_invariant), nl, fail)).
  qcprop({avlUses, Tree, []}).
  qcprop({avlUses, Tree,
       [{i,avl:avl_insert(Key,Val)}||Calls]}) :-
@@ -698,33 +749,11 @@ avl property.
      qcand
    qcif(
      qcprop({avl, (tree, ContinuationTree),
-             ... })
-   , (qcprop({avlUses, ContinuationTree, Calls}))
+             (...) })
+   , (qcprop({avlUses, ContinuationTree,
+              Calls}))
    , (print(avl_insert_fail_invariant),
-      nl, fail))
-   .
-\end{yapcode}
-%
-Looking-up a key-value depends on the given label.
-%
-The label \yap{l1} indicates a valid look-up.
-%
-The key-value look-up is performed directly.
-%
-This differs from the label \yap{l2} which also indicates a valid
-look-up.
-%
-The latter looks-up the key and matches the returning value against the
-expected value.
- %% (height, _H),
- %%           (curr_key, avlTest:get_key),
- %%           (cmp_key, avlTest:cmp_keys),
- %%           (left, avlTest:left),
- %%           (right, avlTest:right),
- %%           (is_nil, avlTest:is_nil)
-   %% qcprop({avl, (tree, Tree), ... })
-   %%   qcand
-\begin{yapcode}
+      nl, fail)).
  qcprop({avlUses, Tree,
       [{l1,avl:avl_lookup(Key,Val)}||Calls]}) :-
    ( call(avl:avl_lookup(Key,Val), Tree)
@@ -732,16 +761,6 @@ expected value.
      nl, fail)
      qcand
    qcprop({avlUses, Tree, Calls}).
-\end{yapcode}
- %% (height, _H),
- %%           (curr_key, avlTest:get_key),
- %%           (cmp_key, avlTest:cmp_keys),
- %%           (left, avlTest:left),
- %%           (right, avlTest:right),
- %%           (is_nil, avlTest:is_nil)
-   %% qcprop({avl, (tree, Tree), ...})
-   %%   qcand
-\begin{yapcode}
  qcprop({avlUses, Tree,
       [{l2,avl:avl_lookup(Key,Val)}||Calls]}) :-
    (( call(avl:avl_lookup(Key,XVal), Tree)
@@ -750,18 +769,6 @@ expected value.
     XVal = Val)
      qcand
    qcprop({avlUses, Tree, Calls}).
-\end{yapcode}
-%
-Invalid look-ups are validated by their execution failure.
- %% (height, _H),
- %%           (curr_key, avlTest:get_key),
- %%           (cmp_key, avlTest:cmp_keys),
- %%           (left, avlTest:left),
- %%           (right, avlTest:right),
- %%           (is_nil, avlTest:is_nil)
-   %% qcprop({avl, (tree, Tree), ...})
-   %%   qcand
-\begin{yapcode}
  qcprop({avlUses, Tree,
       [{fl,avl:avl_lookup(Key,Val)}||Calls]}) :-
    ( call(avl:avl_lookup(Key,Val), Tree),
@@ -770,13 +777,13 @@ Invalid look-ups are validated by their execution failure.
      qcand
    qcprop({avlUses, Tree, Calls}).
 \end{yapcode}
-%
-Note that the labelled property is connected with a \yap{qcand} operator
-where instead it could be in the place of the \yap{true} \Prolog{}
-built-in goal.
-%
-This is due to the fact that \plqc{} does not inspect \Prolog{} goals
-and connectives.
+%% %
+%% Note that the labelled property is connected with a \yap{qcand} operator
+%% where instead it could be in the place of the \yap{true} \Prolog{}
+%% built-in goal.
+%% %
+%% This is due to the fact that \plqc{} does not inspect \Prolog{} goals
+%% and connectives.
 
 
 It is to be expected that the module satisfy the properties.
@@ -784,16 +791,6 @@ It is to be expected that the module satisfy the properties.
 We run 1000 tests with the test number option.
 %
 In one of the testing suits, a counterexample popped up.
-\begin{yapcode}
-   ?- plqc:quickcheck(
-                avlTest:(qcprop(avlUses)),
-                [{numtests, 1000}] ).
- avl_lookup_not_bound_fail
- !
- Failed: After 732 test(s).
- Counterexample found: ...
- yes
-\end{yapcode}
 %
 We repeat the tests until we get enough counterexamples to examine.
 %
@@ -802,16 +799,6 @@ Inspecting the counterexamples we find the reason for the failure.
 We discover that the counterexamples found have two insertions under the
 same key, where the second value is discarded, and a look-up based on
 the second insertion.
-%
-\begin{yapcode}
- Counterexample found:
-   [[avl:avl_new,
-     {i,avl:avl_insert(45157,19)},
-     ...
-     {i,avl:avl_insert(45157,0)},
-     ...
-     {l2,avl:avl_lookup(45157,0)}]] 
-\end{yapcode}
 %
 This means that the key generator is not sparse enough for 1000 test,
 where the size of generated values grows and the probability of such a
@@ -829,20 +816,37 @@ the first insertion of a certain key.
 %
 The latter is possible by choosing the last entry in the look-ups list
 with the key in question.
-
-
-In order to  assess the tool and the specification in broader terms we
-insert two bugs and test the two erroneous versions of the module.
 %
-The first bug was introduced by the tester and the second by another
-programmer.
-%
-This still fits the goal of black-box testing because the actual tests
-are still performed without knowledge of the module's source.
-%
-It is the same as testing different closed implementations.
+\begin{yapcode}
+   ?- plqc:quickcheck(
+                avlTest:(qcprop(avlUses)),
+                [{numtests, 1000}] ).
+ avl_lookup_not_bound_fail
+ !
+ Failed: After 732 test(s).
+ Counterexample found: [[avl:avl_new,
+     {i,avl:avl_insert(45157,19)}, ...
+     {i,avl:avl_insert(45157,0)}, ...
+     {l2,avl:avl_lookup(45157,0)}]] 
+\end{yapcode}
 
 
+%% In order to  assess the tool and the specification in broader terms we
+%% insert two bugs and test the two erroneous versions of the module.
+%% %
+%% The first bug was introduced by the tester and the second by another
+%% programmer.
+%% %
+%% This still fits the goal of black-box testing because the actual tests
+%% are still performed without knowledge of the module's source.
+%% %
+%% It is the same as testing different closed implementations.
+
+
+%{{{ wrong 1
+
+To explore the tool potential we inserted a bug.
+%
 We changed a line in the table that states how the tree will be
 re-balanced upon insertion of a new element.
 %
@@ -875,21 +879,7 @@ improve on that, so no re-balancing will be needed.
 Testing this version of the implementation shows a counterexample after
 less than 100 test cases on average.
 %
-\begin{yapcode}
-   ?- plqc:quickcheck(
-                avlTest:(qcprop(avlUses)),
-                [{numtests, 1000}] ).
- height_mismatch
- avl_insert_fail_invariant
- !
- Failed: After 51 test(s).
- Counterexample found:
-   [[avl:avl_new,
-     {i,avl:avl_insert(22340,0)},
-     {i,avl:avl_insert(1488,1)},
-     {i,avl:avl_insert(8952,0)}]] 
- yes
-\end{yapcode}
+%% \end{yapcode}
 %
 The counterexamples found are command sequences where three inserts are
 given in the key order $3, 1, 2$
@@ -908,10 +898,26 @@ fail at the last insertion.
 This is noticed in this example by the lack of an error message from the
 property.
 %
+%% \begin{yapcode}
+%
+The only conclusion we can get from the counterexamples is that the
+balancing of the tree is probably failing when the tree is unbalanced to
+the right and the sub-tree to the left.
 \begin{yapcode}
    ?- plqc:quickcheck(
-           avlTest:(qcprop(avlUses)),
-           [{numtests, 1000}] ).
+             avlTest:(qcprop(avlUses))).
+ height_mismatch
+ avl_insert_fail_invariant
+ !
+ Failed: After 51 test(s).
+ Counterexample found:
+   [[avl:avl_new,
+     {i,avl:avl_insert(22340,0)},
+     {i,avl:avl_insert(1488,1)},
+     {i,avl:avl_insert(8952,0)}]] 
+ yes
+   ?- plqc:quickcheck(
+             avlTest:(qcprop(avlUses))).
  Failed: After 66 test(s).
  Counterexample found:
    [[avl:avl_new,
@@ -920,10 +926,8 @@ property.
      {i,avl:avl_insert(18564,1)}]]
  yes
 \end{yapcode}
-%
-The only conclusion we can get from the counterexamples is that the
-balancing of the tree is probably failing when the tree is unbalanced to
-the right and the sub-tree to the left.
+
+%}}}
 
 %{{{ wrong 2
 
@@ -991,7 +995,10 @@ In this case, the following change was performed.
 This forces a re-balance of an already balanced tree in the speculated
 situation - an insertion to the left filling where there is already a
 value to the right.
+
 %}}}
+
+
 
 
 %% \subsection{red-black Trees}

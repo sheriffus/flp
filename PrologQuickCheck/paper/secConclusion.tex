@@ -1,10 +1,18 @@
 % -*- mode: latex; mode: folding -*-
+\pagebreak
 
 \section{Conclusion}
 \label{sec:conclusion}
 
+%% %
+%% (Find place for)
+%% The tool is specially useful for people that are beginning logic
+%% programming or that have their logic programming polluted by other
+%% programming styles (arguably,  such as one of the authors).
+
+
 Here we present \plqc{}, an automatic tool for specification based
-testing of \Prolog programs.
+testing of \Prolog{} programs.
 %
 Compared to similar tools for functional languages, we deal with testing
 of nondeterministic programs in a logic programming language.
@@ -23,10 +31,10 @@ type.
 In \plqc{} generators are special predicates that randomly choose an
 element from a set of values.
 %
-In fact, the generators themselves define the set by the elements they
+The generators define the set by the elements they
 generate, regardless of their probability distribution.
 %
-Thus PrologCheck generators may be heterogenous, in the sense of
+Thus \plqc{} generators may be heterogenous, in the sense of
 defining collections of terms with different types.
 
 
@@ -38,7 +46,7 @@ quite well since all the dependencies between arguments are explicit in
 predicate definitions.
 
 
-Finally note that our tool uses Prolog also to write properties, which,
+Finally note that our tool uses \Prolog{} also to write properties, which,
 besides its use in the tool for test specification, increases the
 understanding of the program itself, without an extra learning for
 \Prolog{} programmers.

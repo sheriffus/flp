@@ -3,54 +3,107 @@
 \section{Related Work} 
 \label{sec:rel-work}
 
-As far as we know, there seems to be no previous work on automatic
-testing of Prolog programs against specifications.
-%
-However there are similar tools for other languages and paradigms.
-%
-The two most inspiring tools were QuickCheck \cite{...} for the
-functional programming language Haskell and EasyCheck \cite{...}  for
-the functional-logic language Curry.
 
-Easycheck was another automated tool for specification-based testing of
+As far as we know, there seems to be no previous work on automatic
+testing of \Prolog programs against specifications, although  tools such
+as {\sf ciao}'s assertions~\cite{ciao-prolog} and {\sf SWI-Prolog}'s {\sf plunit}~\cite{swi-prolog}  support  manual testing.
+%
+However automated test is well supported in several languages and paradigms. 
+%
+The three most inspiring tools were \QuickCheck~\cite{quickcheck} for the
+functional programming language \Haskell, {\sf PropEr}~\cite{papadakis2011proper} for the
+functional programming language {\sf Erlang}
+and {\sf EasyCheck} \cite{christiansen2008easycheck}  for
+the functional-logic language {\sf Curry}.
+
+
+{\sf Easycheck} is another automated tool for specification-based testing of
 declarative programs, which deals with logic programming features.
 %
-It was written in the functional-logic programming language Curry and it
+It is written in the functional-logic programming language Curry and it
 is based on the view of free variables of an appropriate type as
-nondeterministic generators \cite{OVERLAPPING RULES AND LOGIC
-  VARIABLES...2006} and operations to specify properties of
+nondeterministic generators \cite{antoy2006overlapping} and operations to specify properties of
 nondeterministic operations by generalizing the set of combinators for
-non-deterministic operations of QuickCheck.
+non-deterministic operations of \QuickCheck.
 %
-In our work we focus on Prolog and, in contrast with EasyCheck, non
-deterministic generators are implemented by non-deterministic Prolog
-programs, types are implemented by monadic logic programs \cite{Types as
-  Logic Programs - Fruewirth, Types as Theories, Florido and Damas}, and
+In our work we focus on \Prolog{} and, in contrast with {\sf EasyCheck}, non
+deterministic generators are implemented by non-deterministic \Prolog{}
+programs, types are implemented by monadic logic programs \cite{fruhwirth1991logic,florido1992types}, and
 we use a specification language with standard specification features of
-logic programming such as modes and number of answers\cite{Yves
-  Deville}.
-EasyCheck enabled the use of different test-case generation strategies,
-PrologCheck uses only depth-first test-case generation (although it is
-not complete) because we want to exactly mimic Prolog operational
+logic programming such as modes and number of answers~\cite{Deville1990logprog}.
+{\sf EasyCheck} enabled the use of different test-case generation strategies,
+\plqc{} uses only depth-first test-case generation (although it is
+not complete) because we want to exactly mimic \Prolog{} operational
 semantics.
 
 
 There were several automatic test tools for functional programming
-languages, namely QuickCheck \cite{...}, SmallCheck \cite{...},
-SparseCheck \cite{...}, SML-QuickCheck \cite{...}, and G$\forall$ST
-\cite{...}.
-The first and most preminent tool was QuickCheck.
-QuickCheck used a domain specific language of testable specifications.
-We also define a specification language in PrologCheck but with
-differences related to the relational nature of Prolog, such as modes
+languages, namely \QuickCheck, {\sf PropEr}, {\sf SmallCheck}~\cite{runciman2008smallcheck},
+%% SparseCheck \cite{}, 
+%% SML-QuickCheck \cite{...}, 
+and G$\forall$ST~\cite{koopman2003gast}.
+The first and most preeminent tool is \QuickCheck{}.
+\QuickCheck{} uses a domain specific language of testable specifications
+as does {\sf PropEr}.
+We also define a specification language in \plqc{} but with
+differences related to the relational nature of \Prolog{}, such as modes
 and constraints on the number of answers.
-As in QuickCheck, we also use random testing - we choose this method
-compared to systemmatic methods, due to its success in QuickCheck.
-The way QuickCheck generated test data depends on Haskell types.
-Prolog is an untyped language, but type information is crucial also in
-PrologCheck test data generation.
-We adopt the view of types as monadic Prolog programs describing sets of
-terms, widely used in the  {\em regular types} approach for typing logic
-programs \cite{RegularTypes - Yardeni,Shapiro, Logic Programs as Types
-  for logic programs - Fruewirth, Types of Logic Programming - J. Zobel,
-  Types and Theories - Florido and Damas}.
+As in \QuickCheck{}, we also use random testing - we choose this method
+compared to systematic methods, due to its success in \QuickCheck{}.
+The way \QuickCheck{} generated test data depends on Haskell types.
+In {\sf Erlang} types are dynamically checked and {\sf PropEr}, as well
+as {\sf Erlang}\QuickCheck{}, guides value generation by functions,
+being quantified types defined by these generating functions.
+\Prolog{} is an untyped language, but type information is crucial also in
+\plqc{} test data generation.
+In a parallel with {\sf Erlang} tools, we adopt the view of types as
+monadic \Prolog{} programs describing sets of terms, widely used in the
+{\em regular types} approach for typing logic programs~\cite{Yardeni:1991:TSL:110703.110705,fruhwirth1991logic,DBLP:conf/iclp/Zobel87,florido1992types}.
+
+  Recently a novel counterexample generator for the interactive theorem prover Isabelle \cite{bulwahn2012smart} reformulates the preconditions also as logic programs and analyzes them with a mode inference. But the application of this tool is on the  synthesis of test data generators for functional programming languages (e.g. ML, \Haskell) from specifications in Isabelle, and is quite different from the use of logic programs in \plqc{} generators.
+%% The two most inspiring tools were QuickCheck \cite{...} for the
+%% functional programming language Haskell and EasyCheck \cite{...}  for
+%% the functional-logic language Curry.
+
+%% Easycheck was another automated tool for specification-based testing of
+%% declarative programs, which deals with logic programming features.
+%% %
+%% It was written in the functional-logic programming language Curry and it
+%% is based on the view of free variables of an appropriate type as
+%% nondeterministic generators \cite{OVERLAPPING RULES AND LOGIC
+%%   VARIABLES...2006} and operations to specify properties of
+%% nondeterministic operations by generalizing the set of combinators for
+%% non-deterministic operations of QuickCheck.
+%% %
+%% In our work we focus on Prolog and, in contrast with EasyCheck, non
+%% deterministic generators are implemented by non-deterministic Prolog
+%% programs, types are implemented by monadic logic programs \cite{Types as
+%%   Logic Programs - Fruewirth, Types as Theories, Florido and Damas}, and
+%% we use a specification language with standard specification features of
+%% logic programming such as modes and number of answers\cite{Yves
+%%   Deville}.
+%% EasyCheck enabled the use of different test-case generation strategies,
+%% PrologCheck uses only depth-first test-case generation (although it is
+%% not complete) because we want to exactly mimic Prolog operational
+%% semantics.
+
+
+%% There were several automatic test tools for functional programming
+%% languages, namely QuickCheck \cite{...}, SmallCheck \cite{...},
+%% SparseCheck \cite{...}, SML-QuickCheck \cite{...}, and G$\forall$ST
+%% \cite{...}.
+%% The first and most preminent tool was QuickCheck.
+%% QuickCheck used a domain specific language of testable specifications.
+%% We also define a specification language in PrologCheck but with
+%% differences related to the relational nature of Prolog, such as modes
+%% and constraints on the number of answers.
+%% As in QuickCheck, we also use random testing - we choose this method
+%% compared to systemmatic methods, due to its success in QuickCheck.
+%% The way QuickCheck generated test data depends on Haskell types.
+%% Prolog is an untyped language, but type information is crucial also in
+%% PrologCheck test data generation.
+%% We adopt the view of types as monadic Prolog programs describing sets of
+%% terms, widely used in the  {\em regular types} approach for typing logic
+%% programs \cite{RegularTypes - Yardeni,Shapiro, Logic Programs as Types
+%%   for logic programs - Fruewirth, Types of Logic Programming - J. Zobel,
+%%   Types and Theories - Florido and Damas}.

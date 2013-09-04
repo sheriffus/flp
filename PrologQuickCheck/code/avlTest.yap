@@ -312,3 +312,54 @@ qcprop({avlUses, Tree, [{fl,avl:avl_lookup(Key,Val)}|Calls]}) :-
 % }}}
 
 
+% {{{ avl initial property (gives out height, but should it?)
+qcprop({avl, (tree, T), (height, H), (curr_key, GetKey), (cmp_key, CmpKeys), (left, L), (right, R), (is_nil, IsNil)}) :- 
+        qcif( (call(IsNil, T, V), V = false)
+        ,(
+              (call(GetKey, T, Key),  call(L, T, LT),  call(R, T, RT))
+          qcand
+            %% subtrees are avl where Key will be in the correct key order
+            qcprop({avl, (gt, [Key]), (lt, []), (tree, LT), (height, LH),
+                           (curr_key, GetKey), (cmp_key, CmpKeys),
+                           (left, L),(right, R),(is_nil, IsNil)})
+          qcand
+            qcprop({avl, (gt, []), (lt, [Key]), (tree, RT), (height, RH),
+                           (curr_key, GetKey), (cmp_key, CmpKeys),
+                           (left, L),(right, R),(is_nil, IsNil)})
+          qcand
+            ((abs(LH-RH) =< 1, !; print(height_mismatch), nl, fail),
+            H is 1+ max(LH,RH))
+        ),
+            %% if this is an empty tree, it is an avl of height 0
+            (V=false, H = 0)
+        ).
+% }}}
+% {{{ avl actual property with accumulators
+qcprop({avl, (gt, GTS), (lt, LTS), (tree, T), (height, H), (curr_key, GetKey), (cmp_key, CmpKeys), (left, L), (right, R), (is_nil, IsNil)}) :- 
+        qcif(
+            (call(IsNil, T, V), V=false)
+        ,(
+            (call(GetKey, T, Key), call(L, T, LT), call(R, T, RT),
+            %% Key is greater then or equal to all lesser values (LTS)
+            (forall(member(X, LTS), call(CmpKeys, X, Key, lte)), !
+            ;  print(avl_key_not_inorder1), nl, fail),
+            %% Key is less then all greater values (GTS)
+            (forall(member(X, GTS), call(CmpKeys, X, Key, gt)), !
+            ; print(avl_key_not_inorder2), nl, fail))
+          qcand
+            %% subtrees are avl where Key will be in the correct key order
+            qcprop({avl, (gt, [Key|GTS]), (lt, LTS), (tree, LT), (height, LH),
+                           (curr_key, GetKey), (cmp_key, CmpKeys),
+                           (left, L),(right, R),(is_nil, IsNil)})
+          qcand
+            qcprop({avl, (gt, GTS), (lt, [Key|LTS]), (tree, RT), (height, RH),
+                           (curr_key, GetKey), (cmp_key, CmpKeys),
+                           (left, L),(right, R),(is_nil, IsNil)})
+          qcand
+            ((abs(LH-RH) =< 1, !; print(height_mismatch), nl, fail),
+            H is 1+ max(LH,RH))
+        ),
+            %% if this is an empty tree, it is an avl of height 0
+            (V=false, H = 0)
+        ).
+% }}}

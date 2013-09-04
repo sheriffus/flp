@@ -318,6 +318,8 @@ odd_list([X|XS]) :- 0 is X mod 2, odd_list(XS).
 
 %% coiso of_type _A has_range _B.
 
+%    ?- opts:parse([], Opts), state:init(Opts, IState), trace, plqc:test(true, Opts, IState, OState, Result).
+
 
 %% ?- plqc:quickcheck(plqccase1:qcprop(spec_rev_app_1)).
 %% ?- plqc:quickcheck(plqccase1:qcprop(spec_test_1)).
@@ -338,3 +340,13 @@ odd_list([X|XS]) :- 0 is X mod 2, odd_list(XS).
    %% ?- plqc:quickcheck(plqccase1:qcprop(spec_test_1)).
    %% ?- call(call(plqccase1:test, a),b).
    %% ?- plqccase1:test(a,b).
+
+qcprop(int10) :- 
+        plqc:qcforall( int, I, (I =< 10)).
+
+%% plqc:quickcheck(plqccase1:qcprop(spec_rev_app_1)).
+%% plqc:quickcheck(plqccase1:qcprop(spec_test_1)).
+%% plqc:quickcheck(plqccase1:qcprop(spec_test_2)).
+%% plqc:quickcheck(plqccase1:qcprop(spec_test_3)).
+%% plqc:quickcheck(plqccase1:qcprop(spec_test_4)).
+%% plqc:quickcheck(plqccase1:qcprop(spec_test_5)).

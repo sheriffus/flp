@@ -20,10 +20,12 @@
 :- reconsult(result).
 :- reconsult(ctx).
 :- reconsult(state).
+:- reconsult(shrink).
 
 :- use_module(library(random)).
 :- use_module(library(lists)).
 :- use_module(library(timeout)).
+:- use_module(library(apply_macros)).
 
 :- source.
 
@@ -78,7 +80,7 @@ test(Property, Opts, IState, OState, Result) :-
         call(Print,"~n", []),
         %% call_with_args(Print,"~n", []),
         report_result(Result1, Opts),
-        %% polish gross result into long/short testing result
+        %% polish gross result into long/short testing result (possible shrinking)
         refine_result(Result1, Property, Opts, ShortRes, LongRes),
         (ReturnLong == true, !,
         Result = LongRes
@@ -86,27 +88,6 @@ test(Property, Opts, IState, OState, Result) :-
         Result = ShortRes
         )
 .
-
-  % }}}
-
-  % {{{ refine_result(Result1, Property, Opts, ShortRes, LongRes)
-
-refine_result(Result, Property, Opts, ShortRes, LongRes) :-
-        (result:is_pass_res(Result), !,
-        ShortRes = true,
-        LongRes = true
-    ;
-        result:is_fail_res(Result), !,
-        result:reason_fail(Result, Reason),
-        result:bound_fail(Result, Bound),
-        %% TODO - shrink here if counterexample (expected pass)
-        ShortRes = false,
-        LongRes = Bound
-    ;
-        ShortRes = Result,
-        LongRes = Result
-        )
-    .
 
   % }}}
 
@@ -150,8 +131,7 @@ report_result( Result, Opts ) :-
                   %% call_with_args(Print, "Failed: After ~d test(s).\n", [Performed]),
                   report_fail_reason(Reason, "", Print),
                   result:bound_fail(Result, Bound),
-                  print_testcase(Bound, Print)%% ,
-                  %% execute_actions(Actions)
+                  (opts:noshrink(Opts, true), !, print_testcase(Bound, Print); true)
               )
              )
          )
@@ -210,6 +190,172 @@ report_fail_reason({exception,ExcKind,ExcReason,StackTrace}, Prefix, Print) :-
 %%     ok.
 
     % }}}
+  % }}}
+
+  % {{{ refine_result(Result1, Property, Opts, ShortRes, LongRes)
+
+refine_result(Result, Property, Opts, ShortRes, LongRes) :-
+        (result:is_pass_res(Result), !,
+        ShortRes = true,
+        LongRes = true
+    ;
+        result:is_fail_res(Result), !,
+        shrink(Property, Result, Opts, LongRes),
+        ShortRes = false
+    ;
+        ShortRes = Result,
+        LongRes = Result
+        )
+    .
+
+    % {{{ shrink/4
+% shrink the failing result (in Details) for Property and return it as Shrunk
+shrink(Property, Details, Opts, Shrunk) :-
+      ( opts:expect_fail(Opts, false), opts:noshrink(Opts, false), !,
+        opts:output_fun(Opts, Print),
+        opts:max_shrinks(Opts, MaxShrinks),
+        
+        call(Print,"~nShrinking ", []),
+        result:bound_fail(Details, Binds ),ctx:default( Ctx ),
+	shrink(Binds, Property, Details, 0, MaxShrinks, Opts, Ctx, Shrinks, MinResult),
+        (result:actions_fail(MinResult, MinActions),
+         report_shrinking(Shrinks, MinResult, MinActions, Print, Shrunk)
+        ;
+         call(Print,"~nError: shrunk result does not fail~n  ~p~n", [MinResult]) )
+       ;
+        Shrunk = Result).
+
+      % {{{ shrink/9
+% no more tries left, current binds are the minimum result
+shrink(Binds, Property, Details, MaxShrinks, MaxShrinks, Opts, Ctx, MaxShrinks, Result) :-
+        !, result:mk_fail([{reason, false_prop}, {bound, Binds}], Result).
+shrink(Binds, Property, Details, IShrinks, MaxShrinks, Opts, Ctx, OShrinks, MinRes) :-
+        duplicate_term(Property, Test),
+ %% print({ewrg2, Binds, Test, Details, IShrinks, MaxShrinks, Ctx, Shrinks1, LocalRes}), nl,
+        shrink(Binds, Test, Details, IShrinks, MaxShrinks, init, Opts, Ctx, Shrinks1, LocalRes),
+        (Shrinks1 == IShrinks, !, OShrinks = IShrinks, result:mk_fail([{reason, false_prop}, {bound, Binds}], MinRes)
+    ;
+        result:bound_fail(LocalRes, LocalBinds),
+        shrink(LocalBinds, Property, Details, Shrinks1, MaxShrinks, Opts, Ctx, OShrinks, MinRes)).
+
+        % {{{ finish_shrink
+finish_shrink(Curr, Res) :-
+        print(todo_finish_shrink), nl.
+        %% create_fail_result(Ctx, false_prop, Result)
+        % }}}
+        
+        % {{{ shrink/10
+% shrinks Binds in Test; Flag tells us if we are currently trying a new shrink
+% reached max shrinks; it actually stops at MaxShrinks-1
+shrink(Binds, Test, Details, MaxShrinks, MaxShrinks, Flag, Opts, Ctx, MaxShrinks, OutRes) :-
+        !, ctx:bound(Ctx, PartialShrink),
+        lists:reverse(PartialShrink, PartialRev),
+        lists:append(PartialRev, Binds, LocalBinds),
+        result:mk_fail([{reason, false_prop}, {bound, LocalBinds}], OutRes).
+shrink(Binds, Mod:Test, Details, IShrinks, MaxShrinks, Flag, Opts, Ctx, OShrinks, OutRes) :-
+        !, ctx:new_module(Ctx, Mod, Ctx1),
+        shrink(Binds, Test, Details, IShrinks, MaxShrinks, Flag, Opts, Ctx1, OShrinks, OutRes).
+shrink([Bind|Binds], qcforall(Gen, Var, Test), Details, IShrinks, MaxShrinks, init, Opts, Ctx, OShrinks, OutRes) :-
+        !,
+        shrink_candidates(Bind, Gen, ShrunkVals),
+        duplicate_term({Var, Test}, {Var1, Test1}),
+        (find_first_valid_shrink(ShrunkVals, Var1, Binds, Test1, Details, IShrinks, MaxShrinks, Opts, Ctx, Val, Res1),
+        !, choose(0,1,I,_),
+        (% 50% choice to call this a shrink
+          I=0, !, OutRes = Res1, OShrinks is IShrinks + 1
+      ;% or try to shrink further binds
+          ctx:bind(Ctx, Val, Ctx1),
+          Var = Val,
+          Shrinks1 is IShrinks + 1,
+          (shrink(Binds, Test, Details, Shrinks1, MaxShrinks, init, Opts, Ctx1, OShrinks, OutRes), !; OutRes = Res1, OShrinks is IShrinks + 1)
+        )
+    ;% if a valid shrink is not found, keep going further on the property
+        ctx:bind(Ctx, Bind, Ctx1), Var = Bind,
+        shrink(Binds, Test, Details, IShrinks, MaxShrinks, init, Opts, Ctx1, OShrinks, OutRes)
+        ).
+shrink([Bind|Binds], qcforall(Gen, Var, Test), Details, IShrinks, MaxShrinks, done, Opts, Ctx, OShrinks, OutRes) :-
+        !,
+        ctx:bind(Ctx, Bind, Ctx1), Var = Bind,
+        shrink(Binds, Test, Details, IShrinks, MaxShrinks, done, Opts, Ctx1, OShrinks, OutRes).
+shrink(Binds, qcforall(Gen, Var, Test, Size), Details, IShrinks, MaxShrinks, Flag, Opts, Ctx, OShrinks, OutRes) :-
+        !, shrink(Binds, qcforall(Gen, Var, Test), Details, IShrinks, MaxShrinks, Flag, Opts, Ctx, OShrinks, OutRes).
+shrink(Binds, qcprop(Label), Details, IShrinks, MaxShrinks, Flag, Opts, Ctx, OShrinks, OutRes) :-
+        !,
+        ctx:module(Ctx, M),
+        clause(M:qcprop(Label), Body),
+        shrink(Binds, Body, Details, IShrinks, MaxShrinks, Flag, Opts, Ctx, OShrinks, OutRes).
+shrink([Binds, BindsS], (Test qcand Tests), Details, IShrinks, MaxShrinks, Flag, Opts, Ctx, OShrinks, OutRes) :-
+        !, shrink(Binds, Test, Details, IShrinks, MaxShrinks, Flag, Opts, Ctx, Shrinks1, Res1),
+        (result:is_pass_res(Res1), !,
+        shrink(BindsS, Tests, Details, Shrinks1, MaxShrinks, Flag, Opts, Ctx, OShrinks, Res2),
+        !, result:is_fail_res(Res2),
+        result:reason_fail(Res2, Reason),
+        result:actions_fail(Res2, Actions),
+        result:performed_fail(Res2, Performed),
+        result:mk_fail([{reason, Reason}, {bound, Binds},{actions, Actions}, {performed, Performed}], OutRes)
+    ; % the first branch already fails, we can build a fail result
+        result:reason_fail(Res2, Reason),
+        result:bound_fail(Res2, Bound),
+        result:actions_fail(Res2, Actions),
+        result:performed_fail(Res2, Performed),
+        result:mk_fail([{reason, Reason}, {bound, Bound},{actions, Actions}, {performed, Performed}], OutRes)
+        ).
+shrink([BindsA, BindsB], (TestA qcor TestB), Details, IShrinks, MaxShrinks, Flag, Opts, Ctx, OShrinks, OutRes) :-
+        !, shrink(BindsA, TestA, Details, IShrinks, MaxShrinks, Flag, Opts, Ctx, Shrinks1, Res1),
+        !, result:is_fail_res(Res1),
+        shrink(BindsB, TestB, Details, Shrinks1, MaxShrinks, Flag, Opts, Ctx, OShrinks, Res2),
+        !, result:is_fail_res(Res2),
+        merge_results(Res1, Res2, OutRes).
+%% shrink([Binds, BindsA, BindsB], qcif(IfTest, TestA, TestB), Details, IShrinks, MaxShrinks, Flag, Opts, Ctx, OShrinks, OutRes) :-
+%%         shrink(Binds, IfTest, Details, IShrinks, MaxShrinks, Flag, Opts, Ctx, Shrinks1, Res1),
+%%         run(IfTest, Opts, Ctx, IState, State1, ResultI),
+%%         (result:is_pass_res(ResultI), !,
+%%         run(TestA, Opts, Ctx, State1, OState, Result1),
+%%         Result2 = none
+%%     ;
+%%         run(TestB, Opts, Ctx, State1, OState, Result2),
+%%         Result1 = none
+%%         ),
+%%         Result = [Result1, Result2].
+
+%% shrink(RemainRes, Test, Reason, Shrinks, MaxShrinks, Opts, Ctx, Shrinks, OutRes) :-
+shrink([], Test, Reason, Shrinks, MaxShrinks, Flag, Opts, Ctx, Shrinks, OutRes) :-
+        ctx:module(Ctx, M),
+        (call(M:Test), !,
+        create_pass_result(Ctx, true_prop, OutRes)
+        )
+    ;
+        (!,
+        create_fail_result(Ctx, false_prop, OutRes)
+        ).
+
+          % {{{ shrink_candidates
+shrink_candidates(Bind, Gen, ShrunkVals) :-
+        call(Gen, Bind, shrink, ShrunkVals).
+          % }}}
+          % {{{ find_first_valid_shrink
+find_first_valid_shrink([V|VS], Var, Binds, Test, Details, IShrinks, MaxShrinks, Opts, Ctx, Val, OutRes) :-
+    (   Var = V,
+        ctx:bind(Ctx, Val, Ctx1),
+        shrink(Binds, Test, Details, IShrinks, MaxShrinks, done, Opts, Ctx1, OShrinks, OutRes),
+        result:is_fail_res(OutRes),
+        Val = V
+    ;
+        find_first_valid_shrink(VS, Var, Binds, Test, Details, IShrinks, MaxShrinks, Opts, Ctx, Val, OutRes)
+    ).
+        
+          % }}}
+        % }}}
+      % }}}
+
+      % {{{ report_shrinking
+report_shrinking(Shrinks, MinResult, MinActions, Print, Shrunk) :-
+        call(Print, "(~d time(s))", [Shrinks]), nl,
+        result:bound_fail(MinResult, Bound),
+        print_testcase(Bound, Print).
+%% ,
+    %% execute_actions(MinActions).
+      % }}}
   % }}}
 
 % }}}
@@ -292,7 +438,7 @@ run(Test, Opts, IState, OState, Result) :-
 
 %% current module
 run(Mod:Test, Opts, Ctx, IState, OState, Result) :- 
-        ctx:new_module(Ctx, Mod, Ctx1),
+        !, ctx:new_module(Ctx, Mod, Ctx1),
         run(Test, Opts, Ctx1, IState, OState, Result).
 %% universal quantification
 run(qcforall(Gen, Var, Test), Opts, Ctx, IState, OState, Result) :- 
@@ -318,26 +464,35 @@ run(qcprop(Label), Opts, Ctx, IState, OState, Result) :-
 %% conjunction - individual calls
 %% run((Test , Tests), Opts, Ctx, IState, OState, Result) :- 
 run((Test qcand Tests), Opts, Ctx, IState, OState, Result) :- 
+        !,
         run(Test, Opts, Ctx, IState, State1, Result1),
         (result:is_pass_res(Result1), !,
-        run(Tests, Opts, Ctx, State1, OState, Result)
+        run(Tests, Opts, Ctx, State1, OState, Result2)
     ;
-        Result = Result1, OState = State1).
+        Result2 = none, OState = State1),
+        merge_results(Result1, Result2, Result).
 %% disjunction - individual calls
 %% run((TestA ; TestB), Opts, Ctx, IState, OState, Result) :- 
 run((TestA qcor TestB), Opts, Ctx, IState, OState, Result) :- 
+        !,
         run(TestA, Opts, Ctx, IState, State1, Result1),
         (result:is_fail_res(Result1), !,
-        run(TestB, Opts, Ctx, IState, OState, Result)
+        run(TestB, Opts, Ctx, IState, OState, Result2)
     ;
-        Result = Result1, Ostate = State1).
+        Result2 = none, Ostate = State1),
+        merge_results(Result1, Result2, Result).
 run(qcif(IfTest, TestA, TestB), Opts, Ctx, IState, OState, Result) :- 
-        run(IfTest, Opts, Ctx, IState, State1, Result1),
-        (result:is_pass_res(Result1), !,
-        run(TestA, Opts, Ctx, State1, OState, Result)
+        !,
+        run(IfTest, Opts, Ctx, IState, State1, ResultI),
+        (result:is_pass_res(ResultI), !,
+        run(TestA, Opts, Ctx, State1, OState, Result1),
+        Result2 = none
     ;
-        run(TestB, Opts, Ctx, State1, OState, Result)
-        ).
+        run(TestB, Opts, Ctx, State1, OState, Result2),
+        Result1 = none
+        ),
+        merge_results(Result1, Result2, Result3).
+        merge_results(ResultI, Result3, Result).
 %% a leaf in the property syntax tree - a predicate call
 run(Test, Opts, Ctx, State, State, Result) :- 
         ctx:module(Ctx, M),
@@ -372,14 +527,45 @@ bind_forall(Gen, Ctx, Var, Size) :-
 
 % }}}
 
-% {{{ create result
+% {{{ create and merge results
 
 create_pass_result(Ctx, Reason, Pass) :-
-        result:mk_pass([{reason, Reason}], Pass).
+        ctx:bound(Ctx, Bound),
+        result:mk_pass([{reason, Reason}, {bound, Bound}], Pass).
 
 create_fail_result(Ctx, Reason, Fail) :-
         ctx:bound(Ctx, Bound),
         result:mk_fail([{reason, Reason}, {bound, Bound}], Fail).
+
+merge_results(R1, R2, R) :-
+        result:is_pass_res(R1),
+        result:is_pass_res(R2), !,
+        result:reason_pass(R1,Reason),
+        result:bound_pass(R1,Bound1),
+        result:samples_pass(R1,Samples1),
+        result:printers_pass(R1,Printers1),
+        result:performed_pass(R1,Performed),
+        %% result:reason_pass(R2,Reason2),
+        result:bound_pass(R2,Bound2),
+        result:samples_pass(R2,Samples2),
+        result:printers_pass(R2,Printers2),
+        %% result:performed_pass(R2,Performed2),
+        %% lists:append(Reason1, Reason2, Reason),
+        lists:append(Samples1, Samples2, Samples),
+        lists:append(Printers1, Printers2, Printers),
+        %% lists:append(Performed1, Performed2, Performed),
+        result:mk_pass([{reason, Reason}, {bound, [Bound1, Bound2]}, {samples, S}, {printers, P}, {performed, P}], R)
+    ;
+        result:reason_fail(R1, Reason),
+        result:bound_fail(R1, Bound1),
+        result:actions_fail(R1, Actions1),
+        result:performed_fail(R1, Performed1),
+        result:bound_fail(R2, Bound2),
+        result:actions_fail(R2, Actions2),
+        result:performed_fail(R2, Performed2),
+        lists:append(Bound1, Bound2, Bound),
+        lists:append(Actions1, Actions2, Actions),
+        result:mk_fail([{reason, Reason}, {bound, Bound},{actions, Actions}, {performed, Performed}], R).
 
 % }}}
 
@@ -394,15 +580,17 @@ int(0, _, []) :- !.
 int(I, shrink, Shrs) :- shr_int(I, Shrs).
 int(I, shrink, [0]).
 
-%% %% shrinker
-%% shr_int(I, L) :-
-%%         I =< 0, !,
-%%         L = []
-%%     ;
-%%         random:random(0,I,I2),
-%%         I3 is I-1,
-%%         L = [I2, I3]
-%%     .
+%% shrinker
+shr_int(I, L) :-
+        I =< 0, !,
+        random:random(I,0,I2),
+        I3 is I+1,
+        L = [I2, I3]
+    ;
+        random:random(0,I,I2),
+        I3 is I-1,
+        L = [I2, I3]
+    .
   % }}}
 
   % {{{ common generator stuff
@@ -560,6 +748,106 @@ vectorOf(K, GenA, [A|AS], Size) :-
         %% call_with_args(GenA, A, Size),
         K1 is K-1,
         vectorOf(K1, GenA, AS, Size).
+
+%% | Generates the given value, discarding the size.
+value(A, A, _Size).
+
+%% | Generates a variable, discarding the size.
+variable(X, _Size) :- var(X).
+
+%% | Generates values with a certain structure
+structure(X, Y, Size) :- var(X), !, var(Y), X=Y. % TODO - error when Y is not a var
+structure(X, Y, Size) :- var(X), !, var(Y), X=Y. % TODO - error when Y is not a var
+structure([], [], Size) :- !.
+structure([SX|SXS], [X|XS], Size) :-
+        !,
+        structure(SX, X, Size),
+        structure(SXS, XS, Size).
+structure({ST}, {T}, Size) :-
+        !,
+        structure(ST, T, Size),
+        structure(SXS, XS, Size).
+structure( (SX, SXS), (X, XS), Size) :-
+        !,
+        structure(SX, X, Size),
+        structure(SXS, XS, Size).
+structure(GenX, X, Size) :-
+        call(GenX, X, Size).
+
+  % }}}
+
+  % {{{ common shrinker stuff
+resize(NewSize, GenA, A, shrink, Shrs) :-
+        call(GenA, A, shrink, Shrs).
+        %% call_with_args(GenA, A, NewSize).
+
+%% | shrinks A until Min
+choose(Min,Max, A, shrink, Shrs) :-
+        I is A - Min,
+        shr_int(I, L),
+        maplist(add(Min), L, Shrs).
+
+add(A,B,C) :- C is A + B.
+
+
+%%------------------------------------------------------------------------
+%% ** Common generator combinators
+
+suchThat(GenA, PredA, A, shrink, Shrs) :-
+        (
+            suchThatMaybe(GenA, PredA, A, shrink, Shrs), !
+        ;
+            Shrs = []
+        ).
+
+suchThatMaybe(GenA, PredA, A, shrink, Shrs) :-
+        call(GenA, A, shrink, Shrs1),
+        %% call_with_args(GenA, A, S),
+        duplicate_term(Shrs1, SsTest),  % precaution against binding properties
+        selectlist(call(PredA), SsTest, Shrs),
+
+%% can't shrink because of non-determinism
+oneof(LGenA, A, shrink, []).
+%% oneof(LGenA, A, shrink, Shrs) :-
+%%         length(LGenA, Cap),
+%%         choose(1,Cap,I,S),
+%%         lists:nth(I, LGenA, GenA),
+%%         call(GenA, A, S).
+
+%% can't shrink because of non-determinism
+frequency(FGL, A, shrink, []).
+%% frequency(FGL, A, S) :- % Frequency-Generator List
+%%         %% make freq-index list according to weights and calculate choosing cap
+%%         checkFreqWeights(FGL, FIL, Cap),
+%%         choose(1,Cap,I,S), % choose an index
+%%         lists:nth(I, FIL, GenA),
+%%         call(GenA, A, S).
+
+
+%% | default shrink is the empty list because there is not enough information for doing it another way
+elements(AS, A, shrink, []).
+
+listOf(GenA, AS, shrink, [Tail|Shrs1]) :-
+        lists:length(AS, K),
+        AS = [H|Tail],
+        vectorOf(K, GenA, AS, Shrink, Shrs1).
+
+listOf1(GenA, [A], shrink, Shrs) :-
+        vectorOf(1, GenA, [A], shrink, Shrs).
+
+vectorOf(0, _GenA, _, shrink, []) :- !.
+vectorOf(K, GenA, [A|AS], shrink, Shrs) :-
+        shrinkSome(K, GenA, [A|AS], shrink, Shrunk),
+        ( Shrunk = [A|AS], !, Shrs = []
+        ; Shrs = [Shrunk]).
+
+shrinkSome(K, GenA, [], shrink, []).
+shrinkSome(K, GenA, [A|AS], shrink, [SA|SAS]) :-
+        choose(0,K,X), % the chance of X =< 1 is 2 in K, should result in an average of two shrunk elements
+        ( X =< 1, !, call(GenA, A, shrink, AA), (AA = [SA|_],!; SA=A)
+        ; SA = A),
+        shrinkSome(K, GenA, AS, shrink, SAS).
+
 
 %% | Generates the given value, discarding the size.
 value(A, A, _Size).

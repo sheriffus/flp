@@ -10,38 +10,38 @@
 %  how  (are we doing it)
 
 % the Introduction intro, a bit of 'what'
-The life-cycle, and often the cost, of most sofware systems is
-dominated by maintenance effort~\cite{wasnik2013software,DBLP:journals/tplp/SerebrenikSD08,swi-prolog}.
-%
-Maintenance may include porting a program to new platforms, or
-adapting the program to unexpected tasks, but most often is about
-debugging flaws in the original program.
-%
-Early detection and
-correction of bugs is thus crucial to minimize the total maintenance
-effort and its associated costs.
-%
-Ideally, bug detection would be possible by automatic verification
-against a specification.
-%
-High-level languages, such as logic and functional programming languages
-offer the promise to achieve this ultimate
-goal~\cite{wadler1989theorems,cortesi1997specification}.
-%
-In practice, testing is still necessary and often crucial for bug
-detection, and thus a fundamental component in software development.
-%
- %, very widely used and with
-%growing importance in the industry.
-% coa: could not introduce industry examples in this text, maybe it is
-%      not needed
-% \cite{arts2006testing}
-%
-Notice that testing is not a one-shot operation in most software.
-%
-Regardless of the formal and constructive nature of logic programming,
-rare cases and typing mistakes make it necessary to regularly test
-throughout logic program development.
+%% The life-cycle, and often the cost, of most sofware systems is
+%% dominated by maintenance effort~\cite{wasnik2013software,DBLP:journals/tplp/SerebrenikSD08,swi-prolog}.
+%% %
+%% Maintenance may include porting a program to new platforms, or
+%% adapting the program to unexpected tasks, but most often is about
+%% debugging flaws in the original program.
+%% %
+%% Early detection and
+%% correction of bugs is thus crucial to minimize the total maintenance
+%% effort and its associated costs.
+%% %
+%% Ideally, bug detection would be possible by automatic verification
+%% against a specification.
+%% %
+%% High-level languages, such as logic and functional programming languages
+%% offer the promise to achieve this ultimate
+%% goal~\cite{wadler1989theorems,cortesi1997specification}.
+%% %
+%% In practice, testing is still necessary and often crucial for bug
+%% detection, and thus a fundamental component in software development.
+%% %
+%%  %, very widely used and with
+%% %growing importance in the industry.
+%% % coa: could not introduce industry examples in this text, maybe it is
+%% %      not needed
+%% % \cite{arts2006testing}
+%% %
+%% Notice that testing is not a one-shot operation in most software.
+%% %
+%% Regardless of the formal and constructive nature of logic programming,
+%% rare cases and typing mistakes make it necessary to regularly test
+%% throughout program development.
 
 %  What (is the subject)
 Testing a software component, or components, consists of executing it on
@@ -88,8 +88,9 @@ specify test cases.
 On the other hand, due to its untyped nature the developer may be
 oblivious to important corner cases or odd behaviours.
 %
-Prolog backtracking may also interfere in less than obvious
-ways, making the run-time behavior elude the programmer.
+Backtracking can also cause unpredicted behaviours in goal conjunctions.
+%% Prolog backtracking may also interfere in less than obvious
+%% ways, making the run-time behavior elude the programmer.
 %
 Being able to automatically test a property about a predicate or set of
 predicates is thus a clear advantage during software development.
@@ -98,7 +99,7 @@ predicates is thus a clear advantage during software development.
 specification of properties to be tested.
 %
 Therefore, a property based approach to testing is intuitive for the
-logic programmer.  
+logic programmer.
 
 
 %  how  (are we doing it)
@@ -167,15 +168,15 @@ potential inputs.
 
 
 %  overview
-\plqc{} tool is inspired by \QuickCheck{} and retains its main
-ideas.
-%
-%It is an automatic software testing tool that generates test cases based
-%on properties written in a dialect of the programming language.
-%
-Nevertheless, since \Prolog{} does not possess a static strong
-type system, the interface of \plqc{} differs from the \Haskell{}
-\QuickCheck{}.
+%% \plqc{} tool is inspired by \QuickCheck{} and retains its main
+%% ideas.
+%% %
+%% %It is an automatic software testing tool that generates test cases based
+%% %on properties written in a dialect of the programming language.
+%% %
+%% Nevertheless, since \Prolog{} does not possess a static strong
+%% type system, the interface of \plqc{} differs from the \Haskell{}
+%% \QuickCheck{}.
 
 
 Our tool is

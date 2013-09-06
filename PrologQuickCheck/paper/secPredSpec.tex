@@ -1,6 +1,6 @@
 % -*- mode: latex; mode: folding -*-
 
-\section{Predicate Specification}
+\section{Specification Language}
 \label{sec:pred-spec}
 
 In this section we describe our predicate specification language.
@@ -12,47 +12,55 @@ There are several ways to state a predicate's specification, we do not
 argue that our specification process is superior to other approaches.
 %
 We do believe that this approach fits naturally our needs, namely as a
-form to express the predicate features we thought to be of importance.
+form to express testable predicate features. %% we thought to be of importance.
 
 
 The general specification form of a predicate \yap{p/n} consists, at its
-core, of a set of uniquely identified specification clauses about input
-types or the shape of the parameters when evoking the predicate.
+core, of a set of uniquely identified specification clauses
+ (with \emph{clause Id})
+ about \emph{input types} or the shape of the parameters when evoking the predicate.
 %
-\begin{code}
-predicate specification clause
-  p Id
-parameter input types
-  T1, ..., Tn
-\end{code}
+%% \begin{code}
+%% predicate specification clause
+%%   p Id
+%% parameter input types
+%%   T1, ..., Tn
+%% \end{code}
 %
 Various aspects of the predicate for the particular input type in
 question can be added to a specification clause.
 %
-If there is a relation that arguments must fulfil one can implement it
-as a predicate, say \yap{irel/1}, which checks if such a relation is
+If there is
+a \emph{parameter relation} or
+ a relation that arguments must fulfil one can implement it
+as a predicate%% , say \yap{irel/1},
+which checks if such a relation is
 valid for the list of arguments given as parameter.
 %
-The modes of each parameter can be given for the input terms and also
-for any output answer. The language also allows stating the number of
-answers of a predicate.
+The \emph{modes} of each parameter can be given for the input terms and also
+for any output answer.
+%
+The language also allows stating the number of
+answers of a predicate
+or its \emph{range}.
 %
 Last, the user may state invariant properties that should hold both
-before and after the predicate is executed.
+before and after the predicate is executed as \emph{pre-} and \emph{post-conditions}.
 %
-\begin{code}
-parameter relation
-  irel([A1,...,An])
-mode
-  i(Mi1,...,Min), [o(Mo1,...,Mon)]
-range
-  {Min,Max}
-pre/post conditions
-  Goal
-\end{code}
+%% \begin{code}
+%% parameter relation
+%%   irel([A1,...,An])
+%% mode
+%%   i(Mi1,...,Min), [o(Mo1,...,Mon)]
+%% range
+%%   {Min,Max}
+%% pre/post conditions
+%%   Goal
+%% \end{code}
 Next, we discuss the main properties that we allow in our framework.
 
-\subsection{Types}
+%% \subsection{Types}
+\paragraph{\bf Types}
 
 We define a type as follows: 
 
@@ -64,8 +72,6 @@ terms that define the type.
 \end{definition}
 
 
-% vsc: refer prior work on generative types in Prolog?
-% coa: I do not know anything about that, if it fits here I will not be against
 Types are not defined as a set of \emph{ground} terms but rather by
 the set of terms produced by a generator.
 %
@@ -99,7 +105,8 @@ The effect of a procedure execution for types not covered by any of the
 specification clauses is considered undefined.
 
 
-\subsection{Domain}
+%% \subsection{Domain}
+\paragraph{\bf Domain}
 
 Correct typing of parameters is crucial but may be insufficient to
 express the allowed input.
@@ -137,7 +144,8 @@ In the absence of a domain precondition relating parameters the domain
 is the set of terms generated.
 
 
-\subsection{Directionality}
+%% \subsection{Directionality}
+\paragraph{\bf Directionality}
 
 The directionality of a predicate describes its possible uses by
 specifying the possible forms of the parameters before and after
@@ -218,7 +226,8 @@ respectively.
 %%   which are only caught during testing...}
 %% \todo{maybe also about minimality and how we just don't care, we test}
 
-\subsection{Multiplicity}
+%% \subsection{Multiplicity}
+\paragraph{\bf Multiplicity}
 The number of answers a predicate call has can also be valuable
 information.
 %
@@ -264,7 +273,8 @@ One can state the maximum number of answers necessary to assume that the
 answer range is sufficiently close to the upper bound with a positive
 integer.
 
-\subsection{Pre- and Post-conditions}
+%% \subsection{Pre- and Post-conditions}
+\paragraph{\bf Pre- and Post-conditions}
 
 Along with all the other features of a predicate we can have a
 connection between the relations represented by the predicate being

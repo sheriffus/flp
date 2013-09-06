@@ -10,7 +10,7 @@
 %% \usepackage{bussproofs}
 %% \usepackage{multirow}
 \usepackage{listings}
-
+\usepackage{url}
 
 %% \usepackage{caption}
 %% \usepackage{subcaption}
@@ -22,15 +22,20 @@
 %style for prolog programs
 \lstdefinestyle{yap}{
   language=Prolog,
-  basicstyle=\small\ttfamily,
+%  basicstyle=\small\ttfamily,
+%  basicstyle=\footnotesize\ttfamily,
+  basicstyle=\fontsize{8}{9.6}\ttfamily,
 %  basicstyle=\scriptsize\ttfamily,
-  keywordstyle=\ttfamily\bfseries,
+  keywordstyle=\ttfamily,
+  %% keywordstyle=\ttfamily\bfseries,
   showstringspaces=false,
   otherkeywords={ <->, (,) },
 }
 %% \providecommand{\yap}[1]{\lstinline[style=yap]@#1@}%
 \lstnewenvironment{yapcode}
-  {\lstset{style=yap}\lstset{basicstyle=\small\ttfamily}}
+  %% {\lstset{style=yap}\lstset{basicstyle=\small\ttfamily}}
+  %% {\lstset{style=yap}\lstset{basicstyle=\footnotesize\ttfamily}}
+  {\lstset{style=yap}\lstset{basicstyle=\fontsize{8}{9.6}\ttfamily}}
   %% {\lstset{style=yap}\lstset{basicstyle=\scriptsize\ttfamily}}
   {}
 %% \lstnewenvironment{erlcodeB}
@@ -66,4 +71,9 @@
 
 %% % ----------------------------------------------------
 
-\newtheorem{definition}{Definition}
+%% \newtheorem{definition}{Definition}
+
+
+%% LNCS stuff
+\newcommand{\keywords}[1]{\par\addvspace\baselineskip
+\noindent\keywordname\enspace\ignorespaces#1}

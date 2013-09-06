@@ -1,12 +1,22 @@
 % -*- mode: latex; mode: folding -*-
 
-\section{Related Work} 
+%% \section{Related Work} 
+\paragraph{\bfseries \em Related Work} 
+%% \subsubsection{Related Work} 
 \label{sec:rel-work}
 
 
-As far as we know, there seems to be no previous work on automatic
-testing of \Prolog programs against specifications, although  tools such
-as {\sf ciao}'s assertions~\cite{ciao-prolog} and {\sf SWI-Prolog}'s {\sf plunit}~\cite{swi-prolog}  support  manual testing.
+%% As far as we know, there seems to be no previous work on automatic
+%% testing of \Prolog{} programs against specifications.%% , although tools
+%
+%% Although, 
+{\sf ciao}~\cite{ciao-prolog} has an assertion language
+integrating run-time checking and unit testing~\cite{ciao-assert-unit}.
+%
+{\sf SWI-Prolog}'s {\sf plunit}~\cite{swi-prolog} also supports unit testing.
+%
+Here we also use a property specification language but in a
+automatic property-based randomly generated testing context.
 %
 However automated test is well supported in several languages and paradigms. 
 %
@@ -15,16 +25,19 @@ functional programming language \Haskell, {\sf PropEr}~\cite{papadakis2011proper
 functional programming language {\sf Erlang}
 and {\sf EasyCheck} \cite{christiansen2008easycheck}  for
 the functional-logic language {\sf Curry}.
-
+%
+Property specification languages for \Prolog{} were used
+before~\cite{ciao-assert-unit,Deville1990logprog,somogyi1995mercury} in
+different contexts.
 
 {\sf Easycheck} is another automated tool for specification-based testing of
 declarative programs, which deals with logic programming features.
 %
 It is written in the functional-logic programming language Curry and it
 is based on the view of free variables of an appropriate type as
-nondeterministic generators \cite{antoy2006overlapping} and operations to specify properties of
+nondeterministic generators~\cite{antoy2006overlapping} and operations to specify properties of
 nondeterministic operations by generalizing the set of combinators for
-non-deterministic operations of \QuickCheck.
+non-deterministic operations of \QuickCheck{}.
 %
 In our work we focus on \Prolog{} and, in contrast with {\sf EasyCheck}, non
 deterministic generators are implemented by non-deterministic \Prolog{}
@@ -46,11 +59,11 @@ The first and most preeminent tool is \QuickCheck{}.
 \QuickCheck{} uses a domain specific language of testable specifications
 as does {\sf PropEr}.
 We also define a specification language in \plqc{} but with
-differences related to the relational nature of \Prolog{}, such as modes
-and constraints on the number of answers.
+differences related to the relational nature of \Prolog{}.%% , such as modes
+%% and constraints on the number of answers.
 As in \QuickCheck{}, we also use random testing - we choose this method
-compared to systematic methods, due to its success in \QuickCheck{}.
-The way \QuickCheck{} generated test data depends on Haskell types.
+compared to systematic methods due to its success in \QuickCheck{}.
+The way \QuickCheck{} generates test data depends on \Haskell{} types.
 In {\sf Erlang} types are dynamically checked and {\sf PropEr}, as well
 as {\sf Erlang}\QuickCheck{}, guides value generation by functions,
 being quantified types defined by these generating functions.

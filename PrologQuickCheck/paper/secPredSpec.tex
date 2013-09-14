@@ -8,10 +8,12 @@ In this section we describe our predicate specification language.
 Throughout, we follow some of the principles presented
 in~\cite{Deville1990logprog}.
 %
-There are several ways to state a predicate's specification, we do not
-argue that our specification process is superior to other approaches.
-%
-We do believe that this approach fits naturally our needs, namely as a
+There are several ways to state a predicate's specification, %% we do not
+%% argue that our specification process is superior to other approaches.
+%% %
+%% We do
+but we
+ believe that this approach fits naturally our needs, namely as a
 form to express testable predicate features. %% we thought to be of importance.
 
 
@@ -63,7 +65,7 @@ Next, we discuss the main properties that we allow in our framework.
 \paragraph{\bf Types}
 
 We define a type as follows: 
-
+%
 \begin{definition}
 \label{def:type}
 A {\em type} is a non-empty set of terms.\\
@@ -85,12 +87,14 @@ automatically tested.
 Note that types defined in this manner depict perfectly possible forms of
 predicate input.
 %
-This approach for types already encloses, by domain definition, the type
+This approach for types %% already
+encloses, by domain definition, the type
 precondition.
 
 
 The types mentioned in a predicate specification clause are \plqc{}
-generators used to automatically create individual test cases.
+generators used to automatically create %% individual
+test cases.
 %
 This means that the type in a specification clause is partial in the
 sense that it only specifies the predicate should succeed when given
@@ -101,7 +105,9 @@ It states nothing about parameters of other kinds.
 Other input types can be covered by other specification clauses with
 different generators.
 %
-The effect of a procedure execution for types not covered by any of the
+The %% effect of a procedure execution
+behaviour of a procedure
+for types not covered by any of the
 specification clauses is considered undefined.
 
 
@@ -132,7 +138,7 @@ n-tuples such that\\
 
 
 This definition of a domain, similarly to what happens with types, is
-different from the regular notion of domain.
+different from the usual notion of domain.
 %
 It focus on the shape of the input to a predicate and not the accepted
 answer set.
@@ -236,8 +242,6 @@ guarantee for predicates using it.
 %
 Conventionally, multiplicity information, or \emph{range}, is given for
 each directionality~\cite{somogyi1995mercury}.
-% vsc: mercury
-% coa: this ref? 
 %
 In \plqc{} we do not require that a directionality is given, in which
 case no tests are performed regarding parameter form and the \emph{any}
@@ -256,7 +260,8 @@ The lower bound should not exceed the upper bound and they both take
 non-negative integer values up to infinity (denoted by the atom
 \yap{inf}).
 %
-When no explicit multiplicity is given the default we choose to follow is
+When no explicit multiplicity is given the default we %% choose to 
+follow is
 $\langle 1, inf \rangle $.
 %
 When testing a specification clause, the default minimal expected
@@ -264,8 +269,7 @@ behaviour is that the domain is successfully accepted by the predicate.
 %
 Therefore we try to mirror this when there are other features
 specified but no multiplicity, expecting at least one solution.
-
-
+%
 It is necessary to impose a limit when the upper bound is infinity or an
 excessively large number.
 %
@@ -274,7 +278,7 @@ answer range is sufficiently close to the upper bound with a positive
 integer.
 
 %% \subsection{Pre- and Post-conditions}
-\paragraph{\bf Pre- and Post-conditions}
+\paragraph{\bf Pre and Post-conditions}
 
 Along with all the other features of a predicate we can have a
 connection between the relations represented by the predicate being

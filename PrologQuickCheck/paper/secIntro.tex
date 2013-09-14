@@ -44,7 +44,7 @@
 %% throughout program development.
 
 %  What (is the subject)
-Testing a software component, or components, consists of executing it on
+Testing a software component, or components, consists of executing the component on
 a pre-selected set of inputs (test suite) and inspecting whether the outputs
 respect the expected results.
 %
@@ -63,16 +63,21 @@ How to choose the test cases in a test suite is often a difficult
 question.
 %
 The approach used
-can be  manual, with the test developer designing test cases one by
+can be  manual, with the tester %% developer
+designing test cases one by \todo{test developer -> tester (vsc?)}
 one, or it can be automated to some extent, in this case resorting to
-tools for case generation.
+tools for case generation. \todo{havia uma nota aqui ([]) que eu não percebo}
 %
-Such tools reduce the time needed for testing software components and make
-it easier to test programs being developed.
+Ideally, the best approach would be automatic testing.
+%
+\todo{remover esta frase, vsc?}
+\todo{Such tools reduce the time needed for testing software components and make
+it easier to test programs being developed.}
 
 
-In this work we introduce \plqc{}, a
-property-based testing framework for \Prolog{} inspired on
+%% In this work w
+We introduce \plqc{}\footnote{The \plqc{} tool is available at \url{www.dcc.fc.up.pt/~coa/PrologCheck.html}.},
+a property-based testing framework for \Prolog{} inspired on
  \QuickCheck~\cite{quickcheck}.
 %
 We further present a language for the specification of \Prolog{} predicates
@@ -81,14 +86,14 @@ based on the specification.
 
 
 %  why  (are we exploring it) and 
-Automatic testing is particularly suitable to logic languages such as
+Automatic testing is particularly suitable to logic programming languages such as
 \Prolog{}. The high-level nature of the language makes it easy to
 specify test cases.
 %
 On the other hand, due to its untyped nature the developer may be
 oblivious to important corner cases or odd behaviours.
 %
-Backtracking can also cause unpredicted behaviours in goal conjunctions.
+Backtracking can also cause unexpected behaviours. %% in goal conjunctions.
 %% Prolog backtracking may also interfere in less than obvious
 %% ways, making the run-time behavior elude the programmer.
 %
@@ -100,24 +105,31 @@ specification of properties to be tested.
 %
 Therefore, a property based approach to testing is intuitive for the
 logic programmer.
-
+\todo{tinha um coment\'ario do vsc, nao o entendi}
 
 %  how  (are we doing it)
 In a property-based framework tests are automatically generated and run from formal specifications of general
 properties of the program, and feedback is given to the user about their
 evaluation.
+\todo{sou contra o comentario para mudar 'generated' para antes de
+  'automatically' porque também se aplica ao 'run'}
 %
-We implement a randomised test case generation, which frees the user
+We implement randomised test case generation, which frees the user
 from choosing input manually.
 %
+Other generation techniques
+\cite{naylor2007logic,runciman2008smallcheck,Duregard-2012-feat} can be
+implemented to complement the power of built-in generators.
+%
 Properties are stated through a domain-specific language wrapping
-\Prolog{} goals, which \plqc{} checks for a number of inputs.
+\Prolog{} goals, which \plqc{} checks for a number of inputs. \todo{mais
+um comentario que nao percebo}
 %
 Singleton properties are pure predicate calls
 or composed goals whose successful execution determines that the
 property holds for the given input.
 %
-These properties can be further composed in order to achieve more complex
+These properties can be composed in order to achieve more complex
 specifications.
 
 
@@ -138,12 +150,13 @@ specifications.
 
 
 %  something different
-Since \plqc{} is a tool to test \Prolog{} programs we took advantage of
-the nature of the language and loosened the requirements for property
+Since \plqc{} is a tool to test \Prolog{} programs we take advantage of
+the nature of the language and loosed the requirements for property
 specification.
 %
-Traditional interfaces rely on built-in mechanisms, such as equality or
-a boolean type, to determine primitive properties.
+In non-logic programming languages interfaces rely on built-in mechanisms, such as equality or
+a boolean type, to determine primitive properties. \todo{em vez de
+  'traditional interfaces'}
 %
 Even if they are composed of software units of other types they still
 need to be able to evaluate to a truth value in order to assess a
@@ -151,9 +164,14 @@ property validity.
 %
 With \Prolog{} there are no such restrictions: any goal may be a property.
 %
-Instead of expecting a reduced set of syntactic elements to describe
-properties, in \plqc{} a property is a goal or a composition of
-properties.
+%% Instead of expecting a reduced set of syntactic elements to describe
+%% properties, i
+In \plqc{} primitive properties are %% defined as
+\Prolog{} goals and can be composed by \plqc{} operations.%% a property is a goal or a composition of
+%% properties.
+\todo{havia aqui um comentario a dizer que estava confuso, espero que
+  não esteja pior...}
+%
 A property is satisfied when the execution of the goal, given all
 necessary input, succeeds or the composition rules are met.
 %
@@ -188,7 +206,8 @@ specification testing.
 By specifying some aspects of a predicate in a proper specification
 language it is possible to generate a \plqc{} property and check it.
 %
-This has allowed us to  use \plqc{} and its predicate specification in a number of
+This %% has 
+allows us to  use \plqc{} and its predicate specification in a number of
 predicates and even libraries.
 
 

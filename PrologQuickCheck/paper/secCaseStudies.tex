@@ -76,10 +76,10 @@ We can adapt the properties in \refSec{sec:properties} to both versions.
 %
 For the \yap{rev_app/2} predicate we have.
 \begin{yapcode}
- qcprop(double_rev_app) :-
-   plqc:qcforall( listOf(int), L, m:qcprop({dbl_rev_app_body, L})).
+ pcprop(double_rev_app) :-
+   plqc:pcforall(listOf(int), L, m:pcprop({dbl_rev_app_body, L})).
 
- qcprop({dbl_rev_app_body, L}) :- 
+ pcprop({dbl_rev_app_body, L}) :- 
    m:rev_app(L, LR), !, m:rev_app(LR, L2), !, L == L2.
 \end{yapcode}
 %
@@ -88,10 +88,10 @@ identifiers from \yap{app} to \yap{acc}
 %
 Both properties underwent testing, passing all given tests.
 %
-%   ?- plqc:quickcheck(m:qcprop(double_rev_app), [{numtests, 1000}]), plqc:quickcheck(m:qcprop(double_rev_acc), [{numtests, 1000}]).
+%   ?- plqc:quickcheck(m:pcprop(double_rev_app), [{numtests, 1000}]), plqc:quickcheck(m:pcprop(double_rev_acc), [{numtests, 1000}]).
 \begin{yapcode}
-   ?- plqc:quickcheck((m:qcprop(double_rev_app))
-                 qcand (m:qcprop(double_rev_acc))).
+   ?- plqc:quickcheck((m:pcprop(double_rev_app))
+                 pc_and (m:pcprop(double_rev_acc))).
  OK: Passed 100 test(s).
 \end{yapcode}
 %% ,
@@ -108,12 +108,12 @@ element (or a %even a random
 Choosing random elements prevent us from checking the whole list.
 %
 \begin{yapcode}
- qcprop(rev_app_i) :- plqc:qcforall(
+ pcprop(rev_app_i) :- plqc:pcforall(
      suchThat(structure({listOf(int), int}), m:valid_index),
-     {L,I}, m:qcprop({double_rev_i_body, L, I}) ).
+     {L,I}, m:pcprop({double_rev_i_body, L, I}) ).
  valid_index({L, I}) :- length(L,X), I<X.
 
- qcprop({double_rev_i_body, L, I}) :- 
+ pcprop({double_rev_i_body, L, I}) :- 
    m:rev_app(L, LR), length(L,X), Index is I+1, RevIndex is X-I,
    lists:nth(Index, L, Val), lists:nth(RevIndex, LR, Val).
 \end{yapcode}
@@ -124,7 +124,7 @@ give good
 element coverage.
 %
 \begin{yapcode}
-   ?- plqc:quickcheck(m:qcprop(rev_app_i)).
+   ?- plqc:quickcheck(m:pcprop(rev_app_i)).
  OK: Passed 100 test(s).
 \end{yapcode}
 
@@ -134,13 +134,13 @@ this by only performing tests on one version and stating a property
 comparing their behaviours.
 %
 \begin{yapcode}
- qcprop(eqv_acc_app) :-
-   plqc:qcforall( listOf(int), L, (m:rev_acc(L,LR), m:rev_app(L,LR))).
+ pcprop(eqv_acc_app) :-
+   plqc:pcforall(listOf(int), L, (m:rev_acc(L,LR),m:rev_app(L,LR))).
 \end{yapcode}
 The comparison succeeds if both have the same behaviour.
 %
 \begin{yapcode}
-   ?- plqc:quickcheck(m:qcprop(eqv_acc_app)).
+   ?- plqc:quickcheck(m:pcprop(eqv_acc_app)).
  OK: Passed 100 test(s).
 \end{yapcode}
 
@@ -186,7 +186,7 @@ function, expecting exactly one answer.
 Quickchecking this specification clause bears no surprises.
 %
 \begin{yapcode}
-   ?- plqc:quickcheck(m:qcprop(spec_append)).
+   ?- plqc:quickcheck(m:pcprop(spec_append)).
  OK: Passed 100 test(s).
 \end{yapcode}
 
@@ -212,9 +212,9 @@ part of the input is not a target of pattern matches.
 %
 Testing this specification clause reveals that the \emph{out} part of
 the directionality is not satisfied.
-%   ?- plqc:quickcheck(m:qcprop(spec_append_1)).
+%   ?- plqc:quickcheck(m:pcprop(spec_append_1)).
 \begin{yapcode}
-  ?- plqc:quickcheck(m:qcprop(spec_append_1).
+  ?- plqc:quickcheck(m:pcprop(spec_append_1).
  {failed_out_modes,[[o,g,v,ngv]], [[],_10258,_10258]}
  !
  Failed: After 3 test(s).
@@ -264,6 +264,275 @@ The other is to add the missing directionality
 %%  % default 1-inf
 
 %}}}
+
+\subsection{AVL Trees}
+
+We have described AVL properties and performed black-box testing of an
+implementation of AVL trees in a \Yap{} module, \yap{avl.yap} with
+\plqc{}\footnote{All the details can be found in the tool's website.}.
+%%
+Due to space restrictions we only present a general description of the
+process and its results. 
+
+
+The module interface is small, with predicates to create an empty
+tree, insert an element and look up an element, respectively
+\yap{avl_new/1}, \yap{avl_insert/4} and \yap{avl_lookup/3}.
+%
+When performing this kind of test one does not simply test individual
+predicates but rather usages of the module.
+%
+To do this we must be able to create sequences of interface
+calls and inspect intermediate results for compliance with AVL
+invariants.
+%
+Knowledge about the shape of input/output terms can be gathered manually
+if it is not previously known.
+
+
+\paragraph{\bf Generator}
+
+Creating a valid sequence of interface calls is not difficult, but
+requires attention to detail.
+%
+First, we only want to generate valid sequences to save effort of
+checking validity and not suffer from sparse valid values.
+%
+Using the AVL module implies the existence of two sets of important
+terms: key terms, and value terms, which we parametrise as generators.
+%
+In order to test the correct failure of wrong look-ups, a set of values
+for failed look-ups disjoint from the regular values is also
+parametrised.
+
+
+The generator starts by creating the tree, independently of the
+size parameter, using \yap{avl_new/1}.
+%
+This implies that when size is 0 an empty AVL-tree is still created.
+%
+Thus, we always append the tree creation to a sequence of calls to
+insert and look-up values.
+%
+Each element of the sequence is obtained by randomly choosing between
+insert and look-ups.
+
+
+Look-ups are divided between valid look-up and invalid look-up.
+%
+Valid look-ups are only generated after the corresponding insert and
+invalid look-ups are based in a set of values that is never inserted.
+%
+Valid look-ups can be further distinguished between looking up a
+key-value pair and looking up a key and retrieving its value.
+%
+These elements are  branded by a command identifier to recognise their
+correct behaviour during testing.
+
+
+%% The relative probabilities are such that we get a big variety of commands within
+%% relatively small sequences.
+
+
+
+%}}}
+
+%% \paragraph{\bf }
+
+%% \subsubsection*{Property}
+\paragraph{\bf Property}
+
+%{{{ generic property
+
+The definition of the AVL property depends on several factors.
+%
+It is necessary to have operations to extract information from trees,
+such as current node's key, key comparison, left and
+right sub-trees and empty tree test.
+
+
+A tree may be empty, in which case it is an AVL tree of height 0.
+%
+In the case of a non-empty tree we retrieve its key and sub-trees.
+%
+They are used in recursive checks of the property.
+%
+The recursive calls accumulate lists of keys that should be greater and
+less then the keys of the tree.
+%
+If the sub-trees are individually compliant with the property, we
+proceed with the last check, comparing the returned heights for
+balance and computing the current tree height.
+%
+This is how the property is outlined in \plqc{}.
+%
+      %% ((forall(member(X, Ls), cmpKeys(X, K, lte))) -> true; error1),
+      %% ((forall(member(X, Gs), cmpKeys(X, K, gt))) -> true; error2))
+   %% pc_and (( abs(Hl-Hr) =< 1 -> true; error3), H is 1+max(Hl,Hr))),
+\begin{yapcode}
+pcprop({avl, T, Gs, Ls, H}) :- pcif( (not isNil(T)),
+ ((getKey(T, K), left(T, L),  right(T, R),
+      ((forall(member(X, Ls), cmpKeys(X, K, gt))) -> error1),
+      ((forall(member(X, Gs), cmpKeys(X, K, lte))) -> error2))
+   pc_and pcprop({avl, L, [Key||Gt], Lt, Hl})
+   pc_and pcprop({avl, R, Gt, [Key||Lt], Hr})
+   pc_and (( abs(Hl-Hr)>1 -> error3), H is 1+max(Hl,Hr))),
+ (H = 0) ).
+\end{yapcode}
+%
+We complete the property by inserting it into a loop that consumes the
+operations in the quantified module uses.
+
+
+
+\refTabI{tab:avl-tests} summarises some relevant results of our tool
+applied to the AVL library.
+%
+Each line corresponds to a different module version: line 1 to the
+original version; line 2 to a bug in the re-balancing strategy inserted
+by the tester; line 3 to a different bug also in the re-balancing
+strategy inserted by someone that is not involved with the tests.
+%
+The column \emph{Tests} is the number of tests needed to achieve a
+particular counter-example.
+%
+For the purpose of readability consider \yap{i(N,V)} as insert an
+element with key \yap{N} and value  \yap{V}, and \yap{l(N,V)} as look up
+the pair \yap{(N,V)} in the tree.
+%
+Note that the counter-example found in the original version corresponds
+to an unspecified behaviour in the case of two insertions with the same key.
+\todo{se calhar nao \'e 'case', nao percebo a letra do mario...}
+%
+After several runs of the tool (10 for the first bug and 20 for the
+second) we managed to find a pattern on the counter-examples which led
+to the identification of the pathological behaviour caused by the bugs.
+
+
+\begin{table}
+  \centering
+  \begin{tabular}{||c||c||l||}
+    \hline
+    Version    &  Tests   &  Counter-example
+    \\ \hline
+    Original   &  732     &  \yap{i(1,V1), i(1,V2), l(1,V2)}
+    \\ \hline
+    Error 1    &  51      &  \yap{i(3,V1), i(1,V2), i(2,V3)}
+    \\ \hline
+    Error 2    &  213     &  \yap{i(5,V1), i(2,V2), i(3,V3), i(4,V4), i(1,V5)}
+    \\ \hline
+  \end{tabular}
+  \caption{{\tt avl} testing summary.}
+  \label{tab:avl-tests}
+\end{table}
+
+
+%% We run 1000 tests and no bug is detected, as expected for a relatively
+%% smaller library module.
+%% %
+%% The only unspecified behaviour we discover is about two insertions under the
+%% same key, and a look-up based on the discarded insertion.
+%% %
+%% This means that the key generator is not sparse enough for 1000 test,
+%% where the size of generated values grows and the probability of such a
+%% combination appearing starts to show.
+
+%}}}
+
+%{{{ wrong 1
+
+%% To explore the tool potential we inserted a bug in the module.
+%% %
+%% We changed a line in the table that states how the tree will be
+%% re-balanced upon insertion of a new element.
+%% %
+%% We changed the information stating that a perfectly balanced tree leans
+%% left after inserting an element that increases the left sub-tree height
+%% to ignore the balance change.
+%% %
+%% Testing this version of the implementation shows a counterexample after
+%% less than 100 test cases on average.
+%% %
+%% The counterexamples found are command sequences where three inserts are
+%% given in the key order $3, 1, 2$
+%% %
+%% Another failing sequence of insertions is in the key order $1, 3, 2$.
+%% %
+%% The conclusion we can get from the counterexamples is that the
+%% balancing or balance calculation of the tree is probably failing.
+
+%}}}
+
+%{{{ wrong 2
+
+%% A second bug is purposely inserted by someone that is not involved
+%% with the tests.
+%% %
+%% From the perspective of the tester we start with the tests.
+%% %
+%% Counterexamples are found in average after at least 200 test cases.
+%% %
+%% The minimal shape found are sequences of 5 insertions.
+%% %
+%% There are two families of counterexamples
+%% %
+%% One is such that the first three elements inserted are the keys $1, 2,
+%% 4$, in any order, followed by key $5$ and finally key $3$.
+%% %
+%% In the second the first keys are $2, 4, 5$, also in no particular order,
+%% followed by $3$ and $1$.
+%% %
+%% These sequences fail when trying to complete the second level of one of
+%% the root's sub-trees.
+%% %
+%% Furthermore, it happens only if the completion takes the order
+%% right-left.
+
+
+%% There are no other details we could retrieve information from.
+%% %
+%% As far as black-box testing is concerned the origin of the error cannot
+%% be pinpointed.
+%% %
+%% Although, we can infer we are dealing with a balance issue, since it can
+%% appear with only insertions.
+%% %
+%% We can go as far as saying that the problem appears to be in a left
+%% insertion, not noticeable in the nodes after the root of the tree.
+
+
+%% Inspecting the source we can see that the error was caused by another
+%% change to the balance table changed for the first error.
+%% %
+%% The bug inserted forces a re-balance of an already balanced tree in the
+%% speculated situation - an insertion to the left filling where there is
+%% already a value to the right.
+
+%}}}
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5555
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5555
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5555
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5555
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5555
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5555
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5555
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5555
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5555
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5555
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5555
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5555
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5555
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5555
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5555
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5555
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5555
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5555
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5555
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5555
 
 
 %% \subsection{AVL Trees}
@@ -484,11 +753,11 @@ The other is to add the missing directionality
 %% keys : \yap{lt, gt, eq, lte, gte}.
 %% %
 %% \begin{yapcode}
-%%  qcprop({avl, (tree, T), (height, H),
+%%  pcprop({avl, (tree, T), (height, H),
 %%       (curr_key, GetKey), (cmp_key, CmpKeys),
 %%       (left, L), (right, R),
 %%       (is_nil, IsNil)}) :- 
-%%    qcif(...).
+%%    pcif(...).
 %% \end{yapcode}
 
 
@@ -505,20 +774,20 @@ The other is to add the missing directionality
 %% balance and the current tree height computed.
 %% %
 %% \begin{yapcode}
-%%    qcif( (call(IsNil, T, V), V = false)
+%%    pcif( (call(IsNil, T, V), V = false)
 %%    ,((call(GetKey, T, Key),
 %%        call(L, T, LT),  call(R, T, RT))
-%%    qcand
-%%      qcprop({avl, (gt, [Key]), (lt, []),
+%%    pc_and
+%%      pcprop({avl, (gt, [Key]), (lt, []),
 %%  (tree, LT), (height, LH),
 %%  (curr_key, GetKey), (cmp_key, CmpKeys),
 %%  (left, L), (right, R), (is_nil, IsNil)})
-%%    qcand
-%%      qcprop({avl, (gt, []), (lt, [Key]),
+%%    pc_and
+%%      pcprop({avl, (gt, []), (lt, [Key]),
 %%  (tree, RT), (height, RH),
 %%  (curr_key, GetKey), (cmp_key, CmpKeys),
 %%  (left, L),(right, R),(is_nil, IsNil)})
-%%    qcand
+%%    pc_and
 %%      (( abs(LH-RH) =< 1, !
 %%      ; print(height_mismatch), nl, fail),
 %%      H is 1+ max(LH,RH))
@@ -526,33 +795,33 @@ The other is to add the missing directionality
 %%    (V=false, H = 0) )
 %% \end{yapcode}
 %% %% \begin{yapcode}
-%% %%    qcif( (...)
+%% %%    pcif( (...)
 %% %%    ,((call(GetKey, T, Key),
 %% %%        call(L, T, LT),  call(R, T, RT))
-%% %%    qcand
+%% %%    pc_and
 %% %%      (...)
-%% %%    qcand
+%% %%    pc_and
 %% %%      (...)
-%% %%    qcand
+%% %%    pc_and
 %% %%      (...)
 %% %%    ),
 %% %%      (...) )
 %% %% \end{yapcode}
 %% %
 %% %% \begin{yapcode}
-%% %%    qcif( (...)
+%% %%    pcif( (...)
 %% %%    ,( (...)
-%% %%    qcand
-%% %%      qcprop({avl, (gt, [Key]), (lt, []),
+%% %%    pc_and
+%% %%      pcprop({avl, (gt, [Key]), (lt, []),
 %% %%  (tree, LT), (height, LH),
 %% %%  (curr_key, GetKey), (cmp_key, CmpKeys),
 %% %%  (left, L), (right, R), (is_nil, IsNil)})
-%% %%    qcand
-%% %%      qcprop({avl, (gt, []), (lt, [Key]),
+%% %%    pc_and
+%% %%      pcprop({avl, (gt, []), (lt, [Key]),
 %% %%  (tree, RT), (height, RH),
 %% %%  (curr_key, GetKey), (cmp_key, CmpKeys),
 %% %%  (left, L),(right, R),(is_nil, IsNil)})
-%% %%    qcand
+%% %%    pc_and
 %% %%      (( abs(LH-RH) =< 1, !
 %% %%      ; print(height_mismatch), nl, fail),
 %% %%      H is 1+ max(LH,RH))
@@ -574,8 +843,8 @@ The other is to add the missing directionality
 %% %       (cmp_key, CmpKeys), (left, L),
 %% %       (right, R), (is_nil, IsNil)
 %% \begin{yapcode}
-%%  qcprop({avl, (gt, GTS), (lt, LTS), ...}) :-
-%%    qcif(
+%%  pcprop({avl, (gt, GTS), (lt, LTS), ...}) :-
+%%    pcif(
 %%      (...)
 %%    ,(
 %%      (call(GetKey, T, Key), call(L, T, LT),
@@ -586,9 +855,9 @@ The other is to add the missing directionality
 %%       (forall(member(X, GTS),
 %%        call(CmpKeys, X, Key, gt)), !
 %%       ; print(avl_key_not_inorder2), nl, fail))
-%%    qcand (...)
-%%    qcand (...)
-%%    qcand (...)
+%%    pc_and (...)
+%%    pc_and (...)
+%%    pc_and (...)
 %%    ),
 %%      (...)
 %%    ).
@@ -673,8 +942,8 @@ The other is to add the missing directionality
 %% %%  %%           (left, avlTest:left),
 %% %%  %%           (right, avlTest:right),
 %% %%  %%           (is_nil, avlTest:is_nil)
-%% %%    %% qcprop({avl, (tree, Tree), (...) })
-%% %%    %%   qcand
+%% %%    %% pcprop({avl, (tree, Tree), (...) })
+%% %%    %%   pc_and
 %% %% \begin{yapcode}
 %% %% \end{yapcode}
 %% %%  %% (height, _H),
@@ -683,8 +952,8 @@ The other is to add the missing directionality
 %% %%  %%           (left, avlTest:left),
 %% %%  %%           (right, avlTest:right),
 %% %%  %%           (is_nil, avlTest:is_nil)
-%% %%    %% qcprop({avl, (tree, Tree), (...)})
-%% %%    %%   qcand
+%% %%    %% pcprop({avl, (tree, Tree), (...)})
+%% %%    %%   pc_and
 %% %% \begin{yapcode}
 %% %% \end{yapcode}
 %% %
@@ -695,65 +964,65 @@ The other is to add the missing directionality
 %% %%  %%           (left, avlTest:left),
 %% %%  %%           (right, avlTest:right),
 %% %%  %%           (is_nil, avlTest:is_nil)
-%% %%    %% qcprop({avl, (tree, Tree), (...)})
-%% %%    %%   qcand
+%% %%    %% pcprop({avl, (tree, Tree), (...)})
+%% %%    %%   pc_and
 %% %% \begin{yapcode}
 %% \begin{yapcode}
-%%  qcprop(avlUses) :-
-%%    qcforall(avlTest:genAvl(avlTest:genKey,
+%%  pcprop(avlUses) :-
+%%    pcforall(avlTest:genAvl(avlTest:genKey,
 %%               avlTest:genVal, avlTest:genFVal),
-%%             Calls, qcprop({avlUses, Calls})).
+%%             Calls, pcprop({avlUses, Calls})).
 
-%%  qcprop({avlUses, [(avl:avl_new)||Calls]}) :-
+%%  pcprop({avlUses, [(avl:avl_new)||Calls]}) :-
 %%    call(avl:avl_new(Tree))
-%%   qcand
-%%    qcif(
-%%      qcprop({avl, (tree, Tree), (height, 0),
+%%   pc_and
+%%    pcif(
+%%      pcprop({avl, (tree, Tree), (height, 0),
 %%                   (curr_key, avlTest:get_key),
 %%                   (cmp_key, avlTest:cmp_keys),
 %%                   (left, avlTest:left),
 %%                   (right, avlTest:right),
 %%                   (is_nil, avlTest:is_nil)})
-%%    ,(qcprop({avlUses, Tree, Calls}))
+%%    ,(pcprop({avlUses, Tree, Calls}))
 %%    ,(print(avl_new_fail_invariant), nl, fail)).
-%%  qcprop({avlUses, Tree, []}).
-%%  qcprop({avlUses, Tree,
+%%  pcprop({avlUses, Tree, []}).
+%%  pcprop({avlUses, Tree,
 %%       [{i,avl:avl_insert(Key,Val)}||Calls]}) :-
 %%    call(avl:avl_insert(Key,Val),
 %%         Tree, ContinuationTree)
-%%      qcand
-%%    qcif(
-%%      qcprop({avl, (tree, ContinuationTree),
+%%      pc_and
+%%    pcif(
+%%      pcprop({avl, (tree, ContinuationTree),
 %%              (...) })
-%%    , (qcprop({avlUses, ContinuationTree,
+%%    , (pcprop({avlUses, ContinuationTree,
 %%               Calls}))
 %%    , (print(avl_insert_fail_invariant),
 %%       nl, fail)).
-%%  qcprop({avlUses, Tree,
+%%  pcprop({avlUses, Tree,
 %%       [{l1,avl:avl_lookup(Key,Val)}||Calls]}) :-
 %%    ( call(avl:avl_lookup(Key,Val), Tree)
 %%    ; print(avl_lookup_not_found_fail),
 %%      nl, fail)
-%%      qcand
-%%    qcprop({avlUses, Tree, Calls}).
-%%  qcprop({avlUses, Tree,
+%%      pc_and
+%%    pcprop({avlUses, Tree, Calls}).
+%%  pcprop({avlUses, Tree,
 %%       [{l2,avl:avl_lookup(Key,Val)}||Calls]}) :-
 %%    (( call(avl:avl_lookup(Key,XVal), Tree)
 %%     ; print(avl_lookup_not_bound_fail),
 %%      nl, fail),
 %%     XVal = Val)
-%%      qcand
-%%    qcprop({avlUses, Tree, Calls}).
-%%  qcprop({avlUses, Tree,
+%%      pc_and
+%%    pcprop({avlUses, Tree, Calls}).
+%%  pcprop({avlUses, Tree,
 %%       [{fl,avl:avl_lookup(Key,Val)}||Calls]}) :-
 %%    ( call(avl:avl_lookup(Key,Val), Tree),
 %%      print(avl_lookup_found_fail), nl, !, fail
 %%    ; true)
-%%      qcand
-%%    qcprop({avlUses, Tree, Calls}).
+%%      pc_and
+%%    pcprop({avlUses, Tree, Calls}).
 %% \end{yapcode}
 %% %% %
-%% %% Note that the labelled property is connected with a \yap{qcand} operator
+%% %% Note that the labelled property is connected with a \yap{pc_and} operator
 %% %% where instead it could be in the place of the \yap{true} \Prolog{}
 %% %% built-in goal.
 %% %% %
@@ -794,7 +1063,7 @@ The other is to add the missing directionality
 %% %
 %% \begin{yapcode}
 %%    ?- plqc:quickcheck(
-%%                 avlTest:(qcprop(avlUses)),
+%%                 avlTest:(pcprop(avlUses)),
 %%                 [{numtests, 1000}] ).
 %%  avl_lookup_not_bound_fail
 %%  !
@@ -880,7 +1149,7 @@ The other is to add the missing directionality
 %% the right and the sub-tree to the left.
 %% \begin{yapcode}
 %%    ?- plqc:quickcheck(
-%%              avlTest:(qcprop(avlUses))).
+%%              avlTest:(pcprop(avlUses))).
 %%  height_mismatch
 %%  avl_insert_fail_invariant
 %%  !
@@ -892,7 +1161,7 @@ The other is to add the missing directionality
 %%      {i,avl:avl_insert(8952,0)}]] 
 %%  yes
 %%    ?- plqc:quickcheck(
-%%              avlTest:(qcprop(avlUses))).
+%%              avlTest:(pcprop(avlUses))).
 %%  Failed: After 66 test(s).
 %%  Counterexample found:
 %%    [[avl:avl_new,
@@ -925,7 +1194,7 @@ The other is to add the missing directionality
 %% %
 %% \begin{yapcode}
 %%    ?- plqc:quickcheck(
-%%                avlTest:(qcprop(avlUses)),
+%%                avlTest:(pcprop(avlUses)),
 %%                [{numtests, 1000}] ).
 %%  Failed: After 213 test(s).
 %%  Counterexample found:
@@ -978,9 +1247,3 @@ The other is to add the missing directionality
 
 %% %% \subsection{red-black Trees}
 
-
-
-%% \begin{yapcode}
-%% \end{yapcode}
-%% \begin{yapcode}
-%% \end{yapcode}

@@ -153,8 +153,8 @@ to try to \emph{shrink} the result, making it easier to understand.
 But this shrinking process is not exact and there may be many choices to
 make the generated values smaller.
 %
-For this reason we may want to impose different limits for the maximum
-number of shrinks performed, which is set to 500, either for getting to
+For this reason one may want to impose different limits for the maximum
+number of shrinks performed, which is set to 500, either for getting 
 a smaller result or to make the process faster.
 %
 This is possible with the option \yap{\{max_shrinks,N\}}.
@@ -267,7 +267,7 @@ This is possible with the option \yap{\{max_shrinks,N\}}.
 %% unification to the enclosed property.
 %% %
 %% \begin{yapcode}
-%%  run(qcforall(Gen, Var, Test, Size),
+%%  run(pcforall(Gen, Var, Test, Size),
 %%      Opts, Ctx, IState, OState, Result) :- 
 %%    !, bind_forall(Gen, Ctx, Var, Size),
 %%    ctx:bind(Ctx, Var, Ctx1),
@@ -298,7 +298,7 @@ This is possible with the option \yap{\{max_shrinks,N\}}.
 %% \begin{yapcode}
 %%  user:term_expansion(
 %%        PredId of_type T,
-%%        (qcprop(PropName) :- PLQCProp) ) :-
+%%        (pcprop(PropName) :- PLQCProp) ) :-
 %%    (...).
 %% \end{yapcode}
 %% %
@@ -395,7 +395,7 @@ This is possible with the option \yap{\{max_shrinks,N\}}.
 %%    pp_typing(Types, TS, Args),
 %%    modify_gen(Modifs, structure(TS), ArgGen),
 %%    spec_prop(Modifs, Pred, Args, InnerProp),
-%%    Prop = qcforall(ArgGen, Args, InnerProp).
+%%    Prop = pcforall(ArgGen, Args, InnerProp).
 %% \end{yapcode}
 
 

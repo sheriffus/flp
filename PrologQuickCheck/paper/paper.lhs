@@ -71,7 +71,8 @@ DCC - Faculty of Science, University of Porto
 \maketitle
 \begin{abstract}
 %include abstract.tex
-\keywords{Prolog, Property-based Testing, Automatic Testing, Testing, Verification, Logic Programming}
+\keywords{Prolog, Property-based Testing, Automatic Testing, Testing,
+  Verification, Logic Programming, Predicate Specification}
 \end{abstract}
 
 %% % A category with the (minimum) three required fields

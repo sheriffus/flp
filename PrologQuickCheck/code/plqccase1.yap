@@ -9,10 +9,11 @@
 :- add_to_path( './src/' ).
 
 :- reconsult(plqc).
+:- use_module(plqc).
 %% :- ensure_loaded(plqc).
 %% :- use_module(plqc).
 
-
+:- meta_predicate qcprop(:).
 
 % {{{ convert between regular and difference lists
 %% difference list to list
@@ -350,3 +351,40 @@ qcprop(int10) :-
 %% plqc:quickcheck(plqccase1:qcprop(spec_test_3)).
 %% plqc:quickcheck(plqccase1:qcprop(spec_test_4)).
 %% plqc:quickcheck(plqccase1:qcprop(spec_test_5)).
+%% plqc:quickcheck((plqccase1:qcprop(double_rev_app)) qcand (plqccase1:qcprop(double_rev_acc))).
+
+%% $ yap
+%%    ?- reconsult(plqccase1).
+%%    ?- use_module(plqccase1).
+%%    ?- plqc:quickcheck(plqccase1:qcprop(double_rev_app)).
+%% ....................................................................................................
+%% OK: Passed 100 test(s).
+%% yes
+%%    ?- plqc:quickcheck(plqccase1:qcprop(double_rev_acc)).
+%% ....................................................................................................
+%% OK: Passed 100 test(s).
+%% yes
+   %% ?- plqc:quickcheck(plqccase1:qcprop(wrong_drev)).
+   %% | quickcheck(qcprop(double_rev_acc)).
+   %% | reconsult(plqc).
+   %% | reconsult(plqccase1).
+   %% | quickcheck(plqccase1:qcprop(double_rev_acc)).
+   %% | use_module(plqccase1).
+   %% | oneof([int, value(a)],X,10).
+   %% | use_module(plqc).
+   %% | elements(int,X,10).
+   %% | plqc:elements(int,X,10).
+
+%%      plqc:quickcheck(plqccase1:qcprop(double_rev)).
+%%      quickcheck(plqccase1:qcprop(double_rev)).
+%%      quickcheck(qcprop(double_rev)).
+
+qcprop(double_rev) :-
+        qcforall( listOf(int), L, qcprop({drev, L})).
+
+qcprop({drev, L}) :- 
+        rev_app(L, LR), !, % first solution
+        rev_app(LR, L2), !, L == L2.
+
+qcprop(w_drev) :-
+        qcforall( listOf(int), XS, (rev_acc(XS,RX), rev_app(RX,RX))).

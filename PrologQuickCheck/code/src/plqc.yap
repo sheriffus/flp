@@ -13,6 +13,7 @@
                  qcforall/4
                  ]).
 
+:- meta_predicate quickcheck(:).
 %% :- module(plqc).
 %% :- module(plqc,[quickcheck/1, quickcheck/2, zx/2]).
 
@@ -706,7 +707,8 @@ addHeads(K, Gen, LI, LO) :-
 elements(AS, A, S) :-
         length(AS, Cap),
         choose(1,Cap,I,S),
-        lists:nth(I, AS, A).
+        nth(I, AS, A).
+        %% lists:nth(I, AS, A).
         
 %% %% | Takes a list of elements of increasing size, and chooses
 %% %% among an initial segment of the list. The size of this initial
@@ -830,7 +832,7 @@ elements(AS, A, shrink, []).
 listOf(GenA, AS, shrink, [Tail|Shrs1]) :-
         lists:length(AS, K),
         AS = [H|Tail],
-        vectorOf(K, GenA, AS, Shrink, Shrs1).
+        vectorOf(K, GenA, AS, shrink, Shrs1).
 
 listOf1(GenA, [A], shrink, Shrs) :-
         vectorOf(1, GenA, [A], shrink, Shrs).
@@ -843,36 +845,37 @@ vectorOf(K, GenA, [A|AS], shrink, Shrs) :-
 
 shrinkSome(K, GenA, [], shrink, []).
 shrinkSome(K, GenA, [A|AS], shrink, [SA|SAS]) :-
-        choose(0,K,X), % the chance of X =< 1 is 2 in K, should result in an average of two shrunk elements
+        choose(0,K,X,K), % the chance of X =< 1 is 2 in K, should result in an average of two shrunk elements
         ( X =< 1, !, call(GenA, A, shrink, AA), (AA = [SA|_],!; SA=A)
         ; SA = A),
         shrinkSome(K, GenA, AS, shrink, SAS).
 
 
 %% | Generates the given value, discarding the size.
-value(A, A, _Size).
+value(A, A, shrink, []).
 
 %% | Generates a variable, discarding the size.
-variable(X, _Size) :- var(X).
+variable(X, shrink, []).
 
 %% | Generates values with a certain structure
-structure(X, Y, Size) :- var(X), !, var(Y), X=Y. % TODO - error when Y is not a var
-structure(X, Y, Size) :- var(X), !, var(Y), X=Y. % TODO - error when Y is not a var
-structure([], [], Size) :- !.
-structure([SX|SXS], [X|XS], Size) :-
-        !,
-        structure(SX, X, Size),
-        structure(SXS, XS, Size).
-structure({ST}, {T}, Size) :-
-        !,
-        structure(ST, T, Size),
-        structure(SXS, XS, Size).
-structure( (SX, SXS), (X, XS), Size) :-
-        !,
-        structure(SX, X, Size),
-        structure(SXS, XS, Size).
-structure(GenX, X, Size) :-
-        call(GenX, X, Size).
+structure(X, Y, shrink, []).
+%% structure(X, Y, Size) :- var(X), !, var(Y), X=Y. % TODO - error when Y is not a var
+%% structure(X, Y, Size) :- var(X), !, var(Y), X=Y. % TODO - error when Y is not a var
+%% structure([], [], Size) :- !.
+%% structure([SX|SXS], [X|XS], Size) :-
+%%         !,
+%%         structure(SX, X, Size),
+%%         structure(SXS, XS, Size).
+%% structure({ST}, {T}, Size) :-
+%%         !,
+%%         structure(ST, T, Size),
+%%         structure(SXS, XS, Size).
+%% structure( (SX, SXS), (X, XS), Size) :-
+%%         !,
+%%         structure(SX, X, Size),
+%%         structure(SXS, XS, Size).
+%% structure(GenX, X, Size) :-
+%%         call(GenX, X, Size).
 
   % }}}
 

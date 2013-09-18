@@ -28,23 +28,23 @@ implementations.
 %into testable properties.
 
 
-One can test a property, or \emph{quickcheck} it,  by passing it as a parameter in a
-call to a predicate of the \plqc{} testing interface: \yap{quickcheck/[1,2]},
-%% predicate of the \plqc{} testing interface: \yap{quickcheck/[1,2]},
-%% \yap{quickcheck/2}, \yap{quickcheckResult/2},
- \yap{quickcheckResult/[2,3]}.
+One can test a property, or \emph{prologcheck} it,  by passing it as a parameter in a
+call to a predicate of the \plqc{} testing interface: \yap{prologcheck/[1,2]},
+%% predicate of the \plqc{} testing interface: \yap{prologcheck/[1,2]},
+%% \yap{prologcheck/2}, \yap{prologcheckResult/2},
+ \yap{prologcheckResult/[2,3]}.
 %
-The \yap{quickcheck/1} predicate tests a property and prints the results
+The \yap{prologcheck/1} predicate tests a property and prints the results
 to the standard output.
 %
  %% | Tests a property and prints the results
  %% to 'stdout'.
 %\begin{yapcode}
- %quickcheck(Property) :-
-  % quickcheck(Property, []).
+ %prologcheck(Property) :-
+  % prologcheck(Property, []).
 %\end{yapcode}
 %
-%It is a default interface to \yap{quickcheck/2}, such that the second argument
+%It is a default interface to \yap{prologcheck/2}, such that the second argument
 %is the empty list (has no user options).
 %
 %In general, this list is expected to contain user options to change the default
@@ -52,14 +52,14 @@ to the standard output.
  %% | Tests a property, using test arguments,
  %% and prints the results to 'stdout'.
 %\begin{yapcode}
- %quickcheck(Property, UserOpts)  :-
-  % quickcheckResult(Property, UserOpts, _Res).
+ %prologcheck(Property, UserOpts)  :-
+  % prologcheckResult(Property, UserOpts, _Res).
 %\end{yapcode}
 %
 %The predicate is implemented in terms of the result returning
 %counterpart, simply by discarding the result.
 %
-%Both \yap{quickcheck} predicates have a result returning counterpart,
+%Both \yap{prologcheck} predicates have a result returning counterpart,
 %result that can be used internally.
 %
 %The absence of user options defaults to the empty list of options, as in
@@ -67,17 +67,17 @@ to the standard output.
  %% | Tests a property, produces a test result,
  %% and prints the results to 'stdout'.
 %\begin{yapcode}
-% quickcheckResult(Property, Result) :-
-  % quickcheckResult(Property, [], Result).
+% prologcheckResult(Property, Result) :-
+  % prologcheckResult(Property, [], Result).
 %\end{yapcode}
-%The predicate \yap{quickcheckResult/3} is the main interface predicate,
+%The predicate \yap{prologcheckResult/3} is the main interface predicate,
 %since all the others call it, either by discarding the result or by applying
 %an empty list of options.
  %% | Tests a property, using test arguments,
  %% produces a test result, and prints the
  %% results to 'stdout'.
 %\begin{yapcode}
- %quickcheckResult(Prop, UserOpts, Result) :-
+ %prologcheckResult(Prop, UserOpts, Result) :-
   % opts:parse(UserOpts, Opts),
    %state:init(Opts, IState),
    %test(Prop, Opts, IState, OState, Result).
@@ -96,7 +96,7 @@ about key aspects of the testing process.
 %
 It includes the printing predicate, long/short result choice, number of
 tests, starting size for generated values, maximum size for generated
-values, shrink counterexample choice, maximum number of shrinks, number
+values, shrinking disabled, maximum number of shrinks, number
 of constraint tries, and timeout limit.
 
 %\paragraph{\plqc{} Options}
@@ -141,20 +141,24 @@ One can also change the 100 tests default  using \yap{\{numtests,N\}} where
 %getting a counter-example to a failing property.
 %
 Test generation can also be tuned to start at a different size parameter
-or a maximum for the size parameter.
+or be given a maximum for the size parameter.
 %
 These alterations are achieved with the options
 \yap{\{start_size,Size\}} and \yap{\{max_size,Size\}}.
 
 
-Shrinking is also a useful feature of the tool: when a counterexample to a property is found the user may want \plqc{}
-to try to \emph{shrink} the result, making it easier to understand.
+Shrinking can be very useful to find good counter-examples.
 %
-But this shrinking process is not exact and there may be many choices to
-make the generated values smaller.
+Nevertheless it is not a straightforward process.
+%% Shrinking is also a useful feature of the tool: when a counterexample to a property is found the user may want \plqc{}
+%% to try to \emph{shrink} the result, making it easier to understand.
+%% %
+%% But this shrinking process is not exact and there may be many choices to
+%% make the generated values smaller.
 %
-For this reason one may want to impose different limits for the maximum
-number of shrinks performed, which is set to 500, either for getting 
+%% For this reason o
+One may want to impose different limits for the maximum
+number of shrinks performed, which is by default set to 500, either for getting 
 a smaller result or to make the process faster.
 %
 This is possible with the option \yap{\{max_shrinks,N\}}.

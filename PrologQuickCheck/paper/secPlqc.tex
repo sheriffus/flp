@@ -31,8 +31,8 @@ Again for \Haskell{} \QuickCheck{} that would only be a call:
 %
 This tests the \emph{positive square} property in 100 randomly
 generated cases.
-\todo{comentario perguntava se 'generated cases' eram inteiros e sao; é
-  para fazer a substituição 'cases'->'integers'}
+%% \todo{comentario perguntava se 'generated cases' eram inteiros e sao; é
+%%   para fazer a substituição 'cases'->'integers'}
 %
 The input for the property is generated based on its type by
 \QuickCheck{} through type machinery.
@@ -58,7 +58,7 @@ elements.
 The tool automatically generates input for the properties to be tested
 and executes them to assess their validity.
 %
-A primitive property is a%% n arbitrary
+A primitive property is a %% n arbitrary
 \Prolog{} goal (hence, the whole
 language can be used to define properties).
 %
@@ -88,9 +88,10 @@ The example is a predicate to reverse lists.
 We assume the existence of a predicate \yap{rev/2}, relating two lists
 with reversed element order.
 %
-The property and predicate to be tested are in the same module,
-\yap{m}, and %% will
-have access to the \plqc{} tool module.
+The property and predicate to be tested are in %% the same
+module%% ,
+ \yap{m}.%% , and %% will
+%% have access to the \plqc{} tool module.
 %
 The \yap{rev/2} predicate has a set of desired behaviours, which
 correspond to the laws of a reversing operation (where |++| 
@@ -98,7 +99,7 @@ represents list concatenation).%% (we use |++| to
 %% represent composition of lists).
 %
 Using a functional notation:
-\todo{era para por esta ultima frase em novo paragrafo?}
+%% \todo{era para por esta ultima frase em novo paragrafo?}
 {
 \aligncolumn{10}{@@{}>{\hspre}r<{\hspost}@@{}}
 \aligncolumn{12}{@@{}>{\hspre}r<{\hspost}@@{}}
@@ -145,7 +146,7 @@ We explicitly parametrise the property into a first order object.
 %% The idea is to generalise the goal.%% , give it the desired label and parametrise it accordingly.
 %
 \begin{yapcode}
- pcprop({drev, XS}) :- rev(XS, RX), rev(RX, XS).
+ pcprop({dr, XS}) :- rev(XS, RX), rev(RX, XS).
 \end{yapcode}
 %
 %% Note that the generalised call
@@ -170,21 +171,21 @@ In order to enable random testing, we
 define a domain for parameter instantiations.
 %% need to specify the set of values over which we abstract the property.
 Values from this domain are used as test cases.
-\todo{continuo a nao gostar destas frases, a ligação entre 'parameter
-  instantiations' e 'test cases' nao esta no ponto...}
+%% \todo{continuo a nao gostar destas frases, a ligação entre 'parameter
+%%   instantiations' e 'test cases' nao esta no ponto...}
 %
 \begin{yapcode}
- pcprop(double_rev) :- pcforall(listOf(int), XS, pcprop({drev, XS}))
+ pcprop(d_rev) :- pcforall(listOf(int), XS, pcprop({dr, XS}))
 \end{yapcode}
 %% \begin{yapcode}
-%%  pcprop(double_rev) :-
-%%    plqc:pcforall(listOf(int), XS, m:pcprop({drev, XS}))
+%%  pcprop(d_rev) :-
+%%    plqc:pcforall(listOf(int), XS, m:pcprop({dr, XS}))
 %% \end{yapcode}
 %
 
 
-This more precise definition %% says that we want to test our \yap{drev}
-states that the property \yap{double_rev} is \yap{drev}
+This more precise definition %% says that we want to test our \yap{dr}
+states that the property \yap{d_rev} is \yap{dr}
 over lists of integers.% \yap{XS}.
 %
 More precisely, we use \yap{pcforall/3} to represent \plqc{}'s universal quantification.
@@ -207,20 +208,20 @@ check the property.
 %% This is done by calling
 we can call
  \plqc{} using the alias
-\yap{pcprop(double_rev)} to define the property.
-%% \yap{m:pcprop(double_rev)} to define the property.
+\yap{pcprop(d_rev)} to define the property.
+%% \yap{m:pcprop(d_rev)} to define the property.
 \begin{yapcode}
-   ?- quickcheck(m:pcprop(double_rev)).
+   ?- prologcheck(m:pcprop(d_rev)).
  OK: Passed 100 test(s).
 \end{yapcode}
 %% \begin{yapcode}
-%%    ?- plqc:quickcheck(m:pcprop(double_rev)).
+%%    ?- plqc:prologcheck(m:pcprop(d_rev)).
 %%  OK: Passed 100 test(s).
 %% \end{yapcode}
 %%  yes
 %% \end{yapcode}
 %
-The \yap{plqc:quickcheck/1} predicate is the simplest property tester in
+The \yap{prologcheck/1} predicate is the simplest property tester in
 \plqc{}, taking a property as a parameter and checking it for a large
 number (100 is the default number) of generated test cases.
 %
@@ -236,8 +237,8 @@ making
 it impossible to be satisfied:
 %
 \begin{yapcode}
- pcprop(wrong_drev) :-
-   plqc:pcforall(listOf(int), XS, (m:rev(XS,RX), m:rev(RX,RX))).
+ pcprop(wrong_dr) :-
+   pcforall(listOf(int), XS, (rev(XS,RX), rev(RX,RX))).
 \end{yapcode}
 %
 %% Here we
@@ -245,9 +246,10 @@ We mistakenly make the second call to \yap{rev/2} with \yap{RX} as
 the second parameter.
 %
 \begin{yapcode}
-   ?- plqc:quickcheck(m:pcprop(wrong_drev)).
- Failed: After 7 test(s).
- Counterexample found: [[3,0,1,0]]
+   ?- prologcheck(m:pcprop(wrong_dr)).
+ Failed: After 11 test(s).
+ Shrinking (6 time(s))
+ Counterexample found: [[0,6]] 
 \end{yapcode}
 A counterexample is found and showed in a list of generated input
 values.
@@ -258,18 +260,25 @@ a list with four elements.%% , but it can show
 %% the property.
 %
 We observe at this point that a counterexample is only found
-after trying seven tests.
+after trying several tests.
 %
 The size criteria causes it to be more likely to get lists with 0 or 1
 element early-on, and these small lists trivially obey the property.
+%
+When the counter-example is found the tool successfully tries to shrink
+it and presents a smaller result.
 
 
-Available property operators currently include conjunction (\yap{Prop1 pc_and Prop2}), disjunction (\yap{Prop1 pcor Prop2}),
-conditional execution (\yap{pcif(Cond, Porp1, Prop2)}) and quantification (\yap{pcforall(Gen, Var, Prop)}).
+%% Available property operators currently include conjunction
+%% Property operators currently available in \plqc{} include conjunction
+Property operators currently  include conjunction
+ (\yap{Prop1 pc_and Prop2}), disjunction (\yap{Prop1 pc_or Prop2}), conditional
+execution (\yap{pcif(Cond, Porp1, Prop2)}) and quantification
+(\yap{pcforall(Gen, Var, Prop)}).
 %
 %% \begin{yapcode}
 %%    Prop1 pc_and Prop2
-%%    Prop1 pcor Prop2
+%%    Prop1 pc_or Prop2
 %%    pcif(Cond, Porp1, Prop2)
 %%    pcforall(Gen, Var, Prop)
 %%    pcprop(Label)
@@ -293,14 +302,14 @@ as expected.
 %
 %% The main difference is that \plqc{} descends on the structure of
 %% properties and not on the structure of goals.
-
+%
 Using property connectives one can compose labelled properties or %% any
 other \plqc{} property operations.
 %
 
 
 The conditional \yap{pcif/3} has a similar behaviour to its ISO
-\Prolog{} counterpart, only at the level of \plqc{} properties.
+\Prolog{} counterpart, but at the level of \plqc{} properties.
 %
 It enables conditional properties without cut, which would not be
 coincident with its semantics in \Prolog{} goals.
@@ -340,7 +349,7 @@ coincident with its semantics in \Prolog{} goals.
 
 
 Primitive properties are \Prolog{} goals.
-\todo{esta frase ja nao ficou grande coisa... amanha ha mais}
+%% \todo{esta frase ja nao ficou grande coisa... amanha ha mais}
 %% In a setting with a strong static type system one can ensure that
 In a strongly typed language (such as \Haskell{}))
 only
@@ -362,8 +371,8 @@ responsible for guaranteeing that the impure code in a property
 %% is self-contained and thus
 does not interfere with posterior test
 cases and is not influenced by previous ones.
-\todo{comentario talvez diga para colocar algo do tipo ' we jsjdjdsj to
-  the user' antes de 'the user is responsible'}
+%% \todo{comentario talvez diga para colocar algo do tipo ' we jsjdjdsj to
+%%   the user' antes de 'the user is responsible'}
 
 
 \section{Generators}
@@ -387,14 +396,14 @@ generators pick values inside a type according to some criteria.
 %
 In \plqc{} generators represent procedures that randomly choose an element
 from a set of values.
-\todo{geradores nao sao predicados reais, mudei de forma a dizer que
-  representam procedimentos}
+%% \todo{geradores nao sao predicados reais, mudei de forma a dizer que
+%%   representam procedimentos}
 %
 In fact, the generators themselves define the set by the elements
 they generate, with non-zero probability.
 %
 Thus, they define a set of terms and therefore a \emph{type}.
-\todo{ha por aqui um comentario que parece ter 'as', algures por estas bandas}
+%% \todo{ha por aqui um comentario que parece ter 'as', algures por estas bandas}
 %
 Note that this set of terms is not necessarily composed of only ground
 terms, instead it
@@ -432,8 +441,8 @@ through unification.
 \begin{yapcode}
  generator_predicate(A1,...,An,Value,Size).
 \end{yapcode}
-\todo{acredito que os hieroglifos diziam para mudar a representacao de
-  'generator\_predicate' para o inicio do paragrafo}
+%% \todo{acredito que os hieroglifos diziam para mudar a representacao de
+%%   'generator\_predicate' para o inicio do paragrafo}
 %
 Together with the generator predicates for fundamental sets of values, we %% make
 %% available
@@ -466,7 +475,7 @@ the tester.
 %% Follows a list with some of the
 Next, we present some
 combinators distributed with the tool.
-\todo{acredito que para esta ultima frase o comentario tem 'present'}
+%% \todo{acredito que para esta ultima frase o comentario tem 'present'}
 
 
 During testing, the tool keeps a record of the size parameter, which
@@ -474,9 +483,9 @@ increases with each test case.
 %
 This way, it is more likely to find smaller and more readable
 counter-examples if they exist.
-\todo{segunda frase para responder ao porquê do tamanho aumentar}
-\todo{também acaba por ser mais eficiente, porque gerar e executar casos
-grandes vai ser (quase) sempre mais custoso}.
+%% \todo{segunda frase para responder ao porquê do tamanho aumentar}
+%% \todo{também acaba por ser mais eficiente, porque gerar e executar casos
+%% grandes vai ser (quase) sempre mais custoso}.
 %
 If the values or part of the values to be generated have to be of a
 certain size, we override this parameter with the \yap{resize/4}
@@ -495,7 +504,7 @@ chooses an integer between the inclusive range given by the first two
 arguments.
 %
 \begin{yapcode}
- choose(Min,Max, A, _) :- Cap is Max+1, random:random(Min,Cap,A).
+ choose(Min,Max, A, _) :- Cap is Max+1, random(Min,Cap,A).
 \end{yapcode}
 
 
@@ -517,14 +526,14 @@ slowly increased to avoid a size without valid values.
 This is a dangerous combinator in the sense that it can loop
 indefinitely  if the the valid values %% generated
 are too sparse.
-\todo{'loop' tinha rabiscos - nao percebi}
-
+%% \todo{'loop' tinha rabiscos - nao percebi}
+                                                        
 
 Often, it is hard to find a good generator.
 %
 Many times, choosing from a set of generators that complement each other
 is the best way to generate values with a good distribution.
-\todo{'many' sublinhado e um 'and' por cima... nao estou a perceber}
+%% \todo{'many' sublinhado e um 'and' por cima... nao estou a perceber}
 %
 Grouping generators can be done in several ways.
 %
@@ -534,7 +543,7 @@ The list of generators given in the first argument must be non-empty.
 %
 \begin{yapcode}
  oneof(LGenA, A, S) :- length(LGenA, Cap), choose(1,Cap,I,S),
-   lists:nth(I, LGenA, GenA), call(GenA, A, S).
+   nth(I, LGenA, GenA), call(GenA, A, S).
 \end{yapcode}
 %
 If a uniform distribution between the generators is not suitable one can
@@ -551,7 +560,7 @@ A frequency-index list is created with the correct proportions and a
 generator is then randomly chosen from that list to be called.
 \begin{yapcode}
  frequency(FGL, A, S) :- checkFreqWeights(FGL, FIL, Cap),
-   choose(1,Cap,I,S), lists:nth(I, FIL, GenA), call(GenA, A, S).
+   choose(1,Cap,I,S), nth(I, FIL, GenA), call(GenA, A, S).
 \end{yapcode}
 
  %% checkFreqWeights([], [], 0).
@@ -573,7 +582,7 @@ from a non-empty list of possible elements.
 %
 \begin{yapcode}
  elements(AS, A, S) :-
-   length(AS, Cap), choose(1,Cap,I,S), lists:nth(I, AS, A).
+   length(AS, Cap), choose(1,Cap,I,S), nth(I, AS, A).
 \end{yapcode}
 
 
@@ -661,7 +670,7 @@ with a certain structure is also possible with \yap{value/3},
 
 \paragraph{\bf Shrinking}
 
-When a test fails the tool can try to shrink the failing input to a
+When a test fails the tool may try to shrink the failing input to a
 smaller and easier to understand counterexample.
 %
 Shrinking is a process by which a \emph{shrinker} predicate returns a

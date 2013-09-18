@@ -36,15 +36,19 @@ We want to check attributes of a reversing procedure.
 %
 %% This implies that the property must have an input for random testing.
 %irst, f
-For the automatic generation of input we must decide what
-exactly  will be the input.
+%% For the automatic generation of input
+First, we must describe what is the input.
 %
-When a procedure is polymorphic on the type of the elements of an
-argument list it is usually sufficient to check its behaviour for a
+The procedure receives a list as first argument, and is polymorphic in
+the type of the list's elements.
+%% The procedure is polymorphic on the type of the elements of an
+%% argument list
+It is usually sufficient to check the behaviour for a
 single type of elements.
 %
-It is sometimes sufficient a finite number of values, but we can
-safely overestimate the size of the type.
+Moreover, sometimes even a type with a finite number of values suffice,
+but we can safely overestimate the size of the
+type~\cite{Bernardy-testing-poly-prop}.
 %
 %% We choose to test the list predicates with lists of integer elements.
 %
@@ -52,52 +56,45 @@ Therefore, we use the generator for integers, \yap{int}, as the elements
 of the parametric list generator, \yap{listOf(int)}.
 
 
-%% We start with
-We have two implementations of reverse.
-%, described later, 
-The first uses concatenation and the second
-builds the result with an accumulator via an auxiliary predicate.
-%
+
 \begin{yapcode}
  rev_app([],[]).
  rev_app([X||XS], YS) :- rev_app(XS,ZS), append(ZS, [X], YS).
-
- rev_acc([], LR, LR).
- rev_acc([X||XS], Acc, LR) :- rev_acc(XS, [X||Acc], LR).
-
- rev_acc(L, LR) :- rev_acc(L, [], LR).
 \end{yapcode}
 
 
-We can adapt the properties in \refSec{sec:properties} to both versions.
+For the previous implementation of reverse we can define the 
+property in \refSec{sec:properties}.
 %
-%% We do it by identifying the property names and called predicates
-%% appropriately.
+The property underwent testing, passing all given tests.
 %
-For the \yap{rev_app/2} predicate we have.
+%   ?- plqc:prologcheck(m:pcprop(double_rev_app), [{numtests, 1000}]), plqc:prologcheck(m:pcprop(double_rev_acc), [{numtests, 1000}]).
 \begin{yapcode}
- pcprop(double_rev_app) :-
-   plqc:pcforall(listOf(int), L, m:pcprop({dbl_rev_app_body, L})).
-
- pcprop({dbl_rev_app_body, L}) :- 
-   m:rev_app(L, LR), !, m:rev_app(LR, L2), !, L == L2.
-\end{yapcode}
-%
-The version for \yap{rev_acc/2} is obtained by changing the affix of
-identifiers from \yap{app} to \yap{acc}
-%
-Both properties underwent testing, passing all given tests.
-%
-%   ?- plqc:quickcheck(m:pcprop(double_rev_app), [{numtests, 1000}]), plqc:quickcheck(m:pcprop(double_rev_acc), [{numtests, 1000}]).
-\begin{yapcode}
-   ?- plqc:quickcheck((m:pcprop(double_rev_app))
-                 pc_and (m:pcprop(double_rev_acc))).
+   ?- prologcheck(m:pcprop(d_rev_app)).
  OK: Passed 100 test(s).
 \end{yapcode}
+%
+%% We can adapt the properties in \refSec{sec:properties} to both versions.
+%% %
+%% %% We do it by identifying the property names and called predicates
+%% %% appropriately.
+%% %
+%% For the \yap{rev_app/2} predicate we have.
+%% \begin{yapcode}
+%%  pcprop(double_rev_app) :-
+%%    plqc:pcforall(listOf(int), L, m:pcprop({dbl_rev_app_body, L})).
+%% 
+%%  pcprop({dbl_rev_app_body, L}) :- 
+%%    m:rev_app(L, LR), !, m:rev_app(LR, L2), !, L == L2.
+%% \end{yapcode}
+%% %
+%% The version for \yap{rev_acc/2} is obtained by changing the affix of
+%% identifiers from \yap{app} to \yap{acc}
 %% ,
 %%           [{numtests, 1000}]
  %% OK: Passed 1000 test(s).
  %% yes
+
 
 To check that the order is being reversed we can randomly choose an
 element (or a %even a random
@@ -124,23 +121,43 @@ give good
 element coverage.
 %
 \begin{yapcode}
-   ?- plqc:quickcheck(m:pcprop(rev_app_i)).
+   ?- prologcheck(m:pcprop(rev_app_i)).
  OK: Passed 100 test(s).
 \end{yapcode}
 
+%% We start with
+We have another implementation of reverse.
+%, described later, 
+While the first implementation uses concatenation, the following
+builds the result with an accumulator via an auxiliary predicate.
+%
+%% With proper property labelling  and predicate calls we can define
+%% \yap{pcprop(d_rev_app)} and \yap{pcprop(d_rev_acc)} to depict the
+%% behaviour of \yap{rev_app/2} and \yap{rev_acc/2} respectively.
+%
+The same property is defined for the new implementation with the same
+testing result.
+\begin{yapcode}
+ rev_acc([], LR, LR).
+ rev_acc([X||XS], Acc, LR) :- rev_acc(XS, [X||Acc], LR).
 
-But since we have two implementations of the same concept we can explore
-this by only performing tests on one version and stating a property
-comparing their behaviours.
+ rev_acc(L, LR) :- rev_acc(L, [], LR).
+\end{yapcode}
+
+
+Since we have two implementations of the same concept we can explore
+this by 
+%% only performing tests on one version and
+stating and testing a property comparing their behaviours.
 %
 \begin{yapcode}
  pcprop(eqv_acc_app) :-
-   plqc:pcforall(listOf(int), L, (m:rev_acc(L,LR),m:rev_app(L,LR))).
+   pcforall(listOf(int), L, (rev_acc(L,LR),rev_app(L,LR))).
 \end{yapcode}
 The comparison succeeds if both have the same behaviour.
 %
 \begin{yapcode}
-   ?- plqc:quickcheck(m:pcprop(eqv_acc_app)).
+   ?- prologcheck(m:pcprop(eqv_acc_app)).
  OK: Passed 100 test(s).
 \end{yapcode}
 
@@ -149,96 +166,110 @@ The comparison succeeds if both have the same behaviour.
 %{{{ append
 
 \subsection{Append}
-The %% \Prolog{}
-implementation of the list concatenation predicate recurs on the first list
-and the appended list parameters, leaving the second list uninspected.
+%% The %% \Prolog{}
+%% implementation of the list concatenation predicate recurs on the first list
+%% and the appended list parameters, leaving the second list uninspected.
+%% %
+Here we describe some properties of  \yap{append/3}:
 %
+%% \todo{no texto fica melhor   \yap{append/3} ou 'append' em texto normal?}
 \begin{yapcode}
  append([], YS, YS).
  append([X||XS], YS, [X||AS]) :- append(XS, YS, AS).
 \end{yapcode}
-%
-We check the behaviour of the \yap{append/3} predicate
-through its specification with the predicate specification language.
-%% presented in \refSec{sec:pred-spec}.
-%
+%% %
+%% We check the behaviour of the \yap{append/3} predicate
+%% through its specification with the predicate specification language.
+%% %% presented in \refSec{sec:pred-spec}.
+%% %
 
 
-The most obvious way to use \yap{append/3} is by giving it two lists and expect
-the resulting appended list.
+%% The most obvious way to use \yap{append/3} is by giving it two lists and expect
+%% the resulting appended list.
+%% %
+%% So the type of such a specification clause is
+%% (\yap{listOf(int),listOf(int),variable}).
+%% %
+%% We can assert that, in this \plqc{} type, parameters input modes are
+%% (\yap{ground, ground, var}) and the output modes (\yap{ground, ground,
+%%   ground}).
+%% %
+%% It should also be the case that this use of the predicate behaves as a
+%% function, expecting exactly one answer.
+%% %
+\yap{append(A,B,C)} is used in a functional way in many programs,
+i.e. by giving it two lists as input and getting their concatenation as
+output.
 %
-So the type of such a specification clause is
-(\yap{listOf(int),listOf(int),variable}).
-%
-We can assert that, in this \plqc{} type, parameters input modes are
-(\yap{ground, ground, var}) and the output modes (\yap{ground, ground,
-  ground}).
-%
-It should also be the case that this use of the predicate behaves as a
-function, expecting exactly one answer.
-%
+This behaviour is specified in \plqc{} as:
+ %% (plqc:listOf(int), plqc:listOf(int), plqc:variable)
 \begin{yapcode}
- m:append of_type
-    (A-(plqc:listOf(int)), B-(plqc:listOf(int)), C-(plqc:variable))
+ append of_type (A-(listOf(int)), B-(listOf(int)), C-(variable))
    where (i(g, g, v), o(g, g, g))  has_range {1,1}.
 \end{yapcode}
 %
-Quickchecking this specification clause bears no surprises.
+Prologchecking this specification clause bears no surprises.
 %
 \begin{yapcode}
-   ?- plqc:quickcheck(m:pcprop(spec_append)).
+   ?- prologcheck(m:pcprop(spec_append)).
  OK: Passed 100 test(s).
 \end{yapcode}
 
 
-Although \yap{append/3} has an intended usage, it may be successfully
+%% Although
+\yap{append/3} %% has an intended usage, it
+may be %% successfully
+also
 used in other situations.
 %
-For example, one can use it to create an open list, by giving a variable
-in place of the second list, which remains uninspected.
+For example, one can use it to create an open list, by %% giving a variable
+%% in place of the second list, which remains uninspected.
+calling it with a variable in the second argument.
 %
 The result is a list with the ground elements of the first list and the
 second list variable as the tail, therefor it is neither ground nor
 variable.
-%
-This usage also behaves as a function, since the potentially mutating
-part of the input is not a target of pattern matches.
+%% %
+%% This usage also behaves as a function, since the potentially mutating
+%% part of the input is not a target of pattern matches.
 %
 \begin{yapcode}
- {m:append, 1} of_type
-     (A-(plqc:listOf(int)), B-(plqc:variable), C-(plqc:variable))
+ {append, 1} of_type (A-(listOf(int)), B-(variable), C-(variable))
    where (i(g, v, v), o(g, v, ngv))  has_range {1,1}.
 \end{yapcode}
 %
 Testing this specification clause reveals that the \emph{out} part of
 the directionality is not satisfied.
-%   ?- plqc:quickcheck(m:pcprop(spec_append_1)).
+%   ?- plqc:prologcheck(m:pcprop(spec_append_1)).
 \begin{yapcode}
-  ?- plqc:quickcheck(m:pcprop(spec_append_1).
+  ?- prologcheck(m:pcprop(spec_append_1), [noshrink]).
  {failed_out_modes,[[o,g,v,ngv]], [[],_10258,_10258]}
- !
  Failed: After 3 test(s).
  Counterexample found: [[[],_10258,_10260]] 
 \end{yapcode}
 %
 The counterexample shows that when the first argument is the empty
 list, %% and the other two variables,
-the output modes do not comply with
-the specification.
-% when L1 is [], LApp is L2, i.e. var
-%
-Upon closer inspection it is noted that the base case of the recursion
+the output modes do not respect %% comply with
+the specification %% .
+%% % when L1 is [], LApp is L2, i.e. var
+%% %
+%% Upon closer inspection it is noted that
+because
+the base case of the recursion
 %% on the first argument simply
 unifies the second and third parameters.
 %% when it matches an empty list.
 %
-There are two %% simple
-ways of solving this problem.
-%
-One is to split the specification clause between input types that only
-have empty lists or non-empty lists separately.
-%
-The other is to add the missing directionality
+%% There are two %% simple
+%% ways of solving this problem.
+%% %
+%% One is to split the specification clause between input types that only
+%% have empty lists or non-empty lists separately.
+%% %
+%% The other
+One way to solve it 
+is to add the missing directionality \yap{(i(g, v, v), o(g, v, ngv)), o(g,v,v)}.
 %
 %% The correct choice in general is to split the input types, since this is
 %% a matter between disjoint sets of terms.
@@ -248,10 +279,10 @@ The other is to add the missing directionality
 %% of multiple answers.
 %% %
 %% Given the simplicity of the example we decided to add a directionality.
-%
-\begin{yapcode}
-   where (i(g, v, v), o(g, v, ngv)), o(g,v,v)
-\end{yapcode}
+%% %
+%% \begin{yapcode}
+%%    where (i(g, v, v), o(g, v, ngv)), o(g,v,v)
+%% \end{yapcode}
 
 
 %% \begin{yapcode}
@@ -298,7 +329,7 @@ requires attention to detail.
 First, we only want to generate valid sequences to save effort of
 checking validity and not suffer from sparse valid values.
 %
-Using the AVL module implies the existence of two sets of important
+Using the same module implies the existence of two sets of important
 terms: key terms, and value terms, which we parametrise as generators.
 %
 In order to test the correct failure of wrong look-ups, a set of values
@@ -366,6 +397,8 @@ balance and computing the current tree height.
 %
 This is how the property is outlined in \plqc{}.
 %
+
+\pagebreak 
       %% ((forall(member(X, Ls), cmpKeys(X, K, lte))) -> true; error1),
       %% ((forall(member(X, Gs), cmpKeys(X, K, gt))) -> true; error2))
    %% pc_and (( abs(Hl-Hr) =< 1 -> true; error3), H is 1+max(Hl,Hr))),
@@ -391,18 +424,22 @@ applied to the AVL library.
 Each line corresponds to a different module version: line 1 to the
 original version; line 2 to a bug in the re-balancing strategy inserted
 by the tester; line 3 to a different bug also in the re-balancing
-strategy inserted by someone that is not involved with the tests.
+strategy inserted by someone that was not involved with the tests.
 %
 The column \emph{Tests} is the number of tests needed to achieve a
 particular counter-example.
 %
-For the purpose of readability consider \yap{i(N,V)} as insert an
+For the purpose of readability we will represent only the key and value
+arguments of the AVL operations.
+%
+%% \todo{frase longa dividida em duas frases}
+Thus consider \yap{i(N,V)} as insert an
 element with key \yap{N} and value  \yap{V}, and \yap{l(N,V)} as look up
 the pair \yap{(N,V)} in the tree.
 %
 Note that the counter-example found in the original version corresponds
 to an unspecified behaviour in the case of two insertions with the same key.
-\todo{se calhar nao \'e 'case', nao percebo a letra do mario...}
+%% \todo{se calhar nao \'e 'case', nao percebo a letra do mario...}
 %
 After several runs of the tool (10 for the first bug and 20 for the
 second) we managed to find a pattern on the counter-examples which led
@@ -415,11 +452,11 @@ to the identification of the pathological behaviour caused by the bugs.
     \hline
     Version    &  Tests   &  Counter-example
     \\ \hline
-    Original   &  732     &  \yap{i(1,V1), i(1,V2), l(1,V2)}
+    Original   &  732     &  \yap{i(1,a), i(1,b), l(1,b)}
     \\ \hline
-    Error 1    &  51      &  \yap{i(3,V1), i(1,V2), i(2,V3)}
+    Error 1    &  51      &  \yap{i(3,a), i(1,b), i(2,c)}
     \\ \hline
-    Error 2    &  213     &  \yap{i(5,V1), i(2,V2), i(3,V3), i(4,V4), i(1,V5)}
+    Error 2    &  213     &  \yap{i(5,a), i(2,b), i(3,c), i(4,d), i(1,e)}
     \\ \hline
   \end{tabular}
   \caption{{\tt avl} testing summary.}
@@ -1062,7 +1099,7 @@ to the identification of the pathological behaviour caused by the bugs.
 %% with the key in question.
 %% %
 %% \begin{yapcode}
-%%    ?- plqc:quickcheck(
+%%    ?- plqc:prologcheck(
 %%                 avlTest:(pcprop(avlUses)),
 %%                 [{numtests, 1000}] ).
 %%  avl_lookup_not_bound_fail
@@ -1148,7 +1185,7 @@ to the identification of the pathological behaviour caused by the bugs.
 %% balancing of the tree is probably failing when the tree is unbalanced to
 %% the right and the sub-tree to the left.
 %% \begin{yapcode}
-%%    ?- plqc:quickcheck(
+%%    ?- plqc:prologcheck(
 %%              avlTest:(pcprop(avlUses))).
 %%  height_mismatch
 %%  avl_insert_fail_invariant
@@ -1160,7 +1197,7 @@ to the identification of the pathological behaviour caused by the bugs.
 %%      {i,avl:avl_insert(1488,1)},
 %%      {i,avl:avl_insert(8952,0)}]] 
 %%  yes
-%%    ?- plqc:quickcheck(
+%%    ?- plqc:prologcheck(
 %%              avlTest:(pcprop(avlUses))).
 %%  Failed: After 66 test(s).
 %%  Counterexample found:
@@ -1193,7 +1230,7 @@ to the identification of the pathological behaviour caused by the bugs.
 %% followed by $3$ and $1$.
 %% %
 %% \begin{yapcode}
-%%    ?- plqc:quickcheck(
+%%    ?- plqc:prologcheck(
 %%                avlTest:(pcprop(avlUses)),
 %%                [{numtests, 1000}] ).
 %%  Failed: After 213 test(s).

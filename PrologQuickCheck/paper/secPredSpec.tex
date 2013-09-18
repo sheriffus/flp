@@ -6,7 +6,7 @@
 In this section we describe our predicate specification language.
 %
 Throughout, we follow some of the principles presented
-in~\cite{Deville1990logprog}.
+by Deville~\cite{Deville1990logprog}.
 %
 There are several ways to state a predicate's specification, %% we do not
 %% argue that our specification process is superior to other approaches.
@@ -19,7 +19,7 @@ form to express testable predicate features. %% we thought to be of importance.
 
 The general specification form of a predicate \yap{p/n} consists, at its
 core, of a set of uniquely identified specification clauses
- (with \emph{clause Id})
+ %% (with \emph{clause Id})
  about \emph{input types} or the shape of the parameters when evoking the predicate.
 %
 %% \begin{code}
@@ -35,15 +35,17 @@ question can be added to a specification clause.
 If there is
 a \emph{parameter relation} or
  a relation that arguments must fulfil one can implement it
-as a predicate%% , say \yap{irel/1},
+as a predicate %% , say \yap{irel/1},
 which checks if such a relation is
 valid for the list of arguments given as parameter.
+%% \todo{era para cortar? 'which checks if such a relation is
+%% valid for the list of arguments given as parameter'}
 %
-The \emph{modes} of each parameter can be given for the input terms and also
+The \emph{modes} of each parameter can be given for the input arguments and also
 for any output answer.
 %
 The language also allows stating the number of
-answers of a predicate
+answers of a predicate,
 or its \emph{range}.
 %
 Last, the user may state invariant properties that should hold both
@@ -64,6 +66,11 @@ Next, we discuss the main properties that we allow in our framework.
 %% \subsection{Types}
 \paragraph{\bf Types}
 
+Types are the mandatory part of the specification.
+%
+They are mandatory in order to guarantee that the specification may be
+automatically tested.
+%
 We define a type as follows: 
 %
 \begin{definition}
@@ -75,24 +82,19 @@ terms that define the type.
 
 
 Types are not defined as a set of \emph{ground} terms but rather by
-the set of terms produced by a generator.
+the set of terms represented by a generator.
 %
 These are the types used in predicate specifications.
-%
-They are the only mandatory part of the specification.
-%
-Types are mandatory in order to guarantee that the specification may be
-automatically tested.
 %
 Note that types defined in this manner depict perfectly possible forms of
 predicate input.
 %
 This approach for types %% already
-encloses, by domain definition, the type
-precondition.
+encloses, by definition, the type
+precondition, where the input must be compatible with the specified types.
 
 
-The types mentioned in a predicate specification clause are \plqc{}
+The types mentioned in a predicate specification clause correspond to \plqc{}
 generators used to automatically create %% individual
 test cases.
 %
@@ -100,7 +102,7 @@ This means that the type in a specification clause is partial in the
 sense that it only specifies the predicate should succeed when given
 elements of such types as parameters.
 %
-It states nothing about parameters of other kinds.
+It states nothing about other kinds of parameters.
 %
 Other input types can be covered by other specification clauses with
 different generators.
@@ -121,10 +123,21 @@ Sometimes the arguments must obey a relation extending type information,
 based on the actual values of the parameters.
 %
 The domain of a predicate is the set of parameters accepted by a
-predicate.
+predicate~\cite{Deville1990logprog}.
 %
 The domain precondition is a restriction over the set of parameters of a
 predicate.
+%
+Suppose that \yap{minimum(A,B,C)} is a predicate that succeeds when
+\yap{C} is the minimum of \yap{A} and \yap{B}.
+%
+The predicate has the type \yap{(int, int, int)} and the domain is the
+restriction \yap{(C==A; C==B),(C<=A, C<=B)}.
+%% Suppose that \yap{even/1} is a predicate that succeeds when the argument
+%% is an even number.
+%% %
+%% The predicate has the type \yap{int} and the domain is the restriction \yap{N rem 2 == 0}.
+%% \todo{colocar exemplo concreto? \yap{even(N) :- N rem 2 == 0.}}
 
 
 \begin{definition}
@@ -146,8 +159,8 @@ answer set.
 The \plqc{} domain of a predicate is then any set of terms produced by
 the generator that fulfils the domain precondition.
 %
-In the absence of a domain precondition relating parameters the domain
-is the set of terms generated.
+%% In the absence of a domain precondition relating parameters the domain
+%% is the set of terms generated.
 
 
 %% \subsection{Directionality}
@@ -157,15 +170,16 @@ The directionality of a predicate describes its possible uses by
 specifying the possible forms of the parameters before and after
 execution.
 %
-The main modes for a parameter are ground, variable and neither ground
+We follow Deville~\cite{Deville1990logprog} where the main modes for a
+parameter are ground, variable and neither ground
 nor variable.
 %
 Conjunction of modes is also possible and all combinations are achieved
-by the notation for ground and variable as well as the negation:
-\emph{g}, \emph{v} and \emph{n?}.
+by the notation for ground (\emph{g}) and variable (\emph{v}) as well as
+the negation (\emph{n?}).
 %
 This results in the main modes and their pairwise combinations: \emph{g},
-\emph{v}, \emph{ngv},  \emph{ng}, \emph{nv}, \emph{gv}.
+\emph{v}, \emph{gv},  \emph{ng}, \emph{nv}, \emph{ngv}.
 %
 A parameter that can be used in any form is denoted by the mode
 identifier \emph{any}.
@@ -187,7 +201,7 @@ This means a full directionality denotes a pre- and a post-condition to
 the execution of the specified predicate.
 %
 In \plqc{} these properties are checked for each test case when
-specified before and after calling the predicate, accordingly.
+specified before and after calling the predicate.
 
 
 Input directionality acts as a sanity check for the elements of the
@@ -200,15 +214,15 @@ If the user wishes to specify more than one input form the clause should
 be divided into the number of input forms and its generators adapted
 accordingly.
 %
-This results in bigger predicate specifications with possibly many
-duplicated parts, but is a very simple way to express what happens to the
+This results in bigger predicate specifications with possibly
+duplicated code, but is a very simple way to express what happens to the
 parameters in finer detail.
 
 
 Each input may have more than one answer and therefore more than one
 output form.
 %
-For this reason we adopted the schema where an input directionality is
+For this reason we adopted a schema where an input directionality is
 paired with a list of output forms.
 
 
@@ -243,7 +257,7 @@ guarantee for predicates using it.
 Conventionally, multiplicity information, or \emph{range}, is given for
 each directionality~\cite{somogyi1995mercury}.
 %
-In \plqc{} we do not require that a directionality is given, in which
+In \plqc{} we do not require that directionality is given, in which
 case no tests are performed regarding parameter form and the \emph{any}
 mode is assumed for all parameters.
 %

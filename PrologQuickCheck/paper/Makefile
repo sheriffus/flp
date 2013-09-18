@@ -7,7 +7,7 @@ default: $(NAME).pdf
 %.pdf: %.tex 
 	latexmk -pdf $<
 
-%.tex: %.lhs %.fmt *.tex
+%.tex: %.lhs %.fmt *.bib *.tex 
 	lhs2TeX  $< > $@
 
 clean:

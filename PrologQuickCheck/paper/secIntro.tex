@@ -64,15 +64,15 @@ question.
 %
 The approach used
 can be  manual, with the tester %% developer
-designing test cases one by \todo{test developer -> tester (vsc?)}
+designing test cases one by %% \todo{test developer -> tester (vsc?)}
 one, or it can be automated to some extent, in this case resorting to
-tools for case generation. \todo{havia uma nota aqui ([]) que eu não percebo}
+tools for case generation. %% \todo{havia uma nota aqui ([]) que eu não percebo}
 %
 Ideally, the best approach would be automatic testing.
 %
-\todo{remover esta frase, vsc?}
-\todo{Such tools reduce the time needed for testing software components and make
-it easier to test programs being developed.}
+%% \todo{remover esta frase, vsc?}
+%% \todo{Such tools reduce the time needed for testing software components and make
+%% it easier to test programs being developed.}
 
 
 %% In this work w
@@ -105,14 +105,17 @@ specification of properties to be tested.
 %
 Therefore, a property based approach to testing is intuitive for the
 logic programmer.
-\todo{tinha um coment\'ario do vsc, nao o entendi}
+%% \todo{tinha um coment\'ario do vsc, nao o entendi}
 
 %  how  (are we doing it)
 In a property-based framework tests are automatically generated and run from formal specifications of general
 properties of the program, and feedback is given to the user about their
 evaluation.
-\todo{sou contra o comentario para mudar 'generated' para antes de
-  'automatically' porque também se aplica ao 'run'}
+%% \todo{sou contra o comentario para mudar 'generated' para antes de
+%%   'automatically' porque também se aplica ao 'run'}
+%
+Property-based testing is a flexible approach whose applications include
+black-box, white-box, unit, integration and system testing.
 %
 We implement randomised test case generation, which frees the user
 from choosing input manually.
@@ -122,8 +125,8 @@ Other generation techniques
 implemented to complement the power of built-in generators.
 %
 Properties are stated through a domain-specific language wrapping
-\Prolog{} goals, which \plqc{} checks for a number of inputs. \todo{mais
-um comentario que nao percebo}
+\Prolog{} goals, which \plqc{} checks for a number of inputs. %% \todo{mais
+%% um comentario que nao percebo}
 %
 Singleton properties are pure predicate calls
 or composed goals whose successful execution determines that the
@@ -155,8 +158,8 @@ the nature of the language and loosed the requirements for property
 specification.
 %
 In non-logic programming languages interfaces rely on built-in mechanisms, such as equality or
-a boolean type, to determine primitive properties. \todo{em vez de
-  'traditional interfaces'}
+a boolean type, to determine primitive properties. %%  \todo{em vez de
+  %% 'traditional interfaces'}
 %
 Even if they are composed of software units of other types they still
 need to be able to evaluate to a truth value in order to assess a
@@ -169,8 +172,8 @@ With \Prolog{} there are no such restrictions: any goal may be a property.
 In \plqc{} primitive properties are %% defined as
 \Prolog{} goals and can be composed by \plqc{} operations.%% a property is a goal or a composition of
 %% properties.
-\todo{havia aqui um comentario a dizer que estava confuso, espero que
-  não esteja pior...}
+%% \todo{havia aqui um comentario a dizer que estava confuso, espero que
+%%   não esteja pior...}
 %
 A property is satisfied when the execution of the goal, given all
 necessary input, succeeds or the composition rules are met.

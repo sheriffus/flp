@@ -1,8 +1,8 @@
 % -*- mode: prolog; mode: folding -*-
 
 
-:- module(plqc, [quickcheck/1, quickcheck/2,
-                 quickcheckResult/2, quickcheckResult/3,
+:- module(plqc, [prologcheck/1, prologcheck/2,
+                 prologcheckResult/2, prologcheckResult/3,
                  int/2,
                  resize/4, choose/4,
                  sample/2, sampleK/3, sampleKSized/4, showSample/1,
@@ -10,12 +10,12 @@
                  oneof/3, frequency/3, variable/2, elements/3,
                  listOf/3, listOf1/3, vectorOf/4,
                  value/3, structure/3,
-                 qcforall/4
+                 pcforall/4
                  ]).
 
-:- meta_predicate quickcheck(:).
+:- meta_predicate prologcheck(:).
 %% :- module(plqc).
-%% :- module(plqc,[quickcheck/1, quickcheck/2, zx/2]).
+%% :- module(plqc,[prologcheck/1, prologcheck/2, zx/2]).
 
 :- reconsult(opts).
 :- reconsult(result).
@@ -30,8 +30,8 @@
 
 :- source.
 
-:- op(1010, xfy, qcand).
-:- op(1011, xfy, qcor).
+:- op(1010, xfy, pc_and).
+:- op(1011, xfy, pc_or).
 
 :- op(910, xfx, of_type).
 :- op(700, xfx, such_that).
@@ -41,22 +41,22 @@
 :- op(890, xfx, pre_cond).
 :- op(900, xfx, post_cond).
 
-% {{{ qc top predicates
+% {{{ pc top predicates
 
 %% | Tests a property and prints the results to 'stdout'.
-quickcheck(Property) :-
-        quickcheck(Property, []).
+prologcheck(Property) :-
+        prologcheck(Property, []).
 
 %% | Tests a property, using test arguments, and prints the results to 'stdout'.
-quickcheck(Property, UserOpts)  :-
-        quickcheckResult(Property, UserOpts, _Result).
+prologcheck(Property, UserOpts)  :-
+        prologcheckResult(Property, UserOpts, _Result).
 
 %% | Tests a property, produces a test result, and prints the results to 'stdout'.
-quickcheckResult(Property, Result) :-
-        quickcheckResult(Property, [], Result).
+prologcheckResult(Property, Result) :-
+        prologcheckResult(Property, [], Result).
 
 %% | Tests a property, using test arguments, produces a test result, and prints the results to 'stdout'.
-quickcheckResult(Property, UserOpts, Result) :-
+prologcheckResult(Property, UserOpts, Result) :-
         opts:parse(UserOpts, Opts),
         state:init(Opts, IState),
         test(Property, Opts, IState, OState, Result)
@@ -256,7 +256,7 @@ shrink(Binds, Test, Details, MaxShrinks, MaxShrinks, Flag, Opts, Ctx, MaxShrinks
 shrink(Binds, Mod:Test, Details, IShrinks, MaxShrinks, Flag, Opts, Ctx, OShrinks, OutRes) :-
         !, ctx:new_module(Ctx, Mod, Ctx1),
         shrink(Binds, Test, Details, IShrinks, MaxShrinks, Flag, Opts, Ctx1, OShrinks, OutRes).
-shrink([Bind|Binds], qcforall(Gen, Var, Test), Details, IShrinks, MaxShrinks, init, Opts, Ctx, OShrinks, OutRes) :-
+shrink([Bind|Binds], pcforall(Gen, Var, Test), Details, IShrinks, MaxShrinks, init, Opts, Ctx, OShrinks, OutRes) :-
         !,
         shrink_candidates(Bind, Gen, ShrunkVals),
         duplicate_term({Var, Test}, {Var1, Test1}),
@@ -274,18 +274,18 @@ shrink([Bind|Binds], qcforall(Gen, Var, Test), Details, IShrinks, MaxShrinks, in
         ctx:bind(Ctx, Bind, Ctx1), Var = Bind,
         shrink(Binds, Test, Details, IShrinks, MaxShrinks, init, Opts, Ctx1, OShrinks, OutRes)
         ).
-shrink([Bind|Binds], qcforall(Gen, Var, Test), Details, IShrinks, MaxShrinks, done, Opts, Ctx, OShrinks, OutRes) :-
+shrink([Bind|Binds], pcforall(Gen, Var, Test), Details, IShrinks, MaxShrinks, done, Opts, Ctx, OShrinks, OutRes) :-
         !,
         ctx:bind(Ctx, Bind, Ctx1), Var = Bind,
         shrink(Binds, Test, Details, IShrinks, MaxShrinks, done, Opts, Ctx1, OShrinks, OutRes).
-shrink(Binds, qcforall(Gen, Var, Test, Size), Details, IShrinks, MaxShrinks, Flag, Opts, Ctx, OShrinks, OutRes) :-
-        !, shrink(Binds, qcforall(Gen, Var, Test), Details, IShrinks, MaxShrinks, Flag, Opts, Ctx, OShrinks, OutRes).
-shrink(Binds, qcprop(Label), Details, IShrinks, MaxShrinks, Flag, Opts, Ctx, OShrinks, OutRes) :-
+shrink(Binds, pcforall(Gen, Var, Test, Size), Details, IShrinks, MaxShrinks, Flag, Opts, Ctx, OShrinks, OutRes) :-
+        !, shrink(Binds, pcforall(Gen, Var, Test), Details, IShrinks, MaxShrinks, Flag, Opts, Ctx, OShrinks, OutRes).
+shrink(Binds, pcprop(Label), Details, IShrinks, MaxShrinks, Flag, Opts, Ctx, OShrinks, OutRes) :-
         !,
         ctx:module(Ctx, M),
-        clause(M:qcprop(Label), Body),
+        clause(M:pcprop(Label), Body),
         shrink(Binds, Body, Details, IShrinks, MaxShrinks, Flag, Opts, Ctx, OShrinks, OutRes).
-shrink([Binds, BindsS], (Test qcand Tests), Details, IShrinks, MaxShrinks, Flag, Opts, Ctx, OShrinks, OutRes) :-
+shrink([Binds, BindsS], (Test pc_and Tests), Details, IShrinks, MaxShrinks, Flag, Opts, Ctx, OShrinks, OutRes) :-
         !, shrink(Binds, Test, Details, IShrinks, MaxShrinks, Flag, Opts, Ctx, Shrinks1, Res1),
         (result:is_pass_res(Res1), !,
         shrink(BindsS, Tests, Details, Shrinks1, MaxShrinks, Flag, Opts, Ctx, OShrinks, Res2),
@@ -301,13 +301,13 @@ shrink([Binds, BindsS], (Test qcand Tests), Details, IShrinks, MaxShrinks, Flag,
         result:performed_fail(Res2, Performed),
         result:mk_fail([{reason, Reason}, {bound, Bound},{actions, Actions}, {performed, Performed}], OutRes)
         ).
-shrink([BindsA, BindsB], (TestA qcor TestB), Details, IShrinks, MaxShrinks, Flag, Opts, Ctx, OShrinks, OutRes) :-
+shrink([BindsA, BindsB], (TestA pc_or TestB), Details, IShrinks, MaxShrinks, Flag, Opts, Ctx, OShrinks, OutRes) :-
         !, shrink(BindsA, TestA, Details, IShrinks, MaxShrinks, Flag, Opts, Ctx, Shrinks1, Res1),
         !, result:is_fail_res(Res1),
         shrink(BindsB, TestB, Details, Shrinks1, MaxShrinks, Flag, Opts, Ctx, OShrinks, Res2),
         !, result:is_fail_res(Res2),
         merge_results(Res1, Res2, OutRes).
-%% shrink([Binds, BindsA, BindsB], qcif(IfTest, TestA, TestB), Details, IShrinks, MaxShrinks, Flag, Opts, Ctx, OShrinks, OutRes) :-
+%% shrink([Binds, BindsA, BindsB], pcif(IfTest, TestA, TestB), Details, IShrinks, MaxShrinks, Flag, Opts, Ctx, OShrinks, OutRes) :-
 %%         shrink(Binds, IfTest, Details, IShrinks, MaxShrinks, Flag, Opts, Ctx, Shrinks1, Res1),
 %%         run(IfTest, Opts, Ctx, IState, State1, ResultI),
 %%         (result:is_pass_res(ResultI), !,
@@ -442,14 +442,14 @@ run(Mod:Test, Opts, Ctx, IState, OState, Result) :-
         !, ctx:new_module(Ctx, Mod, Ctx1),
         run(Test, Opts, Ctx1, IState, OState, Result).
 %% universal quantification
-run(qcforall(Gen, Var, Test), Opts, Ctx, IState, OState, Result) :- 
+run(pcforall(Gen, Var, Test), Opts, Ctx, IState, OState, Result) :- 
         !,
         state:get_size(IState,Size),
         bind_forall(Gen, Ctx, Var, Size),
         ctx:bind(Ctx, Var, Ctx1),
         run(Test, Opts, Ctx1, IState, OState, Result).
 %% explicitly sized quantification
-run(qcforall(Gen, Var, Test, Size), Opts, Ctx, IState, OState, Result) :- 
+run(pcforall(Gen, Var, Test, Size), Opts, Ctx, IState, OState, Result) :- 
         !,
         bind_forall(Gen, Ctx, Var, Size),
         ctx:bind(Ctx, Var, Ctx1),
@@ -457,14 +457,14 @@ run(qcforall(Gen, Var, Test, Size), Opts, Ctx, IState, OState, Result) :-
 %% a labeled property to be unfolded; requires compilation with 'source'
 %% Label is either the identifier (atom that identifies the property)
 %%  or a tuple with the identifier and the arguments
-run(qcprop(Label), Opts, Ctx, IState, OState, Result) :-
+run(pcprop(Label), Opts, Ctx, IState, OState, Result) :-
         !,
         ctx:module(Ctx, M),
-        clause(M:qcprop(Label), Body),
+        clause(M:pcprop(Label), Body),
         run(Body, Opts, Ctx, IState, OState, Result).
 %% conjunction - individual calls
 %% run((Test , Tests), Opts, Ctx, IState, OState, Result) :- 
-run((Test qcand Tests), Opts, Ctx, IState, OState, Result) :- 
+run((Test pc_and Tests), Opts, Ctx, IState, OState, Result) :- 
         !,
         run(Test, Opts, Ctx, IState, State1, Result1),
         (result:is_pass_res(Result1), !,
@@ -474,7 +474,7 @@ run((Test qcand Tests), Opts, Ctx, IState, OState, Result) :-
         merge_results(Result1, Result2, Result).
 %% disjunction - individual calls
 %% run((TestA ; TestB), Opts, Ctx, IState, OState, Result) :- 
-run((TestA qcor TestB), Opts, Ctx, IState, OState, Result) :- 
+run((TestA pc_or TestB), Opts, Ctx, IState, OState, Result) :- 
         !,
         run(TestA, Opts, Ctx, IState, State1, Result1),
         (result:is_fail_res(Result1), !,
@@ -482,7 +482,7 @@ run((TestA qcor TestB), Opts, Ctx, IState, OState, Result) :-
     ;
         Result2 = none, Ostate = State1),
         merge_results(Result1, Result2, Result).
-run(qcif(IfTest, TestA, TestB), Opts, Ctx, IState, OState, Result) :- 
+run(pcif(IfTest, TestA, TestB), Opts, Ctx, IState, OState, Result) :- 
         !,
         run(IfTest, Opts, Ctx, IState, State1, ResultI),
         (result:is_pass_res(ResultI), !,
@@ -610,7 +610,8 @@ resize(NewSize, GenA, A, _Size) :-
 %% TODO - define what can be 'ranged' for the previous point
 choose(Min,Max, A, _Size) :-
         Cap is Max+1,
-        random:random(Min,Cap,A). % a value between Min and Cap-1
+        random(Min,Cap,A). % a value between Min and Cap-1
+        %% random:random(Min,Cap,A). % a value between Min and Cap-1
 
 %% | Generates some example values.
 sampleDefaultSize(20).
@@ -675,7 +676,8 @@ suchThatMaybe(GenA, PredA, A, S) :-
 oneof(LGenA, A, S) :-
         length(LGenA, Cap),
         choose(1,Cap,I,S),
-        lists:nth(I, LGenA, GenA),
+        nth(I, LGenA, GenA),
+        %% lists:nth(I, LGenA, GenA),
         call(GenA, A, S).
         %% call_with_args(GenA, A, S).
 
@@ -715,7 +717,7 @@ elements(AS, A, S) :-
 %% %% segment increases with the size parameter.
 %% %% The input list must be non-empty.
 %% growingElements :: [a] -> Gen a
-%% growingElements [] = error "QuickCheck.growingElements used with empty list"
+%% growingElements [] = error "Prologcheck.growingElements used with empty list"
 %% growingElements xs = sized $ \n -> elements (take (1 `max` size n) xs)
 %%   where
 %%    k      = length xs
@@ -887,7 +889,7 @@ structure(X, Y, shrink, []).
 
 % --==================================================--
 
-qcforall(Gen, Var, Prop, Size) :-
+pcforall(Gen, Var, Prop, Size) :-
         call(Gen, Var, Size), call(Prop).
         %% call_with_args(Gen, Var, Size), call(Prop).
 
@@ -897,7 +899,7 @@ qcforall(Gen, Var, Prop, Size) :-
 % {{{ predicate specification language
 
 user:term_expansion( PredicateId of_type Typing,
-                     (qcprop(PropName) :- PLQCProperty)
+                     (pcprop(PropName) :- PLQCProperty)
  ) :-
         pred_spec_name(PredicateId, Predicate, PropName),
         spec_expand(Predicate, Typing, PLQCProperty)
@@ -962,7 +964,7 @@ spec_expand(Modifiers, Pred, Typing, Property) :-
         pp_typing(Typing, TS, Args), % pre-process typing for explicit arguments
         modify_gen(Modifiers, structure(TS), ArgGen), % modify generator if needed
         spec_prop(Modifiers, Pred, Args, InnerProperty), % build property
-        Property = plqc:qcforall(ArgGen, Args, InnerProperty).
+        Property = plqc:pcforall(ArgGen, Args, InnerProperty).
     % }}}
 
     % {{{ limit_mp(Modifiers, Range, NewModifiers)

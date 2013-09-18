@@ -17,13 +17,13 @@
 %% is_nil is the empty tree test
 %% Cmp should gve a comparison between two key values in terms of lt, gt, lte, gte, eq
 % {{{ bst initial property
-qcprop({bst, (tree, T), (curr_key, GetKey), (cmp_key, CmpKeys), (left, L), (right, R), (is_nil, IsNil)}) :- 
+pcprop({bst, (tree, T), (curr_key, GetKey), (cmp_key, CmpKeys), (left, L), (right, R), (is_nil, IsNil)}) :- 
         call(IsNil, T, V),
         (
             V=false, !,  call(GetKey, T, Key),  call(L, T, LT),  call(R, T, RT),
-            qcprop(bst, {(gt, [Key]),(lt, []),(tree, LT),(curr_key, GetKey), (cmp_key, CmpKeys),
+            pcprop(bst, {(gt, [Key]),(lt, []),(tree, LT),(curr_key, GetKey), (cmp_key, CmpKeys),
                           (left, L),(right, R),(is_nil, IsN)}),
-            qcprop(bst, {(gt, []),(lt, [Key]),(tree, RT),(curr_key, GetKey), (cmp_key, CmpKeys),
+            pcprop(bst, {(gt, []),(lt, [Key]),(tree, RT),(curr_key, GetKey), (cmp_key, CmpKeys),
                           (left, L),(right, R),(is_nil, IsN)})
         ;
             V=true, true
@@ -31,7 +31,7 @@ qcprop({bst, (tree, T), (curr_key, GetKey), (cmp_key, CmpKeys), (left, L), (righ
 % }}}
 % {{{ bst actual property with accumulators
 
-qcprop({bst, (gt, GTS), (lt, LTS), (tree, RT), (curr_key, GetKey), (cmp_key, CmpKeys), (left, L), (right, R), (is_nil, IsNil)}) :- 
+pcprop({bst, (gt, GTS), (lt, LTS), (tree, RT), (curr_key, GetKey), (cmp_key, CmpKeys), (left, L), (right, R), (is_nil, IsNil)}) :- 
         call(IsNil, T, V),
         (
             V=false, !,  call(GetKey, T, Key),  call(L, T, LT),   call(R, T, RT),
@@ -42,10 +42,10 @@ qcprop({bst, (gt, GTS), (lt, LTS), (tree, RT), (curr_key, GetKey), (cmp_key, Cmp
             (forall(member(X, GTS), call(CmpKeys, X, Key, gt)), !
             ; print(bst_key_not_inorder2), nl, fail),
             %% subtrees are bst where Key will be in the correct key order
-            qcprop({bst, (gt, [Key|GTS]), (lt, LTS), (tree, LT),
+            pcprop({bst, (gt, [Key|GTS]), (lt, LTS), (tree, LT),
                            (curr_key, GetKey), (cmp_key, CmpKeys),
                            (left, L),(right, R),(is_nil, IsN)}),
-            qcprop({bst, (gt, GTS), (lt, [Key|LTS]), (tree, RT),
+            pcprop({bst, (gt, GTS), (lt, [Key|LTS]), (tree, RT),
                            (curr_key, GetKey), (cmp_key, CmpKeys),
                            (left, L),(right, R),(is_nil, IsN)})
         ;
@@ -57,20 +57,20 @@ qcprop({bst, (gt, GTS), (lt, LTS), (tree, RT), (curr_key, GetKey), (cmp_key, Cmp
 
 
 % {{{ avl initial property (gives out height, but should it?)
-qcprop({avl, (tree, T), (height, H), (curr_key, GetKey), (cmp_key, CmpKeys), (left, L), (right, R), (is_nil, IsNil)}) :- 
-        qcif( (call(IsNil, T, V), V = false)
+pcprop({avl, (tree, T), (height, H), (curr_key, GetKey), (cmp_key, CmpKeys), (left, L), (right, R), (is_nil, IsNil)}) :- 
+        pcif( (call(IsNil, T, V), V = false)
         ,(
               (call(GetKey, T, Key),  call(L, T, LT),  call(R, T, RT))
-          qcand
+          pc_and
             %% subtrees are avl where Key will be in the correct key order
-            qcprop({avl, (gt, [Key]), (lt, []), (tree, LT), (height, LH),
+            pcprop({avl, (gt, [Key]), (lt, []), (tree, LT), (height, LH),
                            (curr_key, GetKey), (cmp_key, CmpKeys),
                            (left, L),(right, R),(is_nil, IsNil)})
-          qcand
-            qcprop({avl, (gt, []), (lt, [Key]), (tree, RT), (height, RH),
+          pc_and
+            pcprop({avl, (gt, []), (lt, [Key]), (tree, RT), (height, RH),
                            (curr_key, GetKey), (cmp_key, CmpKeys),
                            (left, L),(right, R),(is_nil, IsNil)})
-          qcand
+          pc_and
             ((abs(LH-RH) =< 1, !; print(height_mismatch), nl, fail),
             H is 1+ max(LH,RH))
         ),
@@ -79,8 +79,8 @@ qcprop({avl, (tree, T), (height, H), (curr_key, GetKey), (cmp_key, CmpKeys), (le
         ).
 % }}}
 % {{{ avl actual property with accumulators
-qcprop({avl, (gt, GTS), (lt, LTS), (tree, T), (height, H), (curr_key, GetKey), (cmp_key, CmpKeys), (left, L), (right, R), (is_nil, IsNil)}) :- 
-        qcif(
+pcprop({avl, (gt, GTS), (lt, LTS), (tree, T), (height, H), (curr_key, GetKey), (cmp_key, CmpKeys), (left, L), (right, R), (is_nil, IsNil)}) :- 
+        pcif(
             (call(IsNil, T, V), V=false)
         ,(
             (call(GetKey, T, Key), call(L, T, LT), call(R, T, RT),
@@ -90,16 +90,16 @@ qcprop({avl, (gt, GTS), (lt, LTS), (tree, T), (height, H), (curr_key, GetKey), (
             %% Key is less then all greater values (GTS)
             (forall(member(X, GTS), call(CmpKeys, X, Key, gt)), !
             ; print(avl_key_not_inorder2), nl, fail))
-          qcand
+          pc_and
             %% subtrees are avl where Key will be in the correct key order
-            qcprop({avl, (gt, [Key|GTS]), (lt, LTS), (tree, LT), (height, LH),
+            pcprop({avl, (gt, [Key|GTS]), (lt, LTS), (tree, LT), (height, LH),
                            (curr_key, GetKey), (cmp_key, CmpKeys),
                            (left, L),(right, R),(is_nil, IsNil)})
-          qcand
-            qcprop({avl, (gt, GTS), (lt, [Key|LTS]), (tree, RT), (height, RH),
+          pc_and
+            pcprop({avl, (gt, GTS), (lt, [Key|LTS]), (tree, RT), (height, RH),
                            (curr_key, GetKey), (cmp_key, CmpKeys),
                            (left, L),(right, R),(is_nil, IsNil)})
-          qcand
+          pc_and
             ((abs(LH-RH) =< 1, !; print(height_mismatch), nl, fail),
             H is 1+ max(LH,RH))
         ),
@@ -110,18 +110,18 @@ qcprop({avl, (gt, GTS), (lt, LTS), (tree, T), (height, H), (curr_key, GetKey), (
 
 
 % {{{ rbt initial property
-qcprop({rbt, (tree, T), (colour, GetColour), (curr_key, GetKey), (cmp_key, CmpKeys), (left, L), (right, R), (is_nil, IsNil)}) :- 
+pcprop({rbt, (tree, T), (colour, GetColour), (curr_key, GetKey), (cmp_key, CmpKeys), (left, L), (right, R), (is_nil, IsNil)}) :- 
         call(IsNil, T, V),
         %% the root is black  and  all leafs are black
         call(GetColour, T, Colour),  (Colour = black;  print(root_node_not_black)),
         (
             %% a rbt must be a bst
-            qcprop(bst, {(tree, T), (curr_key, GetKey), (cmp_key, CmpKeys),
+            pcprop(bst, {(tree, T), (curr_key, GetKey), (cmp_key, CmpKeys),
              (left, L), (right, R), (is_nil, IsNil)}),
             V=false, !,  call(GetKey, T, Key),  call(L, T, LT),  call(R, T, RT),
-            qcprop(rbt, {(tree, LT), (parent, Colour), (black_path, LN), (colour, GetColour),
+            pcprop(rbt, {(tree, LT), (parent, Colour), (black_path, LN), (colour, GetColour),
              (left, L), (right, R), (is_nil, IsNil)}),
-            qcprop(rbt, {(tree, RT), (parent, Colour), (black_path, RN), (colour, GetColour),
+            pcprop(rbt, {(tree, RT), (parent, Colour), (black_path, RN), (colour, GetColour),
              (left, L), (right, R), (is_nil, IsNil)}),
             (LN=RN, !; print(rbt_black_node_path_not_uniform), fail)
         ;
@@ -130,16 +130,16 @@ qcprop({rbt, (tree, T), (colour, GetColour), (curr_key, GetKey), (cmp_key, CmpKe
         
 % }}}
 % {{{ rbt actual property with accumulators
-qcprop({rbt, (tree, T), (parent, PColour), (black_path, N), (colour, GetColour), (left, L), (right, R), (is_nil, IsNil)}) :- 
+pcprop({rbt, (tree, T), (parent, PColour), (black_path, N), (colour, GetColour), (left, L), (right, R), (is_nil, IsNil)}) :- 
         call(IsNil, T, V),
         (
             V=false, !,  call(GetKey, T, Key),  call(GetColour, T, Colour),
             %% children of red nodes are black
             (PColour = red, !, Colour = black;  print(found_red_node_with_black_child), fail),
             call(L, T, LT),  call(R, T, RT),
-            qcprop(rbt, {(tree, LT), (parent, Colour), (black_path, LN), (colour, GetColour),
+            pcprop(rbt, {(tree, LT), (parent, Colour), (black_path, LN), (colour, GetColour),
              (left, L), (right, R), (is_nil, IsNil)}),
-            qcprop(rbt, {(tree, RT), (parent, Colour), (black_path, RN), (colour, GetColour),
+            pcprop(rbt, {(tree, RT), (parent, Colour), (black_path, RN), (colour, GetColour),
              (left, L), (right, R), (is_nil, IsNil)}),
             %% every path to leaf contains same number of black nodes
             (LN=RN, !; print(rbt_black_node_path_not_uniform), fail),
@@ -223,7 +223,7 @@ genKey(Key, Size) :-
 genVal(Val, Size) :-
         plqc:choose(0, Size, Val, Size).
 
-% qcprop(avl, {(tree, T), (height, H), (curr_key, GetKey), (cmp_key, CmpKeys), (left, L), (right, R), (is_nil, IsNil)})
+% pcprop(avl, {(tree, T), (height, H), (curr_key, GetKey), (cmp_key, CmpKeys), (left, L), (right, R), (is_nil, IsNil)})
   % }}}
 
   % {{{ accessing and checking tree fields
@@ -249,57 +249,57 @@ is_nil([], true).
   % }}}
 %% we take the generator of the avl module uses and... use it :)
 
-qcprop(avlUses) :-
-        qcforall(avlTest:genAvl(avlTest:genKey, avlTest:genVal, plqc:structure([avlTest:genVal])), Calls, qcprop({avlUses, Calls})).
+pcprop(avlUses) :-
+        pcforall(avlTest:genAvl(avlTest:genKey, avlTest:genVal, plqc:structure([avlTest:genVal])), Calls, pcprop({avlUses, Calls})).
 
-qcprop({avlUses, [(avl:avl_new)|Calls]}) :-
+pcprop({avlUses, [(avl:avl_new)|Calls]}) :-
         call(avl:avl_new(Tree))
-          qcand
-        qcif(
-          qcprop({avl, (tree, Tree), (height, 0), (curr_key, avlTest:get_key), (cmp_key, avlTest:cmp_keys),
+          pc_and
+        pcif(
+          pcprop({avl, (tree, Tree), (height, 0), (curr_key, avlTest:get_key), (cmp_key, avlTest:cmp_keys),
                        (left, avlTest:left), (right, avlTest:right), (is_nil, avlTest:is_nil)})
-        , (qcprop({avlUses, Tree, Calls}))
+        , (pcprop({avlUses, Tree, Calls}))
         , (print(avl_new_fail_invariant), nl, fail))
-          %% qcand
+          %% pc_and
         .
 
 
-qcprop({avlUses, Tree, []}).
-qcprop({avlUses, Tree, [{i,avl:avl_insert(Key,Val)}|Calls]}) :-
+pcprop({avlUses, Tree, []}).
+pcprop({avlUses, Tree, [{i,avl:avl_insert(Key,Val)}|Calls]}) :-
         ( call(avl:avl_insert(Key,Val), Tree, ContinuationTree)
         )%; nl, print(failed_insert), nl, print({Tree, Key, Val}), nl, nl, fail)
-          qcand
-        qcif(
-          qcprop({avl, (tree, ContinuationTree), (height, H), (curr_key, avlTest:get_key), (cmp_key, avlTest:cmp_keys), (left, avlTest:left), (right, avlTest:right), (is_nil, avlTest:is_nil)})
-        , (qcprop({avlUses, ContinuationTree, Calls}))
+          pc_and
+        pcif(
+          pcprop({avl, (tree, ContinuationTree), (height, H), (curr_key, avlTest:get_key), (cmp_key, avlTest:cmp_keys), (left, avlTest:left), (right, avlTest:right), (is_nil, avlTest:is_nil)})
+        , (pcprop({avlUses, ContinuationTree, Calls}))
         , (print(avl_insert_fail_invariant), nl,
           print({Tree, ContinuationTree}), nl, nl,
           fail))
-          %% qcand
+          %% pc_and
         .
-qcprop({avlUses, Tree, [{l1,avl:avl_lookup(Key,Val)}|Calls]}) :-
+pcprop({avlUses, Tree, [{l1,avl:avl_lookup(Key,Val)}|Calls]}) :-
         (call(avl:avl_lookup(Key,Val), Tree); print(avl_lookup_not_found_fail), nl, fail)
-          qcand
-        %% qcprop({avl, (tree, Tree), (height, _H), (curr_key, avlTest:get_key), (cmp_key, avlTest:cmp_keys), (left, avlTest:left), (right, avlTest:right), (is_nil, avlTest:is_nil)})
-        %%   qcand
-        qcprop({avlUses, Tree, Calls}).
-qcprop({avlUses, Tree, [{l2,avl:avl_lookup(Key,Val)}|Calls]}) :-
+          pc_and
+        %% pcprop({avl, (tree, Tree), (height, _H), (curr_key, avlTest:get_key), (cmp_key, avlTest:cmp_keys), (left, avlTest:left), (right, avlTest:right), (is_nil, avlTest:is_nil)})
+        %%   pc_and
+        pcprop({avlUses, Tree, Calls}).
+pcprop({avlUses, Tree, [{l2,avl:avl_lookup(Key,Val)}|Calls]}) :-
         ((call(avl:avl_lookup(Key,XVal), Tree)
         ; print(avl_lookup_not_bound_fail), nl, fail), XVal = Val)
-          qcand
-        %% qcprop({avl, (tree, Tree), (height, _H), (curr_key, avlTest:get_key), (cmp_key, avlTest:cmp_keys), (left, avlTest:left), (right, avlTest:right), (is_nil, avlTest:is_nil)})
-        %%   qcand
-        qcprop({avlUses, Tree, Calls}).
-qcprop({avlUses, Tree, [{fl,avl:avl_lookup(Key,Val)}|Calls]}) :-
+          pc_and
+        %% pcprop({avl, (tree, Tree), (height, _H), (curr_key, avlTest:get_key), (cmp_key, avlTest:cmp_keys), (left, avlTest:left), (right, avlTest:right), (is_nil, avlTest:is_nil)})
+        %%   pc_and
+        pcprop({avlUses, Tree, Calls}).
+pcprop({avlUses, Tree, [{fl,avl:avl_lookup(Key,Val)}|Calls]}) :-
         (call(avl:avl_lookup(Key,Val), Tree), print(avl_lookup_found_fail), nl, !, fail
     ;   true)
-        %%   qcand
-        %% qcprop({avl, (tree, Tree), (height, _H), (curr_key, avlTest:get_key), (cmp_key, avlTest:cmp_keys), (left, avlTest:left), (right, avlTest:right), (is_nil, avlTest:is_nil)})
-          qcand
-        qcprop({avlUses, Tree, Calls}).
+        %%   pc_and
+        %% pcprop({avl, (tree, Tree), (height, _H), (curr_key, avlTest:get_key), (cmp_key, avlTest:cmp_keys), (left, avlTest:left), (right, avlTest:right), (is_nil, avlTest:is_nil)})
+          pc_and
+        pcprop({avlUses, Tree, Calls}).
 
 %% [(avl:avl_new(_A)'|'[{i,avl:avl_insert(21915,15)},{i,avl:avl_insert(44184,12)},{fl,avl:avl_lookup(25986,[0])},{i,avl:avl_insert(38292,3)},{i,avl:avl_insert(12413,0)},{fl,avl:avl_lookup(46865,[1])}])],
-%%    ?- plqc:quickcheck( avlTest:(qcprop(avlUses)), [{numtests, 1000}] ).
+%%    ?- plqc:quickcheck( avlTest:(pcprop(avlUses)), [{numtests, 1000}] ).
 %% ...........................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................avl_lookup_not_bound_fail
 %% !
 %% Failed: After 732 test(s).
@@ -313,20 +313,20 @@ qcprop({avlUses, Tree, [{fl,avl:avl_lookup(Key,Val)}|Calls]}) :-
 
 
 % {{{ avl initial property (gives out height, but should it?)
-qcprop({avl, (tree, T), (height, H), (curr_key, GetKey), (cmp_key, CmpKeys), (left, L), (right, R), (is_nil, IsNil)}) :- 
-        qcif( (call(IsNil, T, V), V = false)
+pcprop({avl, (tree, T), (height, H), (curr_key, GetKey), (cmp_key, CmpKeys), (left, L), (right, R), (is_nil, IsNil)}) :- 
+        pcif( (call(IsNil, T, V), V = false)
         ,(
               (call(GetKey, T, Key),  call(L, T, LT),  call(R, T, RT))
-          qcand
+          pc_and
             %% subtrees are avl where Key will be in the correct key order
-            qcprop({avl, (gt, [Key]), (lt, []), (tree, LT), (height, LH),
+            pcprop({avl, (gt, [Key]), (lt, []), (tree, LT), (height, LH),
                            (curr_key, GetKey), (cmp_key, CmpKeys),
                            (left, L),(right, R),(is_nil, IsNil)})
-          qcand
-            qcprop({avl, (gt, []), (lt, [Key]), (tree, RT), (height, RH),
+          pc_and
+            pcprop({avl, (gt, []), (lt, [Key]), (tree, RT), (height, RH),
                            (curr_key, GetKey), (cmp_key, CmpKeys),
                            (left, L),(right, R),(is_nil, IsNil)})
-          qcand
+          pc_and
             ((abs(LH-RH) =< 1, !; print(height_mismatch), nl, fail),
             H is 1+ max(LH,RH))
         ),
@@ -335,8 +335,8 @@ qcprop({avl, (tree, T), (height, H), (curr_key, GetKey), (cmp_key, CmpKeys), (le
         ).
 % }}}
 % {{{ avl actual property with accumulators
-qcprop({avl, (gt, GTS), (lt, LTS), (tree, T), (height, H), (curr_key, GetKey), (cmp_key, CmpKeys), (left, L), (right, R), (is_nil, IsNil)}) :- 
-        qcif(
+pcprop({avl, (gt, GTS), (lt, LTS), (tree, T), (height, H), (curr_key, GetKey), (cmp_key, CmpKeys), (left, L), (right, R), (is_nil, IsNil)}) :- 
+        pcif(
             (call(IsNil, T, V), V=false)
         ,(
             (call(GetKey, T, Key), call(L, T, LT), call(R, T, RT),
@@ -346,16 +346,16 @@ qcprop({avl, (gt, GTS), (lt, LTS), (tree, T), (height, H), (curr_key, GetKey), (
             %% Key is less then all greater values (GTS)
             (forall(member(X, GTS), call(CmpKeys, X, Key, gt)), !
             ; print(avl_key_not_inorder2), nl, fail))
-          qcand
+          pc_and
             %% subtrees are avl where Key will be in the correct key order
-            qcprop({avl, (gt, [Key|GTS]), (lt, LTS), (tree, LT), (height, LH),
+            pcprop({avl, (gt, [Key|GTS]), (lt, LTS), (tree, LT), (height, LH),
                            (curr_key, GetKey), (cmp_key, CmpKeys),
                            (left, L),(right, R),(is_nil, IsNil)})
-          qcand
-            qcprop({avl, (gt, GTS), (lt, [Key|LTS]), (tree, RT), (height, RH),
+          pc_and
+            pcprop({avl, (gt, GTS), (lt, [Key|LTS]), (tree, RT), (height, RH),
                            (curr_key, GetKey), (cmp_key, CmpKeys),
                            (left, L),(right, R),(is_nil, IsNil)})
-          qcand
+          pc_and
             ((abs(LH-RH) =< 1, !; print(height_mismatch), nl, fail),
             H is 1+ max(LH,RH))
         ),

@@ -2,7 +2,7 @@
 
 
 :- module(plqccase1).
-%% :- module(plqc,[quickcheck/1, quickcheck/2, zx/2]).
+%% :- module(plqc,[prologcheck/1, prologcheck/2, zx/2]).
 
 :- source.
 
@@ -13,7 +13,7 @@
 %% :- ensure_loaded(plqc).
 %% :- use_module(plqc).
 
-:- meta_predicate qcprop(:).
+:- meta_predicate pcprop(:).
 
 % {{{ convert between regular and difference lists
 %% difference list to list
@@ -42,8 +42,8 @@ l2dl([X|XS], [X|L]-T) :- l2dl(XS, L-T).
 %% property saying these are 'mirror' relations
 %% the cuts enforce the first result they give
 %% resulting in a functional use of the predicates
-qcprop(l2dl2l) :- 
-        plqc:qcforall( listOf(int), L, (plqccase1:l2dl(L,DL-T), !,
+pcprop(l2dl2l) :- 
+        plqc:pcforall( listOf(int), L, (plqccase1:l2dl(L,DL-T), !,
                                         plqccase1:dl2l(DL-T,L1), !,
                                         L == L1), 50).
     % }}}
@@ -57,7 +57,7 @@ l2dl2l_mirror(L) :-
     % }}}
     % {{{ spec l2dl2l_mirror(L)
 %% specification of l2dl2l_mirror predicate has the same
-%% effect as qcprop(l2dl2l)
+%% effect as pcprop(l2dl2l)
 {plqccase1:l2dl2l_mirror, 1}
     of_type (L-(plqc:listOf(int)))
     where (i(g), o(g))
@@ -138,18 +138,27 @@ append([X|XS], YS, [X|AS]) :-
         append(XS, YS, AS).
 
     % {{{ append _
- plqccase1:append
-    of_type (A-(plqc:listOf(int)), B-(plqc:listOf(int)), C-(plqc:variable))
+ append
+    of_type (A-(listOf(int)), B-(listOf(int)), C-(variable))
     where (i(g, g, v), o(g, g, g))
     has_range {1,1}.
+ %% plqccase1:append
+ %%    of_type (A-(plqc:listOf(int)), B-(plqc:listOf(int)), C-(plqc:variable))
+ %%    where (i(g, g, v), o(g, g, g))
+ %%    has_range {1,1}.
     % }}}
 
     % {{{ append 1
-{plqccase1:append, 1}
-    of_type (A-(plqc:listOf(int)), B-(plqc:variable), C-(plqc:variable))
+{append, 1}
+    of_type (A-(listOf(int)), B-(variable), C-(variable))
     where (i(g, v, v), o(g, v, ngv), o(g, v, v)) % when L1 is [], LApp is L2, i.e. var
     has_range {1,1} % default 1-inf
     .
+%% {plqccase1:append, 1}
+%%     of_type (A-(plqc:listOf(int)), B-(plqc:variable), C-(plqc:variable))
+%%     where (i(g, v, v), o(g, v, ngv), o(g, v, v)) % when L1 is [], LApp is L2, i.e. var
+%%     has_range {1,1} % default 1-inf
+%%     .
     % }}}
     % {{{ append 2
 {plqccase1:append, 2}
@@ -168,16 +177,16 @@ rotate1([H|T],R) :- append(T,[H],R).
 drotate1([H|T]-[H|L],T-L).
 
 %% rotate property merge
-qcprop(rotate_prop) :- 
-        plqc:qcforall( listOf(int), L, plqccase1:(qcprop({rotate_permute, L}),
-                                        %% qcprop({rotate_order, L}),
-                                        qcprop({rotate_drotate_eq, L})
+pcprop(rotate_prop) :- 
+        plqc:pcforall( listOf(int), L, plqccase1:(pcprop({rotate_permute, L}),
+                                        %% pcprop({rotate_order, L}),
+                                        pcprop({rotate_drotate_eq, L})
                                         )).
 
 %% property saying rotate operation preserves size and
 %% elements (the result is a permutation of the input)
-qcprop({rotate_permute, L}) :- 
-        plqc:qcforall( elements(L), X, 
+pcprop({rotate_permute, L}) :- 
+        plqc:pcforall( elements(L), X, 
             plqccase1:(
             rotate1(L, L1),
             same_count(X, L, L1),
@@ -198,11 +207,11 @@ count_off1(X, L1, [_|L2]) :- count_off1(X, L1, L2).
 
 %% %% property saying rotate operation preserves circular order and
 %% %% that the head of the input is the last element of the result
-%% qcprop({rotate_order, L}) :- 
+%% pcprop({rotate_order, L}) :- 
         
 
 %% property stating rotate and drotate equivalence
-qcprop({rotate_drotate_eq, L}) :- 
+pcprop({rotate_drotate_eq, L}) :- 
         plqccase1:rotate1(L, L1),
         plqccase1:drotate1(L, L1x),
         !,
@@ -229,41 +238,41 @@ rev_acc(L, LR) :- rev_acc(L, [], LR).
 
 % {{{ double reverse is id
 
-qcprop(double_rev_app) :-
-        plqc:qcforall( listOf(int), L, plqccase1:qcprop({double_rev_app_body, L})).
+pcprop(double_rev_app) :-
+        plqc:pcforall( listOf(int), L, plqccase1:pcprop({double_rev_app_body, L})).
 
-qcprop({double_rev_app_body, L}) :- 
+pcprop({double_rev_app_body, L}) :- 
         plqccase1:rev_app(L, LR), !, % first solution
         plqccase1:rev_app(LR, L2), !, L == L2.
 
-qcprop(double_rev_acc) :-
-        plqc:qcforall( listOf(int), L, plqccase1:qcprop({double_rev_acc_body, L})).
+pcprop(double_rev_acc) :-
+        plqc:pcforall( listOf(int), L, plqccase1:pcprop({double_rev_acc_body, L})).
 
-qcprop({double_rev_acc_body, L}) :- 
+pcprop({double_rev_acc_body, L}) :- 
         plqccase1:rev_acc(L, LR), !, % first solution
         plqccase1:rev_acc(LR, L2), !, L == L2.
 
 % }}}
 
-qcprop(wrong_drev) :-
-        plqc:qcforall( listOf(int), XS, (plqccase1:rev_acc(XS,RX), plqccase1:rev_app(RX,RX))).
+pcprop(wrong_drev) :-
+        plqc:pcforall( listOf(int), XS, (plqccase1:rev_acc(XS,RX), plqccase1:rev_app(RX,RX))).
 
 % {{{ reverse implementations should be equiv
 
-qcprop(equiv_acc_app) :-
-        plqc:qcforall( listOf(int), L, (plqccase1:rev_acc(L,LR), plqccase1:rev_app(L,LR))).
+pcprop(equiv_acc_app) :-
+        plqc:pcforall( listOf(int), L, (plqccase1:rev_acc(L,LR), plqccase1:rev_app(L,LR))).
 
 % }}}
 
 % {{{ index check on reversed list
 
-qcprop(rev_app_index) :-
-        plqc:qcforall( suchThat(structure({listOf(int), int}), plqccase1:valid_index), {L,I},
-                       plqccase1:qcprop({double_rev_index_body, L, I})).
+pcprop(rev_app_index) :-
+        plqc:pcforall( suchThat(structure({listOf(int), int}), plqccase1:valid_index), {L,I},
+                       plqccase1:pcprop({double_rev_index_body, L, I})).
 valid_index({L, I}) :-
         length(L,X), I<X. 
 
-qcprop({double_rev_index_body, L, I}) :- 
+pcprop({double_rev_index_body, L, I}) :- 
         plqccase1:rev_app(L, LR), !, % first solution
         length(L,X),
         Index is I+1, RevIndex is X-I,
@@ -272,8 +281,8 @@ qcprop({double_rev_index_body, L, I}) :-
 
 % }}}
 
-%% ?- plqc:quickcheck(plqccase1:qcprop(l2dl2l)).
-%% ?- plqc:quickcheck(plqccase1:qcprop(double_rev)).
+%% ?- plqc:prologcheck(plqccase1:pcprop(l2dl2l)).
+%% ?- plqc:prologcheck(plqccase1:pcprop(double_rev)).
 
 test(Arg1, Arg2) :- var(Arg2).%, print({t1, Arg1, Arg2}), nl.
 test(Arg1, [Arg2]) :- true.%print({t2, Arg1, Arg2}), nl.
@@ -322,69 +331,96 @@ odd_list([X|XS]) :- 0 is X mod 2, odd_list(XS).
 %    ?- opts:parse([], Opts), state:init(Opts, IState), trace, plqc:test(true, Opts, IState, OState, Result).
 
 
-%% ?- plqc:quickcheck(plqccase1:qcprop(spec_rev_app_1)).
-%% ?- plqc:quickcheck(plqccase1:qcprop(spec_test_1)).
-%% ?- plqccase1:qcprop(spec_rev_app_1).
-%% ?- plqccase1:qcprop(spec_test_1).
-   %% ?- plqc:clause(plqccase1:qcprop(spec_test_1), L).
-   %% ?- clause(plqccase1:qcprop(spec_test_1), L).
-   %% ?- plqccase1:qcprop(spec_test_1).
-   %% ?- qcprop(spec_test_1).
+%% ?- plqc:prologcheck(plqccase1:pcprop(spec_rev_app_1)).
+%% ?- plqc:prologcheck(plqccase1:pcprop(spec_test_1)).
+%% ?- plqccase1:pcprop(spec_rev_app_1).
+%% ?- plqccase1:pcprop(spec_test_1).
+   %% ?- plqc:clause(plqccase1:pcprop(spec_test_1), L).
+   %% ?- clause(plqccase1:pcprop(spec_test_1), L).
+   %% ?- plqccase1:pcprop(spec_test_1).
+   %% ?- pcprop(spec_test_1).
    %% ?- clause(plqccase1:t, X), user:expand_term(X, Y).
 
    %% ?- reconsult(plqccase1).
    %% ?- clause(plqccase1:t, X), user:expand_term(X, Y).
-   %% ?- plqccase1:qcprop(spec_test_1).
-   %% ?- clause(plqccase1:qcprop(spec_test_1),X).
+   %% ?- plqccase1:pcprop(spec_test_1).
+   %% ?- clause(plqccase1:pcprop(spec_test_1),X).
    %% ?- clause(plqccase1:t, X), user:expand_term(X, Y).
-   %% ?- plqc:quickcheck(plqccase1:qcprop(spec_test_1)).
-   %% ?- plqc:quickcheck(plqccase1:qcprop(spec_test_1)).
+   %% ?- plqc:prologcheck(plqccase1:pcprop(spec_test_1)).
+   %% ?- plqc:prologcheck(plqccase1:pcprop(spec_test_1)).
    %% ?- call(call(plqccase1:test, a),b).
    %% ?- plqccase1:test(a,b).
 
-qcprop(int10) :- 
-        plqc:qcforall( int, I, (I =< 10)).
+pcprop(int10) :- 
+        plqc:pcforall( int, I, (I =< 10)).
 
-%% plqc:quickcheck(plqccase1:qcprop(spec_rev_app_1)).
-%% plqc:quickcheck(plqccase1:qcprop(spec_test_1)).
-%% plqc:quickcheck(plqccase1:qcprop(spec_test_2)).
-%% plqc:quickcheck(plqccase1:qcprop(spec_test_3)).
-%% plqc:quickcheck(plqccase1:qcprop(spec_test_4)).
-%% plqc:quickcheck(plqccase1:qcprop(spec_test_5)).
-%% plqc:quickcheck((plqccase1:qcprop(double_rev_app)) qcand (plqccase1:qcprop(double_rev_acc))).
+%% plqc:prologcheck(plqccase1:pcprop(spec_rev_app_1)).
+%% plqc:prologcheck(plqccase1:pcprop(spec_test_1)).
+%% plqc:prologcheck(plqccase1:pcprop(spec_test_2)).
+%% plqc:prologcheck(plqccase1:pcprop(spec_test_3)).
+%% plqc:prologcheck(plqccase1:pcprop(spec_test_4)).
+%% plqc:prologcheck(plqccase1:pcprop(spec_test_5)).
+%% plqc:prologcheck((plqccase1:pcprop(double_rev_app)) pc_and (plqccase1:pcprop(double_rev_acc))).
 
 %% $ yap
 %%    ?- reconsult(plqccase1).
 %%    ?- use_module(plqccase1).
-%%    ?- plqc:quickcheck(plqccase1:qcprop(double_rev_app)).
+%%    ?- plqc:prologcheck(plqccase1:pcprop(double_rev_app)).
 %% ....................................................................................................
 %% OK: Passed 100 test(s).
 %% yes
-%%    ?- plqc:quickcheck(plqccase1:qcprop(double_rev_acc)).
+%%    ?- plqc:prologcheck(plqccase1:pcprop(double_rev_acc)).
 %% ....................................................................................................
 %% OK: Passed 100 test(s).
 %% yes
-   %% ?- plqc:quickcheck(plqccase1:qcprop(wrong_drev)).
-   %% | quickcheck(qcprop(double_rev_acc)).
+   %% ?- plqc:prologcheck(plqccase1:pcprop(wrong_drev)).
+   %% | prologcheck(pcprop(double_rev_acc)).
    %% | reconsult(plqc).
    %% | reconsult(plqccase1).
-   %% | quickcheck(plqccase1:qcprop(double_rev_acc)).
+   %% | prologcheck(plqccase1:pcprop(double_rev_acc)).
    %% | use_module(plqccase1).
    %% | oneof([int, value(a)],X,10).
    %% | use_module(plqc).
-   %% | elements(int,X,10).
-   %% | plqc:elements(int,X,10).
+   %% | elements([a,b,c],X,10).
+   %% | plqc:elements([a,b,c],X,10).
 
-%%      plqc:quickcheck(plqccase1:qcprop(double_rev)).
-%%      quickcheck(plqccase1:qcprop(double_rev)).
-%%      quickcheck(qcprop(double_rev)).
+%%      plqc:prologcheck(plqccase1:pcprop(double_rev)).
+%%      prologcheck(plqccase1:pcprop(double_rev)).
+%%      prologcheck(pcprop(double_rev)).
 
-qcprop(double_rev) :-
-        qcforall( listOf(int), L, qcprop({drev, L})).
+pcprop(double_rev) :-
+        pcforall( listOf(int), L, pcprop({drev, L})).
 
-qcprop({drev, L}) :- 
+pcprop({drev, L}) :- 
         rev_app(L, LR), !, % first solution
         rev_app(LR, L2), !, L == L2.
 
-qcprop(w_drev) :-
-        qcforall( listOf(int), XS, (rev_acc(XS,RX), rev_app(RX,RX))).
+pcprop(w_drev) :-
+        pcforall( listOf(int), XS, (rev_acc(XS,RX), rev_app(RX,RX))).
+%%    ?- prologcheck(plqccase1:pcprop(w_drev), [noshrink]).
+%% ....!
+%% Failed: After 5 test(s).
+%% Counterexample found: [[0,3,2]] 
+%% yes
+%%    ?- prologcheck(plqccase1:pcprop(w_drev)).
+%% ..........!
+%% Failed: After 11 test(s).
+%% Shrinking (6 time(s))
+%% Counterexample found: [[0,6]] 
+%% yes
+pcprop(r_app_i) :-
+        pcforall( suchThat(structure({listOf(int), int}),
+                           plqccase1:valid_index),
+                  {L,I},
+                  plqccase1:pcprop({dr_app_i_body, L, I}) ).
+valid_index({L, I}) :- length(L,X), I<X.
+
+pcprop({dr_app_i_body, L, I}) :- 
+        rev_app(L, LR),
+        length(L,X), 
+        Index is I+1,
+        RevIndex is X-I,
+        lists:nth(Index, L, Val),
+        lists:nth(RevIndex, LR, Val).
+pcprop(equiv_revs) :-
+        pcforall( listOf(int), L, (rev_acc(L,LR), rev_app(L,LR))).

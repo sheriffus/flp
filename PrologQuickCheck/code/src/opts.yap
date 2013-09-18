@@ -4,17 +4,17 @@
 
 % {{{ defaults
 
-%% fun io :: output_fun()
-%% false :: boolean(),
-%% 100 :: pos_integer(),
-%% 1 :: size(),
-%% :: seed(),
-%% 42 :: size(),
-%% 500 :: non_neg_integer(),
-%% false :: boolean(),
-%% 50 :: pos_integer(),
-%% false :: boolean(),
-%% :: {'type', plqc_types:any_type()},
+%% fun io   :: output_fun()
+%% false    :: boolean(),
+%% 100      :: pos_integer(),
+%% 1        :: size(),
+%%          :: seed(),  % TODO
+%% 42       :: size(),
+%% 500      :: non_neg_integer(),
+%% false    :: boolean(),
+%% 50       :: pos_integer(),
+%% false    :: boolean(),
+%%          :: {'type', plqc_types:any_type()},
 %% infinity :: timeout()}).
 
 %% default options
@@ -26,20 +26,18 @@ default({opts, format, false, 100, 1, some_seed, 42, 500, false, 50, false, {typ
 
 % {{{ accessing options
 
-%% size(_, 3).      % ########## biggest hack
-
-output_fun({opts, OutputFun, _,_,_,_,_,_,_,_,_,_,_}, OutputFun).
-long_result({opts, _, LongResult, _,_,_,_,_,_,_,_,_,_}, LongResult).
-numtests({opts, _,_, NumTests, _,_,_,_,_,_,_,_,_}, NumTests).
-start_size({opts, _,_,_, StartSize, _,_,_,_,_,_,_,_}, StartSize).
-seed({opts, _,_,_,_, Seed, _, _,_,_,_,_,_}, Seed).
-max_size({opts, _,_,_,_,_, MaxSize, _,_,_,_,_,_}, MaxSize).
-max_shrinks({opts, _,_,_,_,_,_, MaxShrinks, _,_,_,_,_}, MaxShrinks).
-noshrink({opts, _,_,_,_,_,_,_, NoShrink, _,_,_,_}, NoShrink).
-constraint_tries({opts, _,_,_,_,_,_,_,_, ConstraintTries, _,_,_}, ConstraintTries).
-expect_fail({opts, _,_,_,_,_,_,_,_,_, ExpectFail, _,_}, ExpectFail).
-any_type({opts, _,_,_,_,_,_,_,_,_,_, AnyType, _}, AnyType).
-spec_timeout({opts, _,_,_,_,_,_,_,_,_,_,_, SpecTimeout}, SpecTimeout).
+output_fun(       {opts, OutputFun, _,_,_,_,_,_,_,_,_,_,_},        OutputFun).
+long_result(      {opts, _, LongResult, _,_,_,_,_,_,_,_,_,_},      LongResult).
+numtests(         {opts, _,_, NumTests, _,_,_,_,_,_,_,_,_},        NumTests).
+start_size(       {opts, _,_,_, StartSize, _,_,_,_,_,_,_,_},       StartSize).
+seed(             {opts, _,_,_,_, Seed, _, _,_,_,_,_,_},           Seed).
+max_size(         {opts, _,_,_,_,_, MaxSize, _,_,_,_,_,_},         MaxSize).
+max_shrinks(      {opts, _,_,_,_,_,_, MaxShrinks, _,_,_,_,_},      MaxShrinks).
+noshrink(         {opts, _,_,_,_,_,_,_, NoShrink, _,_,_,_},        NoShrink).
+constraint_tries( {opts, _,_,_,_,_,_,_,_, ConstraintTries, _,_,_}, ConstraintTries).
+expect_fail(      {opts, _,_,_,_,_,_,_,_,_, ExpectFail, _,_},      ExpectFail).
+any_type(         {opts, _,_,_,_,_,_,_,_,_,_, AnyType, _},         AnyType).
+spec_timeout(     {opts, _,_,_,_,_,_,_,_,_,_,_, SpecTimeout},      SpecTimeout).
 
 % }}}
 
@@ -178,7 +176,7 @@ parse_opt(verbose, OptsA, Opts) :-
         new_output_fun(OptsA, opts:verbosefun, Opts).
 parse_opt({to_file,IoDev}, OptsA, Opts) :-
         new_output_fun(OptsA, opts:tofilefun(IoDev), Opts).    % TODO
-        %% fun(S,F) -> io:format(IoDev, S, F) end
+        %% io:format(IoDev, S, F) 
 parse_opt({to_strem,Strem}, OptsA, Opts) :-
         new_output_fun(OptsA, opts:tostreamfun(Stream), Opts).
 parse_opt({on_output,Print}, OptsA, Opts) :-
@@ -187,9 +185,6 @@ parse_opt(long_result, OptsA, Opts) :-
         new_long_result(OptsA, true, Opts).
 parse_opt({numtests,N}, OptsA, Opts) :-
         new_numtests(OptsA, N, Opts).
-%% parse_opt(N, OptsA, Opts) :-
-%%         N when is_integer(N)
-%%         new_numtests(OptsA, N, Opts).
 parse_opt({start_size,Size}, OptsA, Opts) :-
         new_start_size(OptsA, Size, Opts).
 parse_opt({max_size,Size}, OptsA, Opts) :-

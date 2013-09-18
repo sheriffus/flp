@@ -23,13 +23,7 @@ init(Opts, State) :-
         put_constraint_tries(CTries, State3, State4),
         put_any_type(AnyType, State4, State5),
         % {{{ TODO when choosing a seed is possible
-        %% S = case Seed of
-        %%     undefined -> now();
-        %%     _ -> Seed
-        %% end,
-        %% plqc_arith:rand_start(S),
         % }}}
-        %% typeserver start,
         State = State5.
   % }}}
 

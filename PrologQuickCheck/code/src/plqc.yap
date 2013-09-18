@@ -13,15 +13,12 @@
                  pcforall/4
                  ]).
 
-:- meta_predicate prologcheck(:).
-%% :- module(plqc).
-%% :- module(plqc,[prologcheck/1, prologcheck/2, zx/2]).
+%% :- meta_predicate prologcheck(:).
 
 :- reconsult(opts).
 :- reconsult(result).
 :- reconsult(ctx).
 :- reconsult(state).
-:- reconsult(shrink).
 
 :- use_module(library(random)).
 :- use_module(library(lists)).
@@ -79,7 +76,6 @@ test(Property, Opts, IState, OState, Result) :-
         perform(0, NumTests, N, Property, Opts, IState, OState, Result1),
         %% report result with printing Print predicate
         call(Print,"~n", []),
-        %% call_with_args(Print,"~n", []),
         report_result(Result1, Opts),
         %% polish gross result into long/short testing result (possible shrinking)
         refine_result(Result1, Property, Opts, ShortRes, LongRes),
@@ -107,12 +103,10 @@ report_result( Result, Opts ) :-
               ( %% expected fail
                   ExpectF = true, !,
                   call(Print, "Failed: All ~d tests passed when a failure was expected.~n", [Performed])
-                  %% call_with_args(Print, "Failed: All ~d tests passed when a failure was expected.~n", [Performed])
               )
              ;
               ( %% expected pass
                   call(Print, "OK: Passed ~d test(s).~n", [Performed])
-                  %% call_with_args(Print, "OK: Passed ~d test(s).~n", [Performed])
               )
              )
          )
@@ -124,12 +118,10 @@ report_result( Result, Opts ) :-
               ( %% expected fail
                   ExpectF = true, !,
                   call(Print, "OK: Failed as expected, after ~d test(s).~n", [Performed])
-                  %% call_with_args(Print, "OK: Failed as expected, after ~d test(s).~n", [Performed])
               )
              ;
               ( %% expected pass
                   call(Print, "Failed: After ~d test(s).\n", [Performed]),
-                  %% call_with_args(Print, "Failed: After ~d test(s).\n", [Performed]),
                   report_fail_reason(Reason, "", Print),
                   result:bound_fail(Result, Bound),
                   (opts:noshrink(Opts, true), !, print_testcase(Bound, Print); true)
@@ -153,48 +145,31 @@ print_testcase([], Print) :-
         call(Print, "No counterexample (empty bindings) \n", []).
 print_testcase(Bound, Print) :-
         call(Print, "Counterexample found: ~w \n", [Bound]).
-        %% call_with_args(Print, "Counterexample found: ~w \n", [Bound]).
 
     % }}}
 
     % {{{ TODO report_error
-
+% TODO
 report_error(Reason, Print) :- print(report_error_predicate_missing).
-
    % }}}
 
     % {{{ report_fail_reason
-
 report_fail_reason(false_prop, _Prefix, _Print) :- !.
 report_fail_reason(time_out, Prefix, Print) :-
         lists:append(Prefix, "Test execution timed out.~n", Msg),
         call(Print, Msg, []).
-        %% call_with_args(Print, Msg, []).
 report_fail_reason({trapped,ExcReason}, Prefix, Print) :-
         lists:append(Prefix, "A linked process died with reason ~a.~n", Msg),
         call(Print, Msg, [ExcReason]).
-        %% call_with_args(Print, Msg, [ExcReason]).
 report_fail_reason({exception,ExcKind,ExcReason,StackTrace}, Prefix, Print) :-
         lists:append(Prefix, "An exception was raised: ~a:~a.~n", Msg1),
         call(Print, Msg1, [ExcKind,ExcReason]),
-        %% call_with_args(Print, Msg1, [ExcKind,ExcReason]),
         lists:append(Prefix, "Stacktrace: ~a.~n", Msg2),
         call(Print, Msg2, [StackTrace]).
-        %% call_with_args(Print, Msg2, [StackTrace]).
-%% report_fail_reason({sub_props,SubReasons}, Prefix, Print) ->
-%%     Report =
-%% 	fun({Tag,Reason}) ->
-%% 	    Print(Prefix ++ "Sub-property ~w failed.~n", [Tag]),
-%% 	    report_fail_reason(Reason, ">> " ++ Prefix, Print)
-%% 	end,
-%%     lists:foreach(Report, SubReasons),
-%%     ok.
-
     % }}}
   % }}}
 
   % {{{ refine_result(Result1, Property, Opts, ShortRes, LongRes)
-
 refine_result(Result, Property, Opts, ShortRes, LongRes) :-
         (result:is_pass_res(Result), !,
         ShortRes = true,
@@ -232,18 +207,11 @@ shrink(Binds, Property, Details, MaxShrinks, MaxShrinks, Opts, Ctx, MaxShrinks, 
         !, result:mk_fail([{reason, false_prop}, {bound, Binds}], Result).
 shrink(Binds, Property, Details, IShrinks, MaxShrinks, Opts, Ctx, OShrinks, MinRes) :-
         duplicate_term(Property, Test),
- %% print({ewrg2, Binds, Test, Details, IShrinks, MaxShrinks, Ctx, Shrinks1, LocalRes}), nl,
         shrink(Binds, Test, Details, IShrinks, MaxShrinks, init, Opts, Ctx, Shrinks1, LocalRes),
         (Shrinks1 == IShrinks, !, OShrinks = IShrinks, result:mk_fail([{reason, false_prop}, {bound, Binds}], MinRes)
     ;
         result:bound_fail(LocalRes, LocalBinds),
         shrink(LocalBinds, Property, Details, Shrinks1, MaxShrinks, Opts, Ctx, OShrinks, MinRes)).
-
-        % {{{ finish_shrink
-finish_shrink(Curr, Res) :-
-        print(todo_finish_shrink), nl.
-        %% create_fail_result(Ctx, false_prop, Result)
-        % }}}
         
         % {{{ shrink/10
 % shrinks Binds in Test; Flag tells us if we are currently trying a new shrink
@@ -354,8 +322,6 @@ report_shrinking(Shrinks, MinResult, MinActions, Print, Shrunk) :-
         call(Print, "(~d time(s))", [Shrinks]), nl,
         result:bound_fail(MinResult, Bound),
         print_testcase(Bound, Print).
-%% ,
-    %% execute_actions(MinActions).
       % }}}
   % }}}
 
@@ -383,7 +349,6 @@ perform(Passed, ToPass, TriesLeft, Property, Opts, IState, OState, Result) :-
             result:reason_pass(Res, true_prop), !,
             opts:output_fun(Opts, Print),
             call(Print,".", []),
-            %% call_with_args(Print,".", []),
             state:grow_size(Opts, State1, State2),
             Passed1 is Passed + 1,
             TriesLeft1 is TriesLeft - 1,
@@ -392,7 +357,6 @@ perform(Passed, ToPass, TriesLeft, Property, Opts, IState, OState, Result) :-
             result:is_fail_res(Res), !,
             opts:output_fun(Opts, Print),
             call(Print,"!", []),
-            %% call_with_args(Print,"!", []),
             Passed1 is Passed + 1,
             result:new_performed_fail(Res, Passed1, Result),
             OState = State1
@@ -400,7 +364,6 @@ perform(Passed, ToPass, TriesLeft, Property, Opts, IState, OState, Result) :-
             Res = {error, rejected}, !,
             opts:output_fun(Opts, Print),
             call(Print,"x", []),
-            %% call_with_args(Print,"x", []),
             state:grow_size(Opts, State1, State2),
             TriesLeft1 is TriesLeft - 1,
             perform(Passed, ToPass, TriesLeft1, Test, Samples, Printers, Opts, State2, OState, Result)
@@ -519,11 +482,9 @@ cond_run(Result1, Tests, Opts, Ctx, IState, OState, Result) :-
   % {{{ bind_forall(Gen, Ctx, Var, Size)
 bind_forall(M:Gen, _Ctx, Var, Size) :- 
         call(M:Gen, Var, Size).
-        %% call_with_args(M:Gen, Var, Size).
 bind_forall(Gen, Ctx, Var, Size) :- 
         ctx:module(Ctx, M),
         call(M:Gen, Var, Size).
-        %% call_with_args(M:Gen, Var, Size).
   % }}}
 
 % }}}
@@ -539,33 +500,17 @@ create_fail_result(Ctx, Reason, Fail) :-
         result:mk_fail([{reason, Reason}, {bound, Bound}], Fail).
 
 merge_results(R1, R2, R) :-
-        result:is_pass_res(R1),
-        result:is_pass_res(R2), !,
-        result:reason_pass(R1,Reason),
-        result:bound_pass(R1,Bound1),
-        result:samples_pass(R1,Samples1),
-        result:printers_pass(R1,Printers1),
-        result:performed_pass(R1,Performed),
-        %% result:reason_pass(R2,Reason2),
-        result:bound_pass(R2,Bound2),
-        result:samples_pass(R2,Samples2),
-        result:printers_pass(R2,Printers2),
-        %% result:performed_pass(R2,Performed2),
-        %% lists:append(Reason1, Reason2, Reason),
-        lists:append(Samples1, Samples2, Samples),
-        lists:append(Printers1, Printers2, Printers),
-        %% lists:append(Performed1, Performed2, Performed),
+        result:is_pass_res(R1),  result:is_pass_res(R2), !,
+        result:reason_pass(R1,Reason),  result:bound_pass(R1,Bound1),
+        result:samples_pass(R1,Samples1),  result:printers_pass(R1,Printers1),  result:performed_pass(R1,Performed),
+        result:bound_pass(R2,Bound2),  result:samples_pass(R2,Samples2),  result:printers_pass(R2,Printers2),
+        lists:append(Samples1, Samples2, Samples),  lists:append(Printers1, Printers2, Printers),
         result:mk_pass([{reason, Reason}, {bound, [Bound1, Bound2]}, {samples, S}, {printers, P}, {performed, P}], R)
     ;
-        result:reason_fail(R1, Reason),
-        result:bound_fail(R1, Bound1),
-        result:actions_fail(R1, Actions1),
-        result:performed_fail(R1, Performed1),
-        result:bound_fail(R2, Bound2),
-        result:actions_fail(R2, Actions2),
-        result:performed_fail(R2, Performed2),
-        lists:append(Bound1, Bound2, Bound),
-        lists:append(Actions1, Actions2, Actions),
+        result:reason_fail(R1, Reason),  result:bound_fail(R1, Bound1),
+        result:actions_fail(R1, Actions1),  result:performed_fail(R1, Performed1),
+        result:bound_fail(R2, Bound2),  result:actions_fail(R2, Actions2),  result:performed_fail(R2, Performed2),
+        lists:append(Bound1, Bound2, Bound),  lists:append(Actions1, Actions2, Actions),
         result:mk_fail([{reason, Reason}, {bound, Bound},{actions, Actions}, {performed, Performed}], R).
 
 % }}}
@@ -574,44 +519,34 @@ merge_results(R1, R2, R) :-
 
   % {{{ integers
 %% generator
-int(I,Size) :- choose(0, Size, I, Size). %% random:random(0,Size,I).
+int(I,Size) :- choose(0, Size, I, Size).
 
 %% shrink interface
 int(0, _, []) :- !.
 int(I, shrink, Shrs) :- shr_int(I, Shrs).
 int(I, shrink, [0]).
 
-%% shrinker
+%% int shrinker - can already deal with negative numbers
 shr_int(I, L) :-
         I =< 0, !,
-        random:random(I,0,I2),
-        I3 is I+1,
-        L = [I2, I3]
+        random(I,0,I2), I3 is I+1, L = [I2, I3]
     ;
-        random:random(0,I,I2),
-        I3 is I-1,
-        L = [I2, I3]
+        random(0,I,I2), I3 is I-1, L = [I2, I3]
     .
   % }}}
 
   % {{{ common generator stuff
 
-%% %% | Used to construct generators that depend on the size parameter.
-%% sized(SGenA, A, Size) :- call_with_args(SGenA, A, Size).
-
 %% | Overrides the size parameter. Returns a generator which uses
 %% the given size instead of the runtime-size parameter.
 resize(NewSize, GenA, A, _Size) :-
         call(GenA, A, NewSize).
-        %% call_with_args(GenA, A, NewSize).
 
 %% | Generates a random element in the given inclusive range.
 %% TODO - make this for other 'rangeable' types
 %% TODO - define what can be 'ranged' for the previous point
 choose(Min,Max, A, _Size) :-
-        Cap is Max+1,
-        random(Min,Cap,A). % a value between Min and Cap-1
-        %% random:random(Min,Cap,A). % a value between Min and Cap-1
+        Cap is Max+1, random(Min,Cap,A). % a value between Min and Cap-1
 
 %% | Generates some example values.
 sampleDefaultSize(20).
@@ -629,7 +564,6 @@ sampleK(K, GenA, L) :-
 sampleKSized(0, _GenA, _Size, []) :- !.
 sampleKSized(K, GenA, Size, [A|AS]) :-
         call(GenA, A, Size),
-        %% call_with_args(GenA, A, Size),
         sampleSizeStep(Size, S1),
         K1 is K-1,
         sampleKSized(K1, GenA, S1, AS).
@@ -665,10 +599,8 @@ suchThatMaybe(GenA, PredA, A) :-
         suchThatMaybe(GenA, PredA, A, S).
 suchThatMaybe(GenA, PredA, A, S) :-
         call(GenA, A, S),
-        %% call_with_args(GenA, A, S),
         duplicate_term(A, ATest),  % precaution against binding properties
         call(PredA, ATest).
-        %% call_with_args(PredA, ATest).
 
 %% | Randomly uses one of the given generators. The input list
 %% must be non-empty.
@@ -677,9 +609,7 @@ oneof(LGenA, A, S) :-
         length(LGenA, Cap),
         choose(1,Cap,I,S),
         nth(I, LGenA, GenA),
-        %% lists:nth(I, LGenA, GenA),
         call(GenA, A, S).
-        %% call_with_args(GenA, A, S).
 
 %% | Chooses one of the given generators, with a weighted random distribution.
 %% The input list must be non-empty. The weights must be positive integers.
@@ -690,7 +620,6 @@ frequency(FGL, A, S) :- % Frequency-Generator List
         choose(1,Cap,I,S), % choose an index
         lists:nth(I, FIL, GenA),
         call(GenA, A, S).
-        %% call_with_args(GenA, A, S).
 
 checkFreqWeights([], [], 0).
 checkFreqWeights([{W,Gen}|FGS], FIL, Cap) :-
@@ -710,27 +639,7 @@ elements(AS, A, S) :-
         length(AS, Cap),
         choose(1,Cap,I,S),
         nth(I, AS, A).
-        %% lists:nth(I, AS, A).
         
-%% %% | Takes a list of elements of increasing size, and chooses
-%% %% among an initial segment of the list. The size of this initial
-%% %% segment increases with the size parameter.
-%% %% The input list must be non-empty.
-%% growingElements :: [a] -> Gen a
-%% growingElements [] = error "Prologcheck.growingElements used with empty list"
-%% growingElements xs = sized $ \n -> elements (take (1 `max` size n) xs)
-%%   where
-%%    k      = length xs
-%%    mx     = 100
-%%    log'   = round . log . fromIntegral
-%%    size n = (log' n + 1) * k `div` log' mx
-
-%% {- WAS:                                                                              
-%% growingElements xs = sized $ \n -> elements (take (1 `max` (n * k `div` 100)) xs)ctr
-%%  where
-%%   k = length xs
-%% -}
-%% newtype Gen a = MkGen{ unGen :: StdGen -> Int -> a }
 
 %% | Generates a list of random length. The maximum length depends on the
 %% size parameter.
@@ -749,7 +658,6 @@ listOf1(GenA, AS, S) :-
 vectorOf(0, _GenA, [], _Size) :- !.
 vectorOf(K, GenA, [A|AS], Size) :-
         call(GenA, A, Size),
-        %% call_with_args(GenA, A, Size),
         K1 is K-1,
         vectorOf(K1, GenA, AS, Size).
 
@@ -783,7 +691,6 @@ structure(GenX, X, Size) :-
   % {{{ common shrinker stuff
 resize(NewSize, GenA, A, shrink, Shrs) :-
         call(GenA, A, shrink, Shrs).
-        %% call_with_args(GenA, A, NewSize).
 
 %% | shrinks A until Min
 choose(Min,Max, A, shrink, Shrs) :-
@@ -795,7 +702,7 @@ add(A,B,C) :- C is A + B.
 
 
 %%------------------------------------------------------------------------
-%% ** Common generator combinators
+%% ** Common  combinator  shrinkers
 
 suchThat(GenA, PredA, A, shrink, Shrs) :-
         (
@@ -806,38 +713,30 @@ suchThat(GenA, PredA, A, shrink, Shrs) :-
 
 suchThatMaybe(GenA, PredA, A, shrink, Shrs) :-
         call(GenA, A, shrink, Shrs1),
-        %% call_with_args(GenA, A, S),
         duplicate_term(Shrs1, SsTest),  % precaution against binding properties
         selectlist(call(PredA), SsTest, Shrs),
 
 %% can't shrink because of non-determinism
 oneof(LGenA, A, shrink, []).
-%% oneof(LGenA, A, shrink, Shrs) :-
-%%         length(LGenA, Cap),
-%%         choose(1,Cap,I,S),
-%%         lists:nth(I, LGenA, GenA),
-%%         call(GenA, A, S).
 
 %% can't shrink because of non-determinism
 frequency(FGL, A, shrink, []).
-%% frequency(FGL, A, S) :- % Frequency-Generator List
-%%         %% make freq-index list according to weights and calculate choosing cap
-%%         checkFreqWeights(FGL, FIL, Cap),
-%%         choose(1,Cap,I,S), % choose an index
-%%         lists:nth(I, FIL, GenA),
-%%         call(GenA, A, S).
-
 
 %% | default shrink is the empty list because there is not enough information for doing it another way
 elements(AS, A, shrink, []).
 
+listOf(GenA, [], shrink, []).
 listOf(GenA, AS, shrink, [Tail|Shrs1]) :-
-        lists:length(AS, K),
+        length(AS, K),
         AS = [H|Tail],
         vectorOf(K, GenA, AS, shrink, Shrs1).
 
-listOf1(GenA, [A], shrink, Shrs) :-
-        vectorOf(1, GenA, [A], shrink, Shrs).
+listOf1(GenA, [A], shrink, []) :-
+listOf1(GenA, AS, shrink, Shrs) :-
+        listOf(GenA, AS, shrink, Shrs1),
+        selectlist(nonempty, Shrs1, Shrs).
+
+nonempty([X|XS]).
 
 vectorOf(0, _GenA, _, shrink, []) :- !.
 vectorOf(K, GenA, [A|AS], shrink, Shrs) :-
@@ -853,37 +752,12 @@ shrinkSome(K, GenA, [A|AS], shrink, [SA|SAS]) :-
         shrinkSome(K, GenA, AS, shrink, SAS).
 
 
-%% | Generates the given value, discarding the size.
 value(A, A, shrink, []).
 
-%% | Generates a variable, discarding the size.
 variable(X, shrink, []).
 
-%% | Generates values with a certain structure
 structure(X, Y, shrink, []).
-%% structure(X, Y, Size) :- var(X), !, var(Y), X=Y. % TODO - error when Y is not a var
-%% structure(X, Y, Size) :- var(X), !, var(Y), X=Y. % TODO - error when Y is not a var
-%% structure([], [], Size) :- !.
-%% structure([SX|SXS], [X|XS], Size) :-
-%%         !,
-%%         structure(SX, X, Size),
-%%         structure(SXS, XS, Size).
-%% structure({ST}, {T}, Size) :-
-%%         !,
-%%         structure(ST, T, Size),
-%%         structure(SXS, XS, Size).
-%% structure( (SX, SXS), (X, XS), Size) :-
-%%         !,
-%%         structure(SX, X, Size),
-%%         structure(SXS, XS, Size).
-%% structure(GenX, X, Size) :-
-%%         call(GenX, X, Size).
 
-  % }}}
-
-  % {{{ generator combination samples
-%% plqc:sampleK(10, (frequency([{8, choose(11,20)}, {2,listOf( (choose(0,10)) )}])), L).
-%% plqc:sampleK(10, (oneof([ choose(11,20), listOf( value(y) ), value(x)])), L).
   % }}}
 
 
@@ -891,11 +765,10 @@ structure(X, Y, shrink, []).
 
 pcforall(Gen, Var, Prop, Size) :-
         call(Gen, Var, Size), call(Prop).
-        %% call_with_args(Gen, Var, Size), call(Prop).
 
 % }}}
 
-%% BIG TODO - pre/post-conditions are generic PrologCheck properties and not just Prolog goals
+%% TODO - pre/post-conditions are generic PrologCheck properties and not just Prolog goals
 % {{{ predicate specification language
 
 user:term_expansion( PredicateId of_type Typing,
@@ -943,7 +816,7 @@ spec_expand(Modifiers, Pred, DomainRange post_cond Prop, Property) :-
 %%         spec_expand([(Prop-prop)|Modifiers], Pred, DomainRange, Property).
 spec_expand(Modifiers, Pred, DomDirRange limit Limit, Property) :-
         !,
-        %% modify mp to check range
+        %% modify mp to check limit
         limit_mp(Modifiers, Limit, NewMs),
         spec_expand(NewMs, Pred, DomDirRange, Property)
         .
@@ -990,21 +863,6 @@ dir_mp([M|MS], Dir, [M|NewMs]) :-
 
       % {{{ check_range(Input, TimeoutRes, NumberOfAnswers, Infimum, Supremum)
 %% TODO - better messages
-%% check_range(time_out, K, Inf, inf) :-
-%%         !,
-%%         print(time_out_on_infinity_Range_OK), nl.
-%% check_range(time_out, K, Inf, Sup) :-
-%%         !,
-%%         print(time_out_on_bound_Range_NOT_OK), nl.
-%% check_range(success, K, inf, Sup).
-%%         !,
-%%         print(terminate_on_infinity_Range_NOT_OK), nl.
-%% check_range(success, K, Inf, inf).
-%%         !,
-%%         (K >= Inf, print(terminate_on_lower_bound_Range_OK);
-%%         print(terminate_on_lower_bound_Range_NOT_OK)), nl.
-%% check_range(Res, K, Inf, Sup) :-
-%%         print({check_range_bad_pattern, Res}).
 check_range(Input, Res, K, Inf, Sup) :-
         print({range_for, Input, Inf, {Res, K}, Sup}), nl.
       % }}}
@@ -1040,8 +898,6 @@ spec_prop([(Prop-pre)|MS], Pred, Args, Prop, Post, Main, Property) :-
         !, spec_prop(MS, Pred, Args, Prop, Post, Main, Property).
 spec_prop([(Prop-post)|MS], Pred, Args, Pre, Prop, Main, Property) :-
         !, spec_prop(MS, Pred, Args, Pre, Prop, Main, Property).
-%% spec_prop([(Prop-prop)|MS], Pred, Args, (Prop, PropS)) :- % prop and props needed a reversed order
-%%         !, spec_prop(MS, Pred, Args, PropS).
 spec_prop([(MPinfo-mp)|MS], Pred, Args, Pre, Post, MP, Property) :-
         !, apply_args(Pred, Args, Call),
         build_mp(MPinfo, Call, Args, Post, MP),
@@ -1061,7 +917,6 @@ apply_args(Pred, [Arg|Args], Call, Acc) :-
 
       % {{{ build_mp(MPinfo, Call, Args, Prop)
 
-%% build_mp((Dir-dir)-R, Call, Args, Prop) :-
 build_mp(MP, Call, Args, Post, Prop) :-
         build_mp(MP, Args, In, Out, Range, Limit),
         merge_mp(In, Out, Range, Limit, Call, Args, Post, Prop).
@@ -1109,16 +964,6 @@ build_in(none, _Args, true).
 build_in([i|Modes], Args, In) :-
         match_modes(Modes, Args, In).
 
-%% build_out([], _Args, true, true).
-%% build_in([ [i|Modes]|DS ], Args, In, Out) :-
-%%         match_modes(Modes, Args, In),
-%%         build_dir(DS, _, Out).
-%% build_in([ [o|Modes] ], Args, True, Out) :-
-%%         match_modes(Modes, Args, Out).
-%% build_in([ [o|Modes]|DS ], Args, In, Out) :-
-%%         match_modes(Modes, Args, O),
-%%         build_dir(DS, In, O2),
-%%         Out = (O1, O2).
 
 build_out([], _Args, true).
 build_out([ [o|Modes] ], Args, Out) :-
@@ -1134,7 +979,6 @@ match_modes([M], [A], P) :-
 match_modes([M|MS], [A|AS], (P1, P2)) :-
         match_mode(M, A, P1),
         match_modes(MS, AS, P2).
-%% match_modes([], [], true).
 
 match_mode(g,   A,  ground(A)).
 match_mode(v,   A,  var(A)).
@@ -1157,13 +1001,9 @@ merge_mp(In, Out, Range, Limit, Call, Args, Post, Prop) :-
 
           % {{{ merge_mp2(Out, Range, Limit, Call, Args, Prop),
 
-%% merge_mp2(true, Range, Limit, Call, Args, Prop) :-
-%%         !,
-%%         merge_mp3(Range, Limit, Call, Args, Prop).
 merge_mp2(none, Range, Limit, Call, Args, Post, Prop) :-
         !, merge_mp3(Range, Limit, (Call, Post), Args, Prop).
 merge_mp2(OutProp, Range, Limit, Call, Args, Post, Prop) :-
-        %% print(Call),
         merge_mp3(Range, Limit, (Call, OutProp, Post), Args, Prop).
 
             % {{{ merge_mp3(Range, Limit, Call, Args, Prop),
@@ -1176,7 +1016,6 @@ merge_mp3(default, Limit, Call, Args, TheCall) :-
         TheCall = bound_call(1, -2, Limit, Call, Args).
 merge_mp3({Min,Max}, Limit, Call, Args, TheCall) :-
         bound_min(Min, Limit, LowerBound),
-        %% bound_max(Max, Limit, UpperBound),
         TheCall = bound_call(LowerBound, Max, Limit, Call, Args).
 
               % {{{ bound_min|max
@@ -1211,8 +1050,6 @@ bound_call(Lower, Upper, Limit, (Call, OutProp), Args) :-
                 C2 > Limit,
                 !,
                 print(inf)
-                %% print('Reached limit for number of answers tested for'), nl,
-                %% print(OriginalArguments), nl
             ;
                 call(OutProp),
                 nb_getval(outprop, Status),

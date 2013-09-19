@@ -1,0 +1,95 @@
+<html><head><title>list_ax.why</title></head><body>
+<pre>
+
+
+<font color="990000">(* -#################################################################- *)</font>
+<font color="990000">(* -##                List related axiomatization                 ###- *)</font>
+<font color="990000">(* -#################################################################- *)</font>
+
+<font color="990000">(* list constructions *)</font>
+<font color="990099">logic</font> nil : erl_list
+<font color="990099">logic</font> cons : erl_term, erl_list -> erl_list
+
+<font color="990099">axiom</font> erlang_list_ax :
+  forall l : erl_list. exists rl : erl_list. exists t : erl_term.
+    l = nil or l = cons(t,rl)
+
+<font color="990000">(* list "destruction" *)</font>
+<font color="990099">logic</font> head : erl_list -> erl_term
+<font color="990099">logic</font> tail : erl_list -> erl_list
+
+<font color="990099">axiom</font> tail_ax:
+  forall t : erl_term. forall l : erl_list.
+    tail (cons (t,l)) = l
+
+<font color="990099">axiom</font> head_ax:
+  forall t : erl_term. forall l : erl_list.
+    head (cons (t,l)) = t
+
+<font color="990000">(* -=================================================================- *)</font>
+
+<font color="990099">logic</font> is_nil : erl_list -> bool
+
+<font color="990099">axiom</font> is_nil_t_ax :
+  forall l : erl_list.
+    is_nil(l) = true <-> l = nil
+
+<font color="990099">axiom</font> is_nil_cons_ax :
+  forall t : erl_term. forall l : erl_list.
+    is_nil(cons(t,l)) = false
+
+<font color="990000">(* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *)</font>
+
+
+
+<font color="990000">(* ------------------------------------------------------------------- *)</font>
+
+<font color="990099">logic</font> is_list : erl_term -> bool
+
+<font color="990099">axiom</font> is_list_t_l :
+  forall t : erl_term. forall l : erl_list.
+    t = erlang_list(l) -> is_list(t)=true
+
+<font color="990099">axiom</font> is_list_l_t :
+  forall t : erl_term. exists l : erl_list.
+    is_list(t)=true -> t = erlang_list(l)
+
+<font color="990000">(* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *)</font>
+<font color="990000">(*
+axiom set_get_erl_list :
+  forall t : erl_term.
+    is_list(t)=true -> erlang_list( get_list( t ) ) = t
+*)</font>
+
+<font color="990000">(* -=================================================================- *)</font>
+
+<font color="990000">(* length *)</font>
+<font color="990099">logic</font> erl_list_length: erl_list -> int
+
+<font color="990099">axiom</font> erl_list_length_pos_ax :
+  forall l : erl_list.
+    erl_list_length(l) >= 0
+
+<font color="990099">axiom</font> erl_list_length_nil_ax :
+  erl_list_length(nil) = 0
+
+<font color="990099">axiom</font> erl_list_length_cons_ax :
+  forall l : erl_list. forall t : erl_term.
+    erl_list_length(cons(t,l)) = 1+ erl_list_length(l)
+
+<font color="990000">(* ------------------------------------------------------------------- *)</font>
+
+<font color="990000">(* position access *)</font>
+<font color="990099">logic</font> nth : int, erl_list -> erl_term
+
+<font color="990099">axiom</font> nth_head_ax :
+  forall t : erl_term. forall rl : erl_list.
+    nth(1,cons(t,rl)) = t
+
+<font color="990099">axiom</font> nth_tail_ax :
+  forall t : erl_term. forall rl : erl_list. forall i : int. i>=2 ->
+    nth(i,cons(t,rl)) = nth(i-1,rl)
+
+<font color="990000">(* ------------------------------------------------------------------- *)</font>
+</pre>
+</body></html>

@@ -1,0 +1,102 @@
+(custom-set-variables
+  ;; custom-set-variables was added by Custom.
+  ;; If you edit it by hand, you could mess it up, so be careful.
+  ;; Your init file should contain only one such instance.
+  ;; If there is more than one, they won't work right.
+ '(case-fold-search t)
+ '(column-number-mode t)
+ '(current-language-environment "Latin-1")
+ '(default-input-method "rfc1345")
+ '(global-font-lock-mode t nil (font-lock))
+ '(inhibit-startup-screen t)
+ '(mouse-wheel-mode t nil (mwheel))
+ '(show-paren-mode t nil (paren))
+ '(text-mode-hook (quote (turn-on-auto-fill text-mode-hook-identify)))
+ '(transient-mark-mode t))
+(custom-set-faces
+  ;; custom-set-faces was added by Custom.
+  ;; If you edit it by hand, you could mess it up, so be careful.
+  ;; Your init file should contain only one such instance.
+  ;; If there is more than one, they won't work right.
+ )
+
+(autoload 'python-mode "python-mode" "Python Mode." t)
+(add-to-list 'auto-mode-alist '("\\.psp\\'" . python-mode))
+(add-to-list 'auto-mode-alist '("\\.py\\'" . python-mode))
+(add-to-list 'interpreter-mode-alist '("python" . python-mode))
+
+(setq column-number-mode t)
+(set-foreground-color "white")
+(set-background-color "dark slate grey")
+
+;; ---------------------------------------------
+;; Modo de Prolog para I.A. :-))
+;; ---------------------------------------------
+(setq load-path (cons "~/stuff/confs/" load-path))
+(autoload 'run-prolog "prolog" "Start a Prolog sub-process." t)
+(autoload 'prolog-mode "prolog" "Major mode for editing Prolog programs." t)
+(setq auto-mode-alist (append '(("\\.yap$" .  prolog-mode))
+			      auto-mode-alist))
+
+
+;; (custom-set-variables
+;;   ;; custom-set-variables was added by Custom -- don't edit or cut/paste it!
+;;   ;; Your init file should contain only one such instance.
+;;  '(mouse-wheel-mode t nil (mwheel))
+;;  '(pc-select-meta-moves-sexps t)
+;;  '(pc-select-selection-keys-only t)
+;;  '(pc-selection-mode t t))
+;; (custom-set-faces
+;;   ;; custom-set-faces was added by Custom -- don't edit or cut/paste it!
+;;   ;; Your init file should contain only one such instance.
+;;  )
+
+
+;; (setq load-path (cons "/usr/share/emacs/site-lisp/haskell-mode-1.44/" load-path))
+;; (setq auto-mode-alist
+;;      (append auto-mode-alist
+;;              '(("\\.[hg]s$"  . haskell-mode)
+;;                ("\\.hi$"     . haskell-mode)
+;;                ("\\.l[hg]s$" . literate-haskell-mode))))
+;; (autoload 'haskell-mode "haskell-mode"
+;;   "Major mode for editing Haskell scripts." t)
+;; (autoload 'literate-haskell-mode "haskell-mode"
+;;   "Major mode for editing literate Haskell scripts." t)
+;; (add-hook 'haskell-mode-hook 'turn-on-haskell-font-lock)
+;; (add-hook 'haskell-mode-hook 'turn-on-haskell-decl-scan)
+;; (add-hook 'haskell-mode-hook 'turn-on-haskell-doc-mode)
+;; (add-hook 'haskell-mode-hook 'turn-on-haskell-indent)
+;; ;(add-hook 'haskell-mode-hook 'turn-on-haskell-simple-indent)
+;; (add-hook 'haskell-mode-hook 'turn-on-haskell-hugs) 
+
+
+;; erlware-mode
+(setq load-path (cons "~/stuff/confs/erlware-mode/erlware-mode" load-path))
+(require 'erlang-start)
+
+
+;; load elscreen library on start
+(load "elscreen" "ElScreen" t)
+
+;; load tuareg-mode for *.why and *.who files
+(setq auto-mode-alist (cons '("\\.wh[yo]" . tuareg-mode) auto-mode-alist))
+(autoload 'tuareg-mode "tuareg" "Major mode for editing Caml code" t)
+(autoload 'camldebug "camldebug" "Run the Caml debugger" t)
+
+;; load erlang-mode for *.vrl files, the verlang sources
+(setq auto-mode-alist (cons '("\\.vrl" . erlang-mode) auto-mode-alist))
+(autoload 'erlang-mode "erlang" "Major mode for editing erlang and verlang code" t)
+
+(defun print-to-pdf ()
+  (interactive)
+  (ps-spool-buffer-with-faces)
+  (switch-to-buffer "*PostScript*")
+  (write-file "/tmp/tmp.ps")
+  (kill-buffer "tmp.ps")
+  (setq cmd (concat "ps2pdf14 /tmp/tmp.ps " (buffer-name) ".pdf"))
+  (shell-command cmd)
+  (shell-command "rm /tmp/tmp.ps")
+  (message (concat "Saved to:  " (buffer-name) ".pdf"))
+
+  
+  )

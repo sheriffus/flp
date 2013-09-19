@@ -1,0 +1,519 @@
+\documentclass[
+mode=present,      % fazer coisas para apresentação
+paper=screen,      % a fazer num ecrã
+orient=landscape,  % com esta orientação
+%orient=portrait,   % com esta orientação
+display=slides,
+style=aggie,
+blackslide,
+%clock
+usenames,dvipsnames,
+]{powerdot}
+
+\usepackage[latin1]{inputenc}
+%\usepackage[portuges]{babel}
+\usepackage[english]{babel}
+
+% \usepackage{color}
+% \usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+% \usepackage{xspace}
+% \usepackage{algorithm}
+% \usepackage{algorithmic}
+% \usepackage{epsf}
+% \usepackage{graphicx}
+% \usepackage{enumerate}
+% \usepackage{alltt}
+% \usepackage[pstricks1-10]{vaucanson-g}
+% \usepackage{vaucanson-g}
+% \usepackage{supertabular}
+
+\usepackage{graphicx}
+
+%\usepackage[usenames]{color}
+\usepackage{color}
+%\usepackage[usenames,dvipsnames,pdftex]{color}
+%\usepackage[dvipsnames]{color}
+
+\newcommand{\whyReserved}[1]{{\texttt{\bfseries\color{Cerulean}#1\xspace}}}
+\newcommand{\whyTrue}{{\texttt{\bfseries\color{Cerulean}true\xspace}}}
+\newcommand{\whyFalse}{{\texttt{\bfseries\color{Cerulean}false\xspace}}}
+\newcommand{\whyAnd}{{\texttt{\bfseries\color{Cerulean}and\xspace}}}
+\newcommand{\whyOr}{{\texttt{\bfseries\color{Cerulean}or\xspace}}}
+\newcommand{\whyIf}{{\texttt{\bfseries\color{Cerulean}if\xspace}}}
+\newcommand{\whyThen}{{\texttt{\bfseries\color{Cerulean}then\xspace}}}
+\newcommand{\whyElse}{{\texttt{\bfseries\color{Cerulean}else\xspace}}}
+\newcommand{\whyLet}{{\texttt{\bfseries\color{Cerulean}let\xspace}}}
+\newcommand{\whyIn}{{\texttt{\bfseries\color{Cerulean}in\xspace}}}
+\newcommand{\whyType}[1]{{\texttt{\bfseries\color{LimeGreen}#1\xspace}}}
+\newcommand{\whyFunction}[1]{{\texttt{\bfseries\color{Black}#1}}}
+%\newcommand{\whyFunction}[1]{{\texttt{\bfseries\color{MidnightBlue}#1}}}
+\newcommand{\whyComment}[1]{{\texttt{\bfseries\color{BrickRed}#1\xspace}}}
+\newcommand{\whyVar}[1]{{\texttt{\bfseries\color{Dandelion}#1\xspace}}}
+\newcommand{\whyOther}[1]{{\texttt{\bfseries\color{Black}#1\xspace}}}
+%\newcommand{\type}{\colouring{Turquoise}type\xspace}
+\newcommand{\whyOP}{{\texttt{\bfseries\color{Cerulean}\,$($\,\xspace}}}
+\newcommand{\whyCP}{{\texttt{\bfseries\color{Cerulean}\,$)$\,\xspace}}}
+\newcommand{\whyColon}{{\texttt{\bfseries\color{Cerulean}$:$\xspace\,}}}
+\newcommand{\whyArrow}{{\texttt{\bfseries\color{Cerulean}\,$\rightarrow$\xspace\,}}}
+\newcommand{\whyEq}{{\texttt{\bfseries\color{Cerulean}\,$=$\,\xspace}}}
+\newcommand{\whyDot}{{\texttt{\bfseries\color{Cerulean}\, .\,\xspace}}}
+
+
+\newtheorem*{definition}{Definition}
+\newtheorem*{example}{Example}
+
+\title{ Towards the Verification of Erlang Code:\\Data Representation }
+% \subtitle{ Data Representation }
+\author{ Cl\'audio Amaral }
+% \email{coa@ncc.up.pt}
+% \institution{Laboratório de Inteligência Artificial e Ciência de
+% Computadores - Universidade do Porto}
+\date{28 January 2010}
+
+\begin{document}
+
+\maketitle                                   %%% = slide 1
+
+\begin{slide}{Forecast}                      %%% = slide 2
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.8\textwidth]{wtf.eps}
+\end{figure} 
+
+\end{slide}
+
+
+\begin{slide}{Outline}                       %%% = slide 3
+
+\onslide*{1-}{
+  \begin{itemize}[type=1]
+    \item<1-> $<self>$
+    \item<1-> Introduction
+      \begin{itemize}[type=1]
+        \item<1-> Context
+        \item<1-> Objective
+      \end{itemize}
+    \item<1-> Erlang
+      \begin{itemize}[type=1]
+        \item<1-> Highlights
+        \item<1-> Types and typing
+      \end{itemize}
+    \item<1-> Data representation
+      \begin{itemize}[type=1]
+        \item<1-> A way...
+        \item<1-> Demos
+      \end{itemize}
+    \item<1-> Conclusion
+      \begin{itemize}[type=1]
+        \item<1-> Results
+        \item<1-> Future work
+      \end{itemize}
+  \end{itemize}
+}  
+\end{slide}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Introduction}                       %%% = slide 4
+
+\begin{slide}{Context}                       %%% = slide 5
+\vspace{-3mm}
+  \begin{itemize}[type=1]
+    \item<1-> ``Software Engineering'' (1968)
+      \begin{itemize}[type=1]
+        \item<1-> systematic, quantifiable, disciplined
+        \item<1-> development, operation, and maintenance of software
+      \end{itemize}
+  \end{itemize}
+
+\vspace{-3mm}
+\onslide*{2-}{
+  \begin{itemize}[type=1]
+    \item<2-> ``Software Verification''
+      \begin{itemize}[type=1]
+        \item<2-> software engineering complex discipline
+        \item<2-> software satisfies expected requirements
+      \end{itemize}
+  \end{itemize}
+}  
+
+\onslide*{3-}{
+  Influencing factors:
+}
+\onslide*{3-}{
+  \begin{itemize}[type=1]
+    \item<3-> increase in computational power of general purpose
+      computers
+    \item<3-> increasing ability to analyse software
+  \end{itemize}
+}
+
+\onslide*{4-}{
+  Leading to a shift on the emphasis from abstract models of code,
+  towards the implementation level code in software verification.
+}
+\end{slide}
+
+%%-----------------------------------------------------------%%
+
+\begin{slide}{Context (cont.)}               %%% = slide 5
+Formal Software Verification
+%\vspace{-3mm}
+\begin{itemize}[type=1]
+  \item<1-> Support for high-level languages
+  \item<2-> Capacity to deal with complex algorithms
+  \item<3-> Clear and simple specification
+  \item<4-> Property expressiveness
+  \item<5-> Easier (+/-) property verification
+\end{itemize}
+
+\vspace{7mm}
+\onslide*{6-}{
+
+Holy Graal: to be able to have most applications on a given system
+formally verified and obeying to its specifications.
+}
+
+\end{slide}
+
+%%-----------------------------------------------------------%%
+
+\begin{slide}{Objective}               %%% = slide 5
+Develop tool(s) for the verification of (a subset of) Erlang.
+\begin{itemize}[type=1]
+  \item<2-> Identify needs, work done and possible challenges
+  \item<3-> Explore existing similar or intersecting tools (\texttt{Why})
+  \item<4-> Define adequate abstract representations
+  \item<5-> Test the representation with significant case studies
+\end{itemize}
+
+\vspace{7mm}
+\onslide*{6-}{
+  Take some conclusions in order to define and implement our own
+  specialised mechanism of property analysis.
+}
+\end{slide}
+
+
+%%-----------------------------------------------------------%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Erlang}                       %%% = slide 3
+
+%%-----------------------------------------------------------%%
+
+\begin{slide}{Highlights}                  %%% = slide 4
+
+\onslide*{1-}{
+  \begin{itemize}[type=1]
+    \item Declarative
+    \item Concurrent
+    \item Soft real-time
+    \item Hot code loading
+    \item ...
+  \end{itemize}
+}
+\vspace{5mm}
+\onslide*{2-}{
+  Language safety
+  \begin{itemize}[type=1]
+    \item No global variables -- fewer side-effects
+    \item No direct memory access -- no pointer errors
+    \item No malloc/free bugs
+    \item Solid concurrency model -- reduces synchronisation problems, reduces the state space (simpler programs)
+    \item Fault isolation -- memory-protected lightweight processes
+    \item Built-in error recovery support -- more consistency
+  \end{itemize}
+}
+\end{slide}
+
+%%-----------------------------------------------------------%%
+
+\begin{slide}{Types and typing}                  %%% = slide 4
+
+\vspace{-4mm}
+  Variables and values, or terms, are of one of the following types:
+\begin{itemize}[type=1]
+  \item integer
+  \item list (of terms)
+  \item tuples (of terms)
+  \item pid
+  \item atom
+\end{itemize}
+
+\vspace{2mm}
+\onslide*{2-}{
+Types are dynamically checked, leading to programs with less normal features
+}
+\onslide*{3-}{
+  \begin{itemize}[type=1]
+    \item odd types not going wrong due to control flow branching
+    \item dependent types and polymorphism occur quite naturally
+    \item wide use of union types
+    \item ...
+  \end{itemize}
+}
+
+\vspace{2mm}
+\onslide*{4-}{
+No one succeeded in building a type checker that works with all the
+interesting Erlang programs...
+}
+
+\end{slide}
+
+%%-----------------------------------------------------------%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Data representation}                       %%% = slide 3
+
+\begin{slide}{A way...}                  %%% = slide 5\end{slide}
+\vspace{3mm}
+\onslide*{1-3}{
+  If we want to statically analyse properties of values and
+  computations, we need to find some strategy to deal with this kind
+  of complexity!
+}
+
+\vspace{7mm}
+\onslide*{2-3}{
+  One solution is to represent everything with type {\it term()} and
+  then use some type based techniques to ensure the desired
+  properties.
+}
+
+\vspace{7mm}
+\onslide*{3-3}{
+  The representation of values of each type will be given by specific
+  functional symbols and their behaviour by a small set of axioms.
+}
+\end{slide}
+
+%%-----------------------------------------------------------%%
+
+\begin{slide}{A way...(2)}                  %%% = slide 5\end{slide}
+\vspace{-3mm}
+\onslide*{1-}{
+Step by step...
+\begin{itemize}[type=1]
+  \item<1->  give all variables from the original source code the
+    \whyType{term} type
+  \item<2->  encapsulate all values with the functional symbols we
+    have defined in order to comply with the type
+  \item<3->  annotate the code with it's desired specification
+    \begin{itemize}[type=1]
+      \item<4-> the requirements for the functions (pre-conditions)
+      \item<4-> the properties ensured on the output/after execution
+        (post-conditions)
+    \end{itemize}
+  \item<5->  arrange all to meet VCgen input specs
+\end{itemize}
+}
+
+\vspace{7mm}
+\onslide*{6-}{
+  Now we have all we need, ``just'' run the verification condition
+  generator and chose your proving media
+}
+
+%\vspace{7mm}
+%\onslide*{3-}{
+%}
+\end{slide}
+
+%%-----------------------------------------------------------%%
+
+\begin{slide}{Demos...}                  %%% = slide 5\end{slide}
+\vspace{3mm}
+\onslide*{1-}{
+Representation of values.
+}
+
+\vspace{2mm}
+\onslide*{2-}{
+\footnotesize
+\whyReserved{type} \whyType{list}\\
+\whyReserved{type} \whyType{tuple}\\
+
+\vspace{2mm}
+\whyComment{\scriptsize (* to build terms - logic operators from values to term *)}\\
+\whyReserved{logic} \whyOther{langList}    \whyColon \whyType{list}  \whyArrow  \whyType{term}\\
+\whyReserved{logic} \whyOther{langTuple}   \whyColon \whyType{tuple} \whyArrow  \whyType{term}\\
+\whyReserved{logic} \whyOther{langInteger} \whyColon \whyType{int}   \whyArrow  \whyType{term}\\
+
+\vspace{2mm}
+\whyComment{\scriptsize (* to get terms value - logic operators from term to values *)}\\
+\whyReserved{logic} \whyOther{getList}    \whyColon  \whyType{term}  \whyArrow  \whyType{list}\\
+\whyReserved{logic} \whyOther{getTuple}   \whyColon  \whyType{term}  \whyArrow  \whyType{tuple}\\
+\whyReserved{logic} \whyOther{getInteger} \whyColon  \whyType{term}  \whyArrow  \whyType{int}\\
+}
+
+\onslide*{3-}{
+\vspace{4mm}
+\whyReserved{axiom} \whyOther{getSetList} \whyColon\\
+\quad  \whyReserved{forall} \whyOther{l} \whyColon \whyType{list}\whyDot
+\qquad    \whyFunction{getList}\whyOP \whyFunction{langList}\whyOP \whyOther{l} \whyCP \whyCP \whyEq \whyOther{l}
+
+}
+
+
+\end{slide}
+
+\begin{slide}{Demos...(2)}                  %%% = slide 5\end{slide}
+\vspace{5mm}
+\onslide*{1-}{
+List definition...
+}
+
+\vspace{3mm}
+\whyComment{\scriptsize (* list constructions *)}\\
+\whyReserved{logic} \whyOther{nil} \whyColon \whyType{list}\\
+\whyReserved{logic} \whyOther{cons} \whyColon \whyType{term}, \whyType{list}  \whyArrow  \whyType{list}\\
+
+\vspace{3mm}
+\whyReserved{axiom} \whyOther{langList\_ax} \whyColon\\
+\quad  \whyReserved{forall} \whyOther{l} \whyColon \whyType{list}\whyDot \\
+\qquad  \whyReserved{exists} \whyOther{rl} \whyColon \whyType{list}\whyDot \\
+\quad\qquad    \whyReserved{exists} \whyOther{t} \whyColon \whyType{term}\whyDot \\
+\qquad\qquad    \whyOther{l} \whyEq \whyOther{nil} \whyReserved{or}
+\whyOther{l} \whyEq \whyFunction{cons}\whyOP\,\whyOther{t},\,\whyOther{rl}\whyCP
+
+
+
+\end{slide}
+
+%%-----------------------------------------------------------%%
+
+\begin{slide}{List reverse}                  %%% = slide 5\end{slide}
+\footnotesize
+\vspace{8mm}
+
+\whyReserved{let} \whyReserved{rec}  \whyVar{reverse\_aux}
+  \whyOP\,\whyVar{L}\whyColon\whyType{term} \whyCP\,\,
+  \whyOP\,\whyVar{Lprev}\whyColon\whyType{term} \whyCP\,\,
+    \whyColon \whyType{term}\,\,\whyEq\\
+\onslide*{1-1}{
+\vspace{8mm}
+}
+\onslide*{2-}{
+\vspace{2mm}
+  \{ \whyFunction{isList}\whyOP\whyOther{L}\whyCP\whyEq\whyTrue
+ \quad \whyAnd  \quad
+ \whyFunction{isList}\whyOP\whyOther{Lprev}\whyCP\whyEq\whyTrue \}\\
+\vspace{2,1mm}
+}
+    \whyIf \quad\whyFunction{isNil\whyOP getList L\whyCP}
+        \whyEq\,\,\whyTrue\quad\whyThen\\
+\quad      \whyOther{Lprev}\\
+    \whyElse \quad
+      \whyComment{(* cons(N,RL) *)}\\
+\quad      \whyLet \quad \whyVar{H} \whyEq
+          \whyFunction{head \whyOP getList L \whyCP} \whyIn\\
+\quad      \whyLet \quad \whyVar{RL} \whyEq
+          \whyFunction{tail \whyOP getList L \whyCP} \whyIn\\
+\qquad      \whyOther{reverse\_aux \whyOP langList RL \whyCP\\
+\qquad\qquad  \whyOP langList \whyOP cons H \whyOP getList Lprev
+              \whyCP\whyCP\whyCP }\\
+\onslide*{3-}{
+\vspace{3mm}
+  \{ \whyOther{langListLength\whyOP getList\whyOP result\whyCP\whyCP}
+  \,\whyEq\,\\\quad\quad
+  \whyOther{langListLength\whyOP getList\whyOP L\whyCP\whyCP\\
+\qquad\quad
+    $+$ langListLength\whyOP getList\whyOP Lprev\whyCP\whyCP}\}
+}
+
+% --=# NOT INCLUDED #=--
+%    and (forall i:int.
+%	   ( 1<=i<=erl_list_length(get_list(L)) )
+%	        ->
+%	   ( nth(i,get_list(L)) = nth(erl_list_length(get_list(L))+1-i,get_list(result)) )
+	     
+           
+%        )
+%    and (forall j:int.
+%	   ( 1<=j<=erl_list_length(get_list(Lprev)) )
+%	        ->
+%	   ( nth(j,get_list(Lprev)) = nth(erl_list_length(get_list(L))+j,get_list(result)) )
+	     
+           
+%        )
+%  }
+ 
+
+%\whyReserved{let} reverse =
+%  fun (L:erl_term) ->
+%  { is_list(L)=true }
+%    (reverse_aux L (erlang_list nil))
+%  { erl_list_length(get_list(L)) = erl_list_length(get_list(result)) 
+%    and (forall i:int.
+%	   1<=i<=erl_list_length(get_list(L))
+%	     -> nth(i,get_list(L)) = nth(erl_list_length(get_list(L))+1-i,get_list(result))
+%	)
+%  }
+
+
+
+
+
+\end{slide}
+
+%%-----------------------------------------------------------%%
+
+\section{Conclusion}
+
+\begin{slide}{Results}                  %%% = slide 9
+\vspace{3mm}
+\onslide*{1-}{
+It appears possible to model Erlang data for simple type checking.
+}
+
+\vspace{6mm}
+\onslide*{2-}{
+We are still able to enhance the details in order to reason about
+intended properties.
+}
+
+\vspace{6mm}
+\onslide*{3-}{
+Impossible to reuse some tools used in verification of C/Java code.
+}
+
+\vspace{6mm}
+\onslide*{4-}{
+This have to be way more automatic...
+}
+\end{slide}
+
+\begin{slide}{Future Work}                  %%% = slide 9
+  Future work on this topic includes:
+  \begin{itemize}[type=1]
+    \item<1-> representation of other data types (tuples)
+    \item<2-> verification of a bigger algorithm (AVL trees)
+    \item<3-> interaction between terms of different type
+    \item<4-> automatising of the process
+%    \item<5-> 
+%    \item<->
+%    \item<9-> increasing ability to analyze software
+  \end{itemize}
+
+\onslide*{5-}{
+  Other future objective consist on building a tool that:
+  \begin{itemize}[type=1]
+    \item<6-> support higher level constructs and features
+    \item<7-> has some kind of support to concurrency
+    \item<8-> has an interface closer to the the source language
+    \item<9-> is partially automated
+  \end{itemize}
+}
+
+\end{slide}
+
+\section{The End}
+
+\end{document}

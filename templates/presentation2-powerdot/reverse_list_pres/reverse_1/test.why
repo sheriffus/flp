@@ -1,0 +1,22 @@
+(*
+include "list_ax.why"
+*)
+
+(* ------------------------------------------------------------------- *)
+let rec  reverse_aux (*[ | ]*) (L:erl_term) (Lprev:erl_term) : erl_term =
+  { is_list(L)=true and is_list(Lprev)=true }
+    if is_nil(get_list L) = true then
+      Lprev
+    else
+      (* cons(N,RL) *)
+      let H = head (get_list L) in
+      let RL = tail (get_list L) in
+        reverse_aux (erlang_list RL) (erlang_list (cons H (get_list Lprev)))
+  { erl_list_length(get_list(result)) = erl_list_length(get_list(L)) + erl_list_length(get_list(Lprev)) }
+
+
+let reverse =
+  fun (L:erl_term) ->
+  { is_list(L)=true }
+    (reverse_aux L (erlang_list nil))
+  { erl_list_length(get_list(L)) = erl_list_length(get_list(result)) }

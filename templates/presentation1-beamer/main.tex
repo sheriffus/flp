@@ -1,0 +1,46 @@
+% -*- latex -*-
+\documentclass[%
+	final, %
+	% draft, % replace graphic elements by gray boxes (accelerated compiling)
+	% 8pt, % too small, requires package extsizes
+	% 9pt, % too small, requires package extsizes
+	% 10pt, % for films with lots of text
+	11pt, % default font size
+	% 12pt, % slightly larger and therefore better to read
+	% 14pt, % much larger, requires package extsizes
+	% 17pt, % PowerPoint default font size requires package extsizes
+	% 20pt, % requires very large, Package extsizes
+	% trans,% to create overhead transparencies
+	% handout, % create a handout
+	% article,% Creating an article
+ 	compress, % the navigation in the header is compressed shown
+	% t, % Place text of slides at the (vertical) top of the slides
+	 c, % Place text of slides at the (vertical) center of the slides
+	% color={}, % list of options for color
+	xcolor={table,dvipsnames}, % options passed for xcolor
+	% hyperref={}, % list of options for hyperref
+	% envcountsect, % Causes theorems, deﬁnitions, and so on to be numbered locally to each section.
+	% notheorems, % Switches off the definition of default blocks like theorem
+	% noamsthm, % Does not load amsthm and also not amsmath
+	% ucs, % invites ucs package
+	 utf8x, % utf8x package loads of ucs (utf8 enconding)
+	% dvips, % dvips will force the loading of the driver - usually not necessary!
+	% usepdftitle=false, % Suppresses the automatic generation of title and author entries in the pdf document information.
+	% ignorenonframetext, % suppresses content created for the article mode ??
+	show notes, % enables Notes
+	% leqno,
+	% fleqn,
+]{beamer}[2007/03/11] % Minimum necessary version due to severe bugs in version 3.06 !!!
+
+\input{preambel/Fonts}
+\input{preambel/LaTeX-Settings}
+\input{preambel/Settings-Templates}
+\input{preambel/Settings}
+\input{preambel/LaTeX-newcommands}
+
+
+\begin{document}
+%     \input{content/begin}
+     \input{content/slides}
+%  	\input{content/Beamer-Appendix}
+\end{document}

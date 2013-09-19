@@ -1,0 +1,56 @@
+(* -=####    NOTICE    ####=- *)
+(* lis_ax.why must be included first *)
+
+
+
+(* -#################################################################- *)
+(* -##               Tuple related axiomatization                 ###- *)
+(* -#################################################################- *)
+
+(* tuple constructions *)
+logic mk_tuple : int, erl_list -> erl_tuple
+(*
+parameter mk_tuple : 
+  i:int -> l:erl_list ->
+    { i = erl_list_length(l) }
+      erl_tuple
+    {}
+*)
+
+axiom erlang_tuple_ax :
+  forall t : erl_tuple.
+      exists i : int. exists l : erl_list.
+    i = erl_list_length(l) and t = mk_tuple(i,l)
+
+(* tuple "destruction" *)
+logic size : erl_tuple -> int
+
+axiom size_ax:
+  forall l : erl_list. forall i : int.
+    size( mk_tuple( i, l ) ) = i
+
+logic tup_data : erl_tuple -> erl_list
+
+axiom tup_data_ax:
+  forall l : erl_list. forall i : int.
+    tup_data( mk_tuple( i, l ) ) = l
+
+(* data access *)
+logic elem : int, erl_tuple -> erl_term
+
+axiom elem_ax:
+  forall t : erl_tuple. forall i : int.
+    i <= size(t) -> elem(i,t) = nth(i,tup_data(t))
+
+
+(* -=================================================================- *)
+
+logic is_tuple : erl_term -> bool
+
+axiom is_tuple_ax1 :
+  forall t : erl_term. forall x : erl_tuple.
+    t = erlang_tuple(x) -> is_tuple(t)=true
+
+axiom is_tuple_ax2 :
+  forall t : erl_term. exists x : erl_tuple.
+    is_tuple(t)=true -> t = erlang_tuple(x)

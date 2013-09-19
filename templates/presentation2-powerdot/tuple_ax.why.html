@@ -1,0 +1,60 @@
+<html><head><title>tuple_ax.why</title></head><body>
+<pre>
+<font color="990000">(* -=####    NOTICE    ####=- *)</font>
+<font color="990000">(* lis_ax.why must be included first *)</font>
+
+
+
+<font color="990000">(* -#################################################################- *)</font>
+<font color="990000">(* -##               Tuple related axiomatization                 ###- *)</font>
+<font color="990000">(* -#################################################################- *)</font>
+
+<font color="990000">(* tuple constructions *)</font>
+<font color="990099">logic</font> mk_tuple : int, erl_list -> erl_tuple
+<font color="990000">(*
+parameter mk_tuple : 
+  i:int -> l:erl_list ->
+    { i = erl_list_length(l) }
+      erl_tuple
+    {}
+*)</font>
+
+<font color="990099">axiom</font> erlang_tuple_ax :
+  forall t : erl_tuple.
+      exists i : int. exists l : erl_list.
+    i = erl_list_length(l) and t = mk_tuple(i,l)
+
+<font color="990000">(* tuple "destruction" *)</font>
+<font color="990099">logic</font> size : erl_tuple -> int
+
+<font color="990099">axiom</font> size_ax:
+  forall l : erl_list. forall i : int.
+    size( mk_tuple( i, l ) ) = i
+
+<font color="990099">logic</font> tup_data : erl_tuple -> erl_list
+
+<font color="990099">axiom</font> tup_data_ax:
+  forall l : erl_list. forall i : int.
+    tup_data( mk_tuple( i, l ) ) = l
+
+<font color="990000">(* data access *)</font>
+<font color="990099">logic</font> elem : int, erl_tuple -> erl_term
+
+<font color="990099">axiom</font> elem_ax:
+  forall t : erl_tuple. forall i : int.
+    i <= size(t) -> elem(i,t) = nth(i,tup_data(t))
+
+
+<font color="990000">(* -=================================================================- *)</font>
+
+<font color="990099">logic</font> is_tuple : erl_term -> bool
+
+<font color="990099">axiom</font> is_tuple_ax1 :
+  forall t : erl_term. forall x : erl_tuple.
+    t = erlang_tuple(x) -> is_tuple(t)=true
+
+<font color="990099">axiom</font> is_tuple_ax2 :
+  forall t : erl_term. exists x : erl_tuple.
+    is_tuple(t)=true -> t = erlang_tuple(x)
+</pre>
+</body></html>

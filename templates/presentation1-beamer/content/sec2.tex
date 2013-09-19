@@ -1,0 +1,68 @@
+\section{}
+
+   \begin{frame}
+       \frametitle{To more juicy stuff...}
+       \tableofcontents[currentsection]
+   \end{frame}
+
+%\subsection[abrev]{SubSecTitle}
+\subsection[Approaches]{Some approaches to}
+
+\frame{
+  \frametitle{}
+
+\begin{center}
+  \begin{tabular}{l p{9cm}}
+  1950s: & Turing, von Neuman: Hand proofs of program
+  correctness
+  \note{mathematical proofs, not much formal}
+\\
+  1966/67: & Floyd introduces assertional reasoning on
+  flowcharts for proving partial and total correctness.
+\\
+  1969: & Hoare introduces axiomatic semantics for
+  programming constructs.
+  \note{basically equivalent to Floyd's thing, but based on a
+    programming language and not a flowchart language}
+  \\
+  & King writes a dissertation on automatic program proving
+  through verification condition generation.
+  \note{
+    based on Floyd's theory and with a theorem prover
+    theorems were implications between formulas in disjunctive normal
+    form; proof by contradiction - split into smaller formulas and
+    check 'false' with a linear solver based on [Kuhn 56] method
+  }
+\\
+  1970s: & Predicate transformer semantics, LCF/ML,
+  Boyer-Moore prover, abstract interpretation,
+  temporal logic, combination decision procedures.
+\\
+  1980s: & Model checking, hardware verification, HOL/Coq/Isabelle,
+  UNITY, TLA, I/O automata, Z specification language, OBJ3, KIDS.
+\\
+  1990s: & Symbolic model checking, timed/hybrid model checking,
+  predicate abstraction, bounded model checking, B Method, proof
+  carrying code, typed assembly language. 
+\\
+\end{tabular}
+\end{center}
+}
+
+
+
+
+
+
+\subsection{Why tool flash demonstration}
+
+
+\frame{
+\frametitle{Demo}
+Any questions so far?
+
+\pause
+\vspace{2mm}
+Before we finish, and breaking the line of thought of this talk (if
+there was one)...
+}

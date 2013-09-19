@@ -1,0 +1,52 @@
+type erl_term
+
+type erl_list
+type erl_tuple
+type erl_atom (* how to represent an atom?? *)
+type erl_pid
+(* integer: int built in *)
+
+
+(* -#################################################################- *)
+(* -##           Some simple operators over erlang terms          ###- *)
+(* -#################################################################- *)
+
+(* to refer to erlang terms we need a logic operator from values to erl_term *)
+logic erlang_list    : erl_list  ->  erl_term
+logic erlang_tuple   : erl_tuple ->  erl_term
+logic erlang_atom    : erl_atom  ->  erl_term      (* ### NOT COVERED YET ### *)
+logic erlang_pid     : erl_pid   ->  erl_term      (* ### NOT COVERED YET ### *)
+logic erlang_integer : int       ->  erl_term
+
+(* to get erlang terms we need a logic operator that returns the value of erl_term *)
+logic get_list    :  erl_term  ->  erl_list
+logic get_tuple   :  erl_term  ->  erl_tuple
+logic get_atom    :  erl_term  ->  erl_atom        (* ### NOT COVERED YET ### *)
+logic get_pid     :  erl_term  ->  erl_pid         (* ### NOT COVERED YET ### *)
+logic get_integer :  erl_term  ->  int
+
+axiom get_set_erl_list :
+  forall l : erl_list.
+    get_list( erlang_list( l ) ) = l
+
+axiom get_set_erl_tuple :
+  forall t : erl_tuple.
+    get_tuple( erlang_tuple( t ) ) = t
+
+(* -#################################################################- *)
+(* -####                      NOT COVERED YET                    ####- *)
+
+axiom get_set_erl_atom :
+  forall a : erl_atom.
+    get_atom( erlang_atom( a ) ) = a
+
+axiom get_set_erl_pid :
+  forall p : erl_pid.
+    get_pid( erlang_pid( p ) ) = p
+
+
+(* -#################################################################- *)
+
+axiom get_set_erl_integer :
+  forall i : int.
+    get_integer( erlang_integer( i ) ) = i

@@ -1,0 +1,164 @@
+type erl_term
+
+type erl_list
+
+(* to refer to erlang terms we need a logic operator from values to erl_term *)
+logic erlang_list : erl_list -> erl_term
+logic erlang_integer : int -> erl_term
+
+(* to get erlang terms we need a logic operator that returns the value of erl_term *)
+logic get_list  :  erl_term -> erl_list
+logic get_integer : erl_term -> int
+
+axiom get_set_erl_list :
+  forall l : erl_list.
+    get_list( erlang_list( l ) ) = l
+
+
+
+(* -#################################################################- *)
+(* -##                List related axiomatization                 ###- *)
+(* -#################################################################- *)
+
+(* list constructions *)
+logic nil : erl_list
+logic cons : erl_term, erl_list -> erl_list
+
+axiom erlang_list_ax :
+  forall l : erl_list. exists rl : erl_list. exists t : erl_term.
+    l = nil or l = cons(t,rl)
+
+(* list "destruction" *)
+logic head : erl_list -> erl_term
+logic tail : erl_list -> erl_list
+
+axiom tail_ax:
+  forall t : erl_term. forall l : erl_list.
+    tail (cons (t,l)) = l
+
+axiom head_ax:
+  forall t : erl_term. forall l : erl_list.
+    head (cons (t,l)) = t
+
+(* -=================================================================- *)
+
+logic is_nil : erl_list -> bool
+
+axiom is_nil_t_ax :
+  forall l : erl_list.
+    is_nil(l) = true <-> l = nil
+
+axiom is_nil_cons_ax :
+  forall t : erl_term. forall l : erl_list.
+    is_nil(cons(t,l)) = false
+
+(* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *)
+
+
+
+(* ------------------------------------------------------------------- *)
+
+logic is_list : erl_term -> bool
+
+axiom is_list_t_l :
+  forall t : erl_term. forall l : erl_list.
+    t = erlang_list(l) -> is_list(t)=true
+
+axiom is_list_l_t :
+  forall t : erl_term. exists l : erl_list.
+    is_list(t)=true -> t = erlang_list(l)
+
+(* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *)
+
+(* -=================================================================- *)
+
+(* length *)
+logic erl_list_length: erl_list -> int
+
+axiom erl_list_length_pos_ax :
+  forall l : erl_list.
+    erl_list_length(l) >= 0
+
+axiom erl_list_length_nil_ax :
+  erl_list_length(nil) = 0
+
+axiom erl_list_length_cons_ax :
+  forall l : erl_list. forall t : erl_term.
+    erl_list_length(cons(t,l)) = 1+ erl_list_length(l)
+
+(* ------------------------------------------------------------------- *)
+
+(* position access *)
+logic nth : int, erl_list -> erl_term
+
+axiom nth_head_ax :
+  forall t : erl_term. forall rl : erl_list.
+    nth(1,cons(t,rl)) = t
+
+axiom nth_tail_ax :
+  forall t : erl_term. forall rl : erl_list. forall i : int. i>=2 ->
+    nth(i,cons(t,rl)) = nth(i-1,rl)
+
+(* ------------------------------------------------------------------- *)
+
+(*  *)
+(* ------------------------------------------------------------------- *)
+
+(*  *)
+(* ------------------------------------------------------------------- *)
+
+(*  *)
+(* ------------------------------------------------------------------- *)
+
+(*  *)
+(* ------------------------------------------------------------------- *)
+
+(*  *)
+(* ------------------------------------------------------------------- *)
+
+(*  *)
+(* ------------------------------------------------------------------- *)
+
+(*  *)
+
+
+
+
+(* ------------------------------------------------------------------- *)
+let rec  reverse_aux (*[ | ]*) (L:erl_term) (Lprev:erl_term) : erl_term =
+  { is_list(L)=true and is_list(Lprev)=true }
+    if is_nil(get_list L) = true then
+      Lprev
+    else
+      (* cons(N,RL) *)
+      let H = head (get_list L) in
+      let RL = tail (get_list L) in
+        reverse_aux (erlang_list RL) (erlang_list (cons H (get_list Lprev)))
+  { erl_list_length(get_list(result)) = erl_list_length(get_list(L)) + erl_list_length(get_list(Lprev))
+    and (forall i:int.
+	   ( 1<=i<=erl_list_length(get_list(L)) )
+	        ->
+	   ( nth(i,get_list(L)) = nth(erl_list_length(get_list(L))+1-i,get_list(result)) )
+	     
+           
+        )
+    and (forall j:int.
+	   ( 1<=j<=erl_list_length(get_list(Lprev)) )
+	        ->
+	   ( nth(j,get_list(Lprev)) = nth(erl_list_length(get_list(L))+j,get_list(result)) )
+	     
+           
+        )
+  }
+
+
+let reverse =
+  fun (L:erl_term) ->
+  { is_list(L)=true }
+    (reverse_aux L (erlang_list nil))
+  { erl_list_length(get_list(L)) = erl_list_length(get_list(result)) 
+    and (forall i:int.
+	   1<=i<=erl_list_length(get_list(L))
+	     -> nth(i,get_list(L)) = nth(erl_list_length(get_list(L))+1-i,get_list(result))
+	)
+  }

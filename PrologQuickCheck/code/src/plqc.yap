@@ -327,6 +327,8 @@ report_shrinking(Shrinks, MinResult, MinActions, Print, Shrunk) :-
 
 % }}}
 
+% }}}
+
 % {{{ perform(NumTestsPassed, NumSuccessTests, TriesLeft, Property, ...)
 
 %% main test loop
@@ -434,7 +436,7 @@ run((Test pc_and Tests), Opts, Ctx, IState, OState, Result) :-
         run(Tests, Opts, Ctx, State1, OState, Result2)
     ;
         Result2 = none, OState = State1),
-        merge_results(Result1, Result2, Result).
+        merge_results_and(Result1, Result2, Result).
 %% disjunction - individual calls
 %% run((TestA ; TestB), Opts, Ctx, IState, OState, Result) :- 
 run((TestA pc_or TestB), Opts, Ctx, IState, OState, Result) :- 
@@ -443,8 +445,11 @@ run((TestA pc_or TestB), Opts, Ctx, IState, OState, Result) :-
         (result:is_fail_res(Result1), !,
         run(TestB, Opts, Ctx, IState, OState, Result2)
     ;
-        Result2 = none, Ostate = State1),
-        merge_results(Result1, Result2, Result).
+        Result2 = none, OState = State1),
+    %%     run(TestB, Opts, Ctx, IState, OState, Result)
+    %% ;
+    %%     Result = Result1, Ostate = State1) ,
+        merge_results_or(Result1, Result2, Result).
 run(pcif(IfTest, TestA, TestB), Opts, Ctx, IState, OState, Result) :- 
         !,
         run(IfTest, Opts, Ctx, IState, State1, ResultI),
@@ -455,8 +460,7 @@ run(pcif(IfTest, TestA, TestB), Opts, Ctx, IState, OState, Result) :-
         run(TestB, Opts, Ctx, State1, OState, Result2),
         Result1 = none
         ),
-        merge_results(Result1, Result2, Result3).
-        merge_results(ResultI, Result3, Result).
+        merge_results_if(Result1, Result2, Result).
 %% a leaf in the property syntax tree - a predicate call
 run(Test, Opts, Ctx, State, State, Result) :- 
         ctx:module(Ctx, M),
@@ -464,7 +468,7 @@ run(Test, Opts, Ctx, State, State, Result) :-
         create_pass_result(Ctx, true_prop, Result)
         )
     ;
-        (!,
+        (
         create_fail_result(Ctx, false_prop, Result)
         ).
 %% TODO: collect information for user analysis 
@@ -499,7 +503,20 @@ create_fail_result(Ctx, Reason, Fail) :-
         ctx:bound(Ctx, Bound),
         result:mk_fail([{reason, Reason}, {bound, Bound}], Fail).
 
-merge_results(R1, R2, R) :-
+%% merge_results(R1, R2, R) :-
+%%         result:is_pass_res(R1),  result:is_pass_res(R2), !,
+%%         result:reason_pass(R1,Reason),  result:bound_pass(R1,Bound1),
+%%         result:samples_pass(R1,Samples1),  result:printers_pass(R1,Printers1),  result:performed_pass(R1,Performed),
+%%         result:bound_pass(R2,Bound2),  result:samples_pass(R2,Samples2),  result:printers_pass(R2,Printers2),
+%%         lists:append(Samples1, Samples2, Samples),  lists:append(Printers1, Printers2, Printers),
+%%         result:mk_pass([{reason, Reason}, {bound, [Bound1, Bound2]}, {samples, S}, {printers, P}, {performed, P}], R)
+%%     ;
+%%         result:reason_fail(R1, Reason),  result:bound_fail(R1, Bound1),
+%%         result:actions_fail(R1, Actions1),  result:performed_fail(R1, Performed1),
+%%         result:bound_fail(R2, Bound2),  result:actions_fail(R2, Actions2),  result:performed_fail(R2, Performed2),
+%%         lists:append(Bound1, Bound2, Bound),  lists:append(Actions1, Actions2, Actions),
+%%         result:mk_fail([{reason, Reason}, {bound, Bound},{actions, Actions}, {performed, Performed}], R).
+merge_results_and(R1, R2, R) :-
         result:is_pass_res(R1),  result:is_pass_res(R2), !,
         result:reason_pass(R1,Reason),  result:bound_pass(R1,Bound1),
         result:samples_pass(R1,Samples1),  result:printers_pass(R1,Printers1),  result:performed_pass(R1,Performed),
@@ -512,6 +529,38 @@ merge_results(R1, R2, R) :-
         result:bound_fail(R2, Bound2),  result:actions_fail(R2, Actions2),  result:performed_fail(R2, Performed2),
         lists:append(Bound1, Bound2, Bound),  lists:append(Actions1, Actions2, Actions),
         result:mk_fail([{reason, Reason}, {bound, Bound},{actions, Actions}, {performed, Performed}], R).
+merge_results_or(R1, R2, R) :-
+        result:is_pass_res(R1),  result:is_pass_res(R2), !,
+        result:reason_pass(R1,Reason),  result:bound_pass(R1,Bound1),
+        result:samples_pass(R1,Samples1),  result:printers_pass(R1,Printers1),  result:performed_pass(R1,Performed),
+        result:bound_pass(R2,Bound2),  result:samples_pass(R2,Samples2),  result:printers_pass(R2,Printers2),
+        lists:append(Samples1, Samples2, Samples),  lists:append(Printers1, Printers2, Printers),
+        result:mk_pass([{reason, Reason}, {bound, [Bound1, Bound2]}, {samples, S}, {printers, P}, {performed, P}], R)
+    ;
+        result:reason_fail(R1, Reason),  result:bound_fail(R1, Bound1),
+        result:actions_fail(R1, Actions1),  result:performed_fail(R1, Performed1),
+        result:bound_fail(R2, Bound2),  result:actions_fail(R2, Actions2),  result:performed_fail(R2, Performed2),
+        lists:append(Bound1, Bound2, Bound),  lists:append(Actions1, Actions2, Actions),
+        result:mk_fail([{reason, Reason}, {bound, Bound},{actions, Actions}, {performed, Performed}], R).
+
+merge_results_if(R1, none, R) :-
+        result:is_pass_res(R1), !,
+        result:reason_pass(R1,Reason),  result:bound_pass(R1,Bound),
+        result:samples_pass(R1,Samples),  result:printers_pass(R1,Printers),  result:performed_pass(R1,Performed),
+        result:mk_pass([{reason, Reason}, {bound, Bound, none}, {samples, S}, {printers, P}, {performed, P}], R)
+    ;
+        result:reason_fail(R1, Reason),  result:bound_fail(R1, Bound),
+        result:actions_fail(R1, Actions),  result:performed_fail(R1, Performed),
+        result:mk_fail([{reason, Reason}, {bound, Bound, none}, {actions, Actions}, {performed, Performed}], R).
+merge_results_if(none, R1, R) :-
+        result:is_pass_res(R1), !,
+        result:reason_pass(R1,Reason),  result:bound_pass(R1,Bound),
+        result:samples_pass(R1,Samples),  result:printers_pass(R1,Printers),  result:performed_pass(R1,Performed),
+        result:mk_pass([{reason, Reason}, {bound, none, Bound}, {samples, S}, {printers, P}, {performed, P}], R)
+    ;
+        result:reason_fail(R1, Reason),  result:bound_fail(R1, Bound),
+        result:actions_fail(R1, Actions),  result:performed_fail(R1, Performed),
+        result:mk_fail([{reason, Reason}, {bound, none, Bound}, {actions, Actions}, {performed, Performed}], R).
 
 % }}}
 
@@ -731,7 +780,7 @@ listOf(GenA, AS, shrink, [Tail|Shrs1]) :-
         AS = [H|Tail],
         vectorOf(K, GenA, AS, shrink, Shrs1).
 
-listOf1(GenA, [A], shrink, []) :-
+listOf1(GenA, [A], shrink, []) :- !.
 listOf1(GenA, AS, shrink, Shrs) :-
         listOf(GenA, AS, shrink, Shrs1),
         selectlist(nonempty, Shrs1, Shrs).

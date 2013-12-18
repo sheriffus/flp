@@ -9,10 +9,12 @@
 %% As far as we know, there seems to be no previous work on automatic
 %% testing of \Prolog{} programs against specifications.%% , although tools
 %
-%% Although, 
-{\sf SWI-Prolog}'s {\sf plunit}~\cite{swi-prolog} supports unit testing.
+There is some previous support for automated testing in the logic programming
+community:
 %
-The {\sf Ciao Prolog System} ~\cite{ciao-prolog} has an assertion language
+{\sf SWI-Prolog} supports unit testing through {\sf plunit}~\cite{swi-prolog};
+%
+the {\sf Ciao Prolog System} ~\cite{ciao-prolog} has an assertion language
 integrating run-time checking and unit testing~\cite{ciao-assert-unit}.
 %% \todo{em vez de 'Prolog System' o comentario tinha 'LP xzxdf'}
 %
@@ -24,8 +26,9 @@ automatic property-based randomly generated testing context.
 Property specification languages for \Prolog{} were used
 before~\cite{ciao-assert-unit,Deville1990logprog,somogyi1995mercury} in
 different contexts.
-%
-However automated test is well supported in several languages and
+
+
+Automated test is supported in several languages and
 paradigms.
 %
 The three most influential tools were \QuickCheck~\cite{quickcheck} for
@@ -72,7 +75,7 @@ most preeminent tool is \QuickCheck{}.
 as does {\sf PropEr}.
 %
 We define a specification language in \plqc{} but with
-differences related to the relational nature of \Prolog{}.%% , such as modes
+differences related to the relational nature of \Prolog{}. %% , such as modes
 %% and constraints on the number of answers.
 As in \QuickCheck{}, we also use random testing - we choose this method
 compared to systematic methods due to its success in \QuickCheck{}.
@@ -88,21 +91,27 @@ being quantified types defined by these generating functions.
 \Prolog{} is an untyped language, but type information is crucial also in
 \plqc{} test data generation.
 %
-In parallel with {\sf Erlang} tools, we adopt the view of types as
-monadic \Prolog{} programs describing sets of terms, widely used in the
-{\em regular types} approach for typing logic programs~\cite{Yardeni:1991:TSL:110703.110705,fruhwirth1991logic,DBLP:conf/iclp/Zobel87,florido1992types}.
-
-
-Recently a novel counterexample generator for the interactive theorem
-prover Isabelle~\cite{bulwahn2012smart} reformulates the preconditions
-also as logic programs and analyzes them with a mode inference.
+Similarly to the {\sf Erlang} tools, we adopt the view of types defined
+by test case generators.
 %
-%% But t
-The application of this tool is on the  synthesis of test data
-generators for functional programming languages (e.g. ML, \Haskell) from
-specifications in Isabelle, %% and is quite different from the use of logic
-%% programs in \plqc{} generators,
-but may be a promising approach for improving the generators.
+Our types are intended to construct test cases that depict input
+instantiations.
+%
+Thus we would not take advantage of the use of restricted type languages
+based on regular types~\cite{Yardeni:1991:TSL:110703.110705,fruhwirth1991logic,DBLP:conf/iclp/Zobel87,florido1992types}.
+
+
+%% Recently a novel counterexample generator for the interactive theorem
+%% prover Isabelle~\cite{bulwahn2012smart} reformulates the preconditions
+%% also as logic programs and analyzes them with a mode inference.
+%% \todo{remove paragraph??}
+%% %
+%% %% But t
+%% The application of this tool is on the  synthesis of test data
+%% generators for functional programming languages (e.g. ML, \Haskell) from
+%% specifications in Isabelle, %% and is quite different from the use of logic
+%% %% programs in \plqc{} generators,
+%% but may be a promising approach for improving the generators.
 %% \todo{posso ter interpretado mal o comentario para a alteração desta
 %%   última frase}
 %% The two most inspiring tools were QuickCheck \cite{...} for the

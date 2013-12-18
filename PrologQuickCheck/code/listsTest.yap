@@ -134,6 +134,57 @@ append([], YS, YS).
 append([X|XS], YS, [X|AS]) :-
         append(XS, YS, AS).
 
+    % {{{ append manual props
+pcprop({appLLL, L1, L2}) :- append(L1, L2, L), (L = []; L = [_|_]).
+pcprop({appLLEmpty, L1, L2}) :- append(L1, L2, L), L = [].
+pcprop({appLLCons, L1, L2}) :- append(L1, L2, L), L = [_|_].
+pcprop({appLLLen, L1, L2}) :-
+        append(L1, L2, L),
+        length(L1, K1), length(L2, K2), length(L, K),
+        K is K1 + K2.
+
+pcprop(appL) :-
+        pcforall(listOf(int), L1,
+          pcforall(listOf(int), L2,
+            pcprop({appLLL, L1, L2}) ) ).
+pcprop(appLen) :-
+        pcforall(listOf(int), L1,
+          pcforall(listOf(int), L2,
+             pcprop({appLLLen, L1, L2}) ) ).
+
+
+pcprop(wrong_appL) :-
+        pcforall(listOf(int), L1, pcforall(listOf(int), L2,
+          (app(L1, L2, L), (L = [], L = [_|_])) )).
+
+
+pcprop({appLZero, L1, L2}) :- pcif(L1 = [], (append(L1, L2, L), L=L2), true).
+pcprop({appRZero, L1, L2}) :- pcif(L2 = [], (append(L1, L2, L), L=L1), true).
+
+pcprop(appAll) :- 
+        pcforall(listOf(int), L1,
+          pcforall(listOf(int), L2,
+    (
+        pcprop({appLLLen, L1, L2}) pc_and pcprop({appLZero, L1, L2})  pc_and pcprop({appRZero, L1, L2})
+    pc_and pcprop({appLLL, L1, L2}) 
+    pc_and
+        (pcprop({appLLEmpty, L1, L2}) pc_or pcprop({appLLCons, L1, L2}))
+    %%     
+    ) ) ).
+
+pcprop(app1) :- 
+        pcforall(resize(0, listOf(int)), L1,
+          pcforall(listOf(int), L2,
+    (
+        pcprop({appLLLen, L1, L2}) pc_and pcprop({appLZero, L1, L2})  pc_and pcprop({appRZero, L1, L2})
+    pc_and pcprop({appLLL, L1, L2}) 
+    pc_and
+        (pcprop({appLLEmpty, L1, L2}) pc_or pcprop({appLLCons, L1, L2}))
+    %%     
+    ) ) ).
+
+    % }}}
+
     % {{{ append _
  append
     of_type (A-(listOf(int)), B-(listOf(int)), C-(variable))
@@ -154,6 +205,11 @@ append([X|XS], YS, [X|AS]) :-
     where (i(v, g, v), o(g, g, g), o(ngv, g, ngv))
     has_range {1,inf} % default 1-inf
     .
+    % }}}
+    % {{{ append 5
+{append, 5}
+    of_type (A-(listOf(int)), B-(listOf(int)), C-(variable))
+    post_cond (length(A, K1), length(B, K2), length(C, K), K is K1 + K2).
     % }}}
 %% preserves variables in original lists
 dappend(A-AS,B-BS,C-CS) :- duplicate_term({A-AS, B-BS},{C-X,X-CS}).

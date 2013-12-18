@@ -4,6 +4,28 @@
 \label{sec:intro}
 %{{{ introduction text
 
+%% \todo{Whispec: White-box Testing of Libraries
+%% Using Declarative Specifications}
+%% \todo{Ranking Programs using Black Box Testing}
+%% \todo{Finding Race Conditions in Erlang with QuickCheck and
+%% pulse -- system }
+%% \todo{Property-based testing for functional programs, Nicholas
+%%   Smallbone, Lic Thesis at Chalmers -- mentions white,
+%%   black and system, includes two previous papers}
+%% \todo{QuickCheck-Style Testing of
+%% Embedded Software using the PropEr
+%% Framework -- system}
+%% \todo{Testing Telecoms Software with Quviq QuickCheck}
+%% \todo{Testing Erlang Data Types with Quviq quickcheck}
+%% \todo{Testing Java with QuickCheck}
+%% \todo{Testing Erlang Refactorings with QuickCheck}
+%% \todo{Early Fault Detection with Model-Based Testing}
+%% \todo{Automated, deterministic testing versus stochastic
+%% testing using Quickcheck -- MSc of Fredrik Hoback at KTH -- conformance}
+%% \todo{Ranking Programs using Black Box Testing -- in Software Quality Journal}
+%% \todo{}
+%% \todo{}
+
 %Narrative: 
 %  What (is the subject),
 %  why  (are we exploring it) and 
@@ -44,10 +66,14 @@
 %% throughout program development.
 
 %  What (is the subject)
-Testing a software component, or components, consists of executing the component on
-a pre-selected set of inputs (test suite) and inspecting whether the outputs
+Software testing consists of executing a program on
+a pre-selected set of inputs and inspecting whether the outputs
 respect the expected results.
 %
+Each input tested is called a \emph{test case} and the set of inputs is
+a \emph{test suite}.
+%
+Testing tries to find counter-examples
 %% Software testing can be classified by the granularity of test focus, the
 %% tester point of view or approach.
 %% %
@@ -59,14 +85,16 @@ respect the expected results.
 %% test its behaviour whereas the developer may want to check invariants
 %% and the integrity of internal data-structures.
 %
-How to choose the test cases in a test suite is often a difficult
-question.
+%% How to choose
+and choosing 
+the test cases %% in a test suite
+to this effect
+is often a difficult
+task.
 %
-The approach used
-can be  manual, with the tester %% developer
-designing test cases one by %% \todo{test developer -> tester (vsc?)}
-one, or it can be automated to some extent, in this case resorting to
-tools for case generation. %% \todo{havia uma nota aqui ([]) que eu não percebo}
+The approach used can be  manual, with the tester designing test cases
+one by one, or it can be automated to some extent, in this case
+resorting to tools for case generation.
 %
 Ideally, the best approach would be automatic testing.
 %
@@ -75,66 +103,127 @@ Ideally, the best approach would be automatic testing.
 %% it easier to test programs being developed.}
 
 
-%% In this work w
-We introduce \plqc{}\footnote{The \plqc{} tool is available at \url{www.dcc.fc.up.pt/~coa/PrologCheck.html}.},
-a property-based testing framework for \Prolog{} inspired on
- \QuickCheck~\cite{quickcheck}.
+In a property-based framework test cases are automatically generated and run
+from assertions about logical properties of the program.
 %
-We further present a language for the specification of \Prolog{} predicates
-together with a translation procedure for generating \plqc{} properties
-based on the specification.
+Feedback is given to the user about their
+evaluation.
+%
+Property-based testing applications include
+black-box, white-box, unit, integration and system testing~\cite{Claessen-ranking-prog-blackbox,Claessen-find-race-cond-erl,Boberg-model-based-testing-erl}.
 
 
-%  why  (are we exploring it) and 
-Automatic testing is particularly suitable to logic programming languages such as
-\Prolog{}. The high-level nature of the language makes it easy to
-specify test cases.
+
+
+Property-based testing naturally fits the logic programming paradigm. 
 %
-On the other hand, due to its untyped nature the developer may be
-oblivious to important corner cases or odd behaviours.
+%% The high-level nature of the language makes it easy to
+%% specify properties. %% test cases.
 %
-Backtracking can also cause unexpected behaviours. %% in goal conjunctions.
+%% On the other hand, 
+%% Due to its untyped nature programmers may be
+%% oblivious to important corner cases or odd behaviours.
+%% %
+%% Backtracking can also cause unexpected behaviours. %% in goal conjunctions.
 %% Prolog backtracking may also interfere in less than obvious
 %% ways, making the run-time behavior elude the programmer.
+%% %
+%% Being able to automatically test a property about a predicate or set of
+%% predicates is thus a clear advantage during software development.
 %
-Being able to automatically test a property about a predicate or set of
-predicates is thus a clear advantage during software development.
-%
-\Prolog{}'s ties to logic reduces the gap between the program and the
-specification of properties to be tested.
+Assertions are first order formulas and thus easily encoded as program predicates.
+%% \Prolog{}'s ties to logic reduces the gap between the program and the
+%% specification of properties. %% to be tested.
+%% \todo{tinha um coment\'ario do vsc, nao o entendi}
 %
 Therefore, a property based approach to testing is intuitive for the
 logic programmer.
-%% \todo{tinha um coment\'ario do vsc, nao o entendi}
+
+
+In this paper we introduce \plqc{}\footnote{The \plqc{} tool is available at \url{www.dcc.fc.up.pt/~coa/PrologCheck.html}.},
+a property-based testing framework for \Prolog{}.
+%%  inspired on
+ %% \QuickCheck~\cite{quickcheck}
+%
+We further discuss two main contributions: a specification language for \Prolog{} predicates
+and a translation procedure into testable properties.
+
+
+%  why  (are we exploring it) and 
+
+
 
 %  how  (are we doing it)
-In a property-based framework tests are automatically generated and run from formal specifications of general
-properties of the program, and feedback is given to the user about their
-evaluation.
 %% \todo{sou contra o comentario para mudar 'generated' para antes de
 %%   'automatically' porque também se aplica ao 'run'}
 %
-Property-based testing is a flexible approach whose applications include
-black-box, white-box, unit, integration and system testing.
+In non-logic programming languages interfaces to testing frameworks rely
+on boolean functions, such as equality, to determine primitive properties. %%  \todo{em vez de
+  %% 'traditional interfaces'}
+%% %
+%% Since \plqc{} is a tool to test \Prolog{} programs we take advantage of
+%% the nature of the language and loosed the requirements for property
+%% specification.
+%% %
+%% Even if they are composed of software units of other types they still
+%% need to be able to evaluate to a truth value in order to assess a
+%% property validity.
+%% %
+%% With \Prolog{} %% there are no such restrictions: 
+%% any goal may be a property.
+%
+%% Instead of expecting a reduced set of syntactic elements to describe
+%% properties, i
+%
+\plqc{} states properties through a domain-specific language that
+naturally supports domain quantification.
+%
+In this language primitive properties are %% defined as
+\Prolog{} goals which can be composed by \plqc{}
+property combinators.
+%% a property is a goal or a composition of
+%% properties.
+%% \todo{havia aqui um comentario a dizer que estava confuso, espero que
+%%   não esteja pior...}
+
+
+
+%% A property is satisfied when the execution of the goal, given all
+%% necessary input, succeeds or the composition rules are met.
+%% %
+%% Input %% to such goals is given
+%% is based on \plqc{} value abstraction,
+%% quantification over a domain represented by a generator of terms.
+%
+%% Properties can be composed and their validity is defined by the
+%% composition operation.
+%
+\plqc{} testing consists on repetitively calling the goal for a large number of
+test cases.
+%
+%% Singleton properties are pure predicate calls
+%% or composed goals whose successful execution determines that the
+%% property holds for the given input.
+%% %
+%% These properties can be composed in order to achieve more complex
+%% specifications.
+%
 %
 We implement randomised test case generation, which frees the user
 from choosing input manually.
 %
-Other generation techniques
+We also include a number of predefined generators for relevant sets of
+terms, such as integers and lists, and combinators to help define new
+generators.
+%
+The user can define new test case generators or combine
+existing ones.
+%
+Thus other generation techniques
 \cite{naylor2007logic,runciman2008smallcheck,Duregard-2012-feat} can be
-implemented to complement the power of built-in generators.
+implemented  to complement the power of built-in generators.
 %
-Properties are stated through a domain-specific language wrapping
-\Prolog{} goals, which \plqc{} checks for a number of inputs. %% \todo{mais
-%% um comentario que nao percebo}
-%
-Singleton properties are pure predicate calls
-or composed goals whose successful execution determines that the
-property holds for the given input.
-%
-These properties can be composed in order to achieve more complex
-specifications.
-
+%% The interface predicates of \plqc{} test if given properties hold for a number of inputs.
 
 %% %
 %% % vsc: this seems too much detail for the Intro
@@ -152,41 +241,6 @@ specifications.
 %% to the predicates being tested is valid.
 
 
-%  something different
-Since \plqc{} is a tool to test \Prolog{} programs we take advantage of
-the nature of the language and loosed the requirements for property
-specification.
-%
-In non-logic programming languages interfaces rely on built-in mechanisms, such as equality or
-a boolean type, to determine primitive properties. %%  \todo{em vez de
-  %% 'traditional interfaces'}
-%
-Even if they are composed of software units of other types they still
-need to be able to evaluate to a truth value in order to assess a
-property validity.
-%
-With \Prolog{} there are no such restrictions: any goal may be a property.
-%
-%% Instead of expecting a reduced set of syntactic elements to describe
-%% properties, i
-In \plqc{} primitive properties are %% defined as
-\Prolog{} goals and can be composed by \plqc{} operations.%% a property is a goal or a composition of
-%% properties.
-%% \todo{havia aqui um comentario a dizer que estava confuso, espero que
-%%   não esteja pior...}
-%
-A property is satisfied when the execution of the goal, given all
-necessary input, succeeds or the composition rules are met.
-%
-Input to such goals is given based on \plqc{} value abstraction,
-quantification over a domain represented by a term generator.
-%
-%% Properties can be composed and their validity is defined by the
-%% composition operation.
-%
-Testing will consist on repetitively calling the goal for multiple
-potential inputs.
-
 
 %  overview
 %% \plqc{} tool is inspired by \QuickCheck{} and retains its main
@@ -200,27 +254,39 @@ potential inputs.
 %% \QuickCheck{}.
 
 
-Our tool is
-lightweight and completely integrated in \Prolog{}.
+%% Our tool is
+%% lightweight and completely integrated in \Prolog{}.
+%% %
+%% On top of this lightweight testing tool we have built predicate
+%% specification testing.
+We also define a language of testable predicate specifications including
+types, modes and determinism, which the tester can use to encode
+interesting properties of the predicate under test.
+%% %
+%% By specifying some aspects of a predicate in a proper specification
+%% language it is possible to generate a \plqc{} property and check it.
 %
-On top of this lightweight testing tool we have built predicate
-specification testing.
-%
-By specifying some aspects of a predicate in a proper specification
-language it is possible to generate a \plqc{} property and check it.
-%
-This %% has 
-allows us to  use \plqc{} and its predicate specification in a number of
-predicates and even libraries.
+This allows us to  use \plqc{} and its predicate specification to test a
+number of non-trivial programs.
 
 
 %}}} introduction
 
 
 %{{{ paper outline
-%% This paper is organised as follows.
-%% %
-%% \refSecI{}
+The rest of this paper is organised as follows.
+%
+\refSecI{sec:rel-work} encloses the presentation of related work.
+%
+In \refSec{sec:properties} we introduce property definitions and their
+testing in \plqc{} and in \refSec{sec:generators} we describe details
+about test case generation.
+%
+\refSecI{sec:pred-spec} presents the predicate specification language
+and how to test the specifications, followed by the presentation of case
+studies in \refSec{sec:case-studies}
+%
+We finalise with the conclusions in \refSec{sec:conclusion}
 %}}} outline
 
 

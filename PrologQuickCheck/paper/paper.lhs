@@ -34,7 +34,7 @@
 % the affiliations are given next; don't give your e-mail address
 % unless you accept that it will be published
 \institute{
-DCC - Faculty of Science, University of Porto
+DCC - Faculty of Sciences, University of Porto
 \and LIACC - University of Porto \and CRACS - University of Porto
 \\
 \url{{coa,amf,vsc}@@dcc.fc.up.pt}}
@@ -71,9 +71,12 @@ DCC - Faculty of Science, University of Porto
 \maketitle
 \begin{abstract}
 %include abstract.tex
-\keywords{Prolog, Property-based Testing, Automatic Testing, Testing,
-  Verification, Logic Programming, Predicate Specification}
+%% \keywords{Property-based Testing, %Automatic Testing, Testing,
+%%   %Verification,
+%%   %Logic Programming,
+%%   Predicate Specification, Prolog}
 \end{abstract}
+
 
 %% % A category with the (minimum) three required fields
 %% \category{H.4}{Information Systems Applications}{Miscellaneous}
@@ -99,7 +102,7 @@ DCC - Faculty of Science, University of Porto
 %include secRelWork.tex
 %include secPlqc.tex
 %include secPredSpec.tex
-%include secImplementation.tex
+%% %include secImplementation.tex
 %include secCaseStudies.tex
 %include secConclusion.tex
 %% %include sec3.tex

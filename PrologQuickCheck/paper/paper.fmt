@@ -13,6 +13,10 @@
 %format ===   = "\equiv"
 %format ==/=   = "\not\equiv"
 %format ~~   = "\ "
+%format in   = "\in"
+%format ^   = "^"
+%format l1   = "l_1 "
+%format l2   = "l_2 "
 
 \newcommand{\shortequals}{
   {\unitlength 0.01em
@@ -26,7 +30,7 @@
   \shortequals . \shortequals}}}
 %format =.= = "\doubledotequals"
 
-%format ^ = " "
+% %format ^ = " "
 %format ^^ = "\;"
 
 %format undefined = undef

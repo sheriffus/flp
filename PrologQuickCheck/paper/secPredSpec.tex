@@ -68,7 +68,7 @@ Next, we discuss the main properties that we allow in our framework.
 
 Types are the mandatory part of the specification.
 %
-They are mandatory in order to guarantee that the specification may be
+They are required to guarantee that the specification may be
 automatically tested.
 %
 We define a type as follows: 
@@ -82,9 +82,9 @@ terms that define the type.
 
 
 Types are not defined as a set of \emph{ground} terms but rather by
-the set of terms represented by a generator.
+a set of terms.
 %
-These are the types used in predicate specifications.
+%% These are the types used in our predicate specifications.
 %
 Note that types defined in this manner depict perfectly possible forms of
 predicate input.
@@ -99,10 +99,10 @@ generators used to automatically create %% individual
 test cases.
 %
 This means that the type in a specification clause is partial in the
-sense that it only specifies the predicate should succeed when given
+sense that it only specifies that the predicate should succeed when given
 elements of such types as parameters.
 %
-It states nothing about other kinds of parameters.
+It states nothing about parameters of other types.
 %
 Other input types can be covered by other specification clauses with
 different generators.
@@ -111,6 +111,21 @@ The %% effect of a procedure execution
 behaviour of a procedure
 for types not covered by any of the
 specification clauses is considered undefined.
+
+
+We can now easily specify input modes for program predicates like \yap{app/3}.
+%
+We identify the specification clauses as \yap{{app,K}}, clause \yap{K} of
+predicate \yap{app}, and declare the \plqc{} types.
+%
+The specifications can be tested and the predicate checked to succeed
+for the corresponding input types.
+%
+\begin{yapcode}
+ {app,1} of_type (listOf(int), value(v), variable)
+ {app,2} of_type (listOf(int), variable, variable)
+ {app,3} of_type (listOf(int), listOf(int), variable)
+\end{yapcode}
 
 
 %% \subsection{Domain}
@@ -161,6 +176,22 @@ the generator that fulfils the domain precondition.
 %
 %% In the absence of a domain precondition relating parameters the domain
 %% is the set of terms generated.
+%
+A specification clause can thus be engineered to represent a subset of
+a more general type.
+%
+An example could be that we want to test \yap{app} with at least one
+non-empty list input.
+%
+This can be used, for example, to guarantee that the variable given in
+the third argument will be instantiated with a non-empty list.
+\begin{yapcode}
+ non_empty( {[_||_],_,_} ).
+ non_empty( {_,[_||_],_} ).
+ {app,3b} of_type (listOf(int), listOf(int), variable)
+    such_that m:non_empty.
+\end{yapcode}
+
 
 
 %% \subsection{Directionality}
@@ -232,7 +263,7 @@ A \emph{directionality} of a specification clause of a predicate
 \yap{p/n} is a sequence of \emph{predicate modes}, with one input mode
 followed by one or more output modes.
 \\
-A predicate mode of \yap{p}, or just mode of \yap{p}, is a denoted as
+A predicate mode of \yap{p}, or just mode of \yap{p}, is denoted as
 \begin{itemize}
   \item $i(m_1, ..., m_n)$
   \item $o(M_1, ..., M_n)$
@@ -241,6 +272,20 @@ where $m_i,M_i \in Modes$ and $i, o$ respect to input and output modes
 respectively.
 \end{definition}
 
+
+The specification of input and output modes is important to state
+predicate behaviours that may be oblivious to a library user.
+%
+From using the predicate \yap{app/3} with a list and two variables, for
+example, two distinct directionalities may arise.
+%
+This is due to the fact that an empty list in the first argument does
+not contribute to instantiate any part of the third parameter.
+%
+\begin{yapcode}
+ {app, 4} of_type (A-(listOf(int)), B-(variable), C-(variable))
+    where (i(g, v, v), o(g, v, ngv), o(g, v, v)).
+\end{yapcode}
 
 %% \todo{talk a little about inconsistent directionalities (v<ngv<g),
 %%   which are only caught during testing...}
@@ -290,6 +335,18 @@ excessively large number.
 One can state the maximum number of answers necessary to assume that the
 answer range is sufficiently close to the upper bound with a positive
 integer.
+%
+We can complement the previous specification clause with a statement
+about the predicate behaviour regarding the number of answers.
+%
+In this case we have a total function behaviour, always yielding one and
+only one answer.
+%
+\begin{yapcode}
+ {app, 4b} of_type (A-(listOf(int)), B-(variable), C-(variable))
+    where (i(g, v, v), o(g, v, ngv), o(g, v, v))
+    has_range {1,1}.
+\end{yapcode}
 
 %% \subsection{Pre- and Post-conditions}
 \paragraph{\bf Pre and Post-conditions}
@@ -313,4 +370,13 @@ Post-conditions can also use any of the specified parameters.
 %
 Since they are no longer used, it does not matter if they are changed by
 the answer substitution.
+%
+Now we can describe the property relating the lengths of \yap{app/3}'s
+parameters in a post-condition of a specification clause of the
+respective type.
+%
+\begin{yapcode}
+ {app, 5} of_type (A-(listOf(int)), B-(listOf(int)), C-(variable))
+   post_cond (length(A,K1), length(B,K2), length(C,K), K is K1+K2).
+\end{yapcode}
 

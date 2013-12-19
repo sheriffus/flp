@@ -1,0 +1,198 @@
+% -*- mode: latex; mode: folding -*-
+
+\begin{figure}%[h]
+
+  \subfloat[Typing rules;\label{fig:typing-rules}]{
+\begin{minipage}[b]{.5\textwidth}%
+%{{{ typing rules
+
+  \centering
+  \begin{gather*}
+    \setlength{\extrarowheight}{0.6ex}
+    \setlength{\arraycolsep}{0.7em}
+    \begin{array}{l l}
+    %% \begin{array}{l@{\hspace{6.3ex}}l@{}}
+      % values
+      \inference{
+      \AxiomC{$v \in s$}
+      \AxiomC{$s \in |Prim|$}
+      \BinaryInfC{$\ty{\tyctxt}{v}{s}$}
+      } &
+      % variables
+      \inference{
+      \AxiomC{$\tyctxt(x) = \sigma$}
+      \UnaryInfC{$\ty{\tyctxt}{x}{\sigma}$}
+      } \\[2ex] % ---------------------------------------
+      %\\[2ex]
+      %% \multicolumn{2}{l}{
+      % application
+        \inference{
+        \AxiomC{$\ty{\tyctxt}{t_1}{\sigma\rightarrow\tau}$}
+        \AxiomC{$\ty{\tyctxt}{t_2}{\sigma}$}
+        \BinaryInfC{$\ty{\tyctxt}{t_1\ t_2}{\tau}$}
+      }% /application
+      %% }
+      &
+      % abstraction
+      \inference{
+      \AxiomC{$\ty{\update{\tyctxt}{x}{\sigma}}{t}{\tau}$}
+      \UnaryInfC{$\ty{\tyctxt}{\lambda x.t}{\sigma\rightarrow\tau}$}
+      } \\[2ex] % /abstraction
+      % ---------------------------------------
+      % let
+      \multicolumn{2}{l}{
+      \inference{
+        \AxiomC{$\ty{\update{\tyctxt}{x}{\sigma}}{t_1}{\sigma}$
+          \quad $\ty{\update{\tyctxt}{x}{\sigma}}{t_2}{\tau}$}
+        \UnaryInfC{$\ty{\tyctxt}{\const{let}\ x\ =\ t_1\ \const{in}\ t_2}{\tau}$}
+      }
+      } % /let
+      \\[2ex] % ---------------------------------------
+      % constructor values
+      \multicolumn{2}{l}{\inference{
+      \AxiomC{$C^{a, r, n}\ \tau_1 \stimes \ldots  \stimes \tau_a\ \in\ C$}
+      \AxiomC{$C\ \in\ |Predef|$}
+%      \AxiomC{$\ty{\tyctxt}{x_1}{\tau_1}\ \ \ldots\ \ \ty{\tyctxt}{x_a}{\tau_a}$}
+      \BinaryInfC{$\ty{\tyctxt}{C^{a, r, n}}{\tau_1 \stimes \ldots \stimes \tau_a
+          \rightarrow C}$}
+      }} % /constr val
+      \\[2ex] % ---------------------------------------
+      % case
+      \multicolumn{2}{l}{\inference{
+        \AxiomC{
+          $\overset{\textstyle
+          \ty{\tyctxt}{t}{C}
+        %% }\AxiomC{
+          \quad\ 
+          %% \quad
+          \ty{\tyctxt}{C^{a_r, r, n}}{\tau_1 \stimes \ldots \stimes
+            \tau_{a_r} \rightarrow C}
+        %% }\AxiomC{
+          }{
+          %% \quad
+          \ty{
+            \tyctxt
+              \!\gparen{[}{]}{x_1 \mapsto \tau_1 , \ldots , x_{a_r} \mapsto \tau_{a_r}}
+              }{
+            t_{r} }{ \tau }
+          }$
+        }
+        \RightLabel{$\scriptstyle\overset{\rightarrow}{r} \subseteq \{1..n\}$}
+        \UnaryInfC{$\ty{\tyctxt}{\const{case}\ t\ \const{of}\ 
+               \{
+               C^{a_r, r, n}\ x_1 \ldots x_{a_r} \rightarrow\ t_{r}
+               \}
+          }{\tau}$}
+      }} % /case
+      \\
+      % return
+      \ty{\Gamma}{\const{return}}{\tau \rightarrow |StM|\ \sigma\ \tau}
+      &
+      % seq
+      \ty{\Gamma}{\const{seq}}{\sigma \rightarrow \tau \rightarrow \tau}
+      \\
+      % put
+      \ty{\Gamma}{\const{put}}{\sigma \rightarrow |StM|\ \sigma\ \lunittype}
+      &
+      % get
+      \ty{\Gamma}{\const{get}}{|StM|\ \sigma\ \sigma}
+      \\
+      % bind
+      \multicolumn{2}{l}{
+      \ty{\Gamma}{|(>>=)|}{|StM|\ \sigma\ \tau \rightarrow
+        (\tau \rightarrow |StM|\ \sigma\ \gamma) \rightarrow
+        |StM|\ \sigma\ \gamma}
+      }
+      \\
+      % runS
+      \multicolumn{2}{l}{
+      \ty{\Gamma}{|runS|}{|StM|\ \sigma\ \tau \rightarrow
+        \sigma \rightarrow
+        \tau}
+      }
+    \end{array}
+  \end{gather*}
+
+%}}}
+\end{minipage}%
+  }
+
+%%   \caption{Typing rules for \lang{}$_m$.}
+%%   \label{fig:typing-rules}
+%% \end{figure}
+
+
+%% \begin{figure}
+
+  \subfloat[Base types;\label{fig:types-used}]{
+\begin{minipage}[b]{.5\textwidth}%
+%{{{ base types
+
+  \centering
+  \begin{align*}
+    &|Prim|   &=&
+    \quad
+    \{ \emptyset , \lunittype , \mathbb{B} , \mathbb{Z} \}
+    & 
+    \\
+    &|Predef| &=& 
+    \quad
+    \{ (|Pair|\ \tau_1 \tau_2) \}
+    & 
+    \\
+    & |Pair|\ \tau_1 \tau_2 &=& 
+    \quad
+    |Pair|^{2,1,1}\  \tau_1 \stimes \tau_2 
+    & 
+  \end{align*}
+
+%}}}
+\end{minipage}%
+  }
+  %% \caption{Base types.}
+  %% \label{fig:types-used}
+
+  \subfloat[Types for State Monad Alpha;\label{fig:types-used-a}]{
+\begin{minipage}[b]{.5\textwidth}%
+%{{{ alpha types
+  \centering
+  \begin{align*}
+    &|StM s a|   &=&
+    \quad
++
+\begin{multilines}
+    (|StM|^{1,1,2}\  |a| ) \\
+    (|StM|^{1,2,2}\  (|s -> (Pair a s)|) )
+\end{multilines}
+    & 
+  \end{align*}
+%}}}
+\end{minipage}%
+  }
+
+
+  \subfloat[Types for State Monad Beta;\label{fig:types-used-b}]{
+\begin{minipage}[b]{.5\textwidth}%
+%{{{ beta types
+  \centering
+  \begin{align*}
+    &|StM s a|   &=&
+    \quad
+\begin{multilines}
++\\
++
+\end{multilines}
+\begin{multilines}
+    (|StM|^{1,1,3}\  |a| ) \\
+    (|StM|^{2,2,3}\  |s|\ (|StM s a|) ) \\
+    (|StM|^{1,3,3}\  (|s -> (Pair a s)|) )
+\end{multilines}
+    & 
+  \end{align*}
+%}}}
+\end{minipage}%
+  }
+
+  \caption{Types in \lang{}$_m$.}
+  \label{fig:lm-types}
+\end{figure}

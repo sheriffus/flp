@@ -1,0 +1,25 @@
+% -*- mode: latex; mode: folding -*-
+
+\begin{figure}
+\centering
+\begin{align*}
+  \sem {\sigma \rightarrow \tau}
+  &= \lift{\contfun{\sem{\sigma}}{\sem{\tau}}}
+ &
+  \sem {s}   &= \lift{s}
+ \\
+  \sem {\const{C}\ \sigma}
+  &= \lift{\paren{\const{C}\ \sem{\sigma}}}
+&
+  \sem {\const{c}\ \sigma}
+  &= \const{c}\ \sem{\sigma}
+ \\
+  \sem {\sigma + \tau}
+  &= \sem{\sigma} + \sem{\tau}
+ &
+  \sem {\sigma \stimes \tau}
+  &= \sem{\sigma} \stimes \sem{\tau}
+\end{align*}
+\caption{Semantic domains for types.}
+\label{fig:semantics-types}
+\end{figure}

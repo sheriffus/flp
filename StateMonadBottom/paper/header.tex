@@ -1,0 +1,76 @@
+% -*- mode: latex; mode: folding -*-
+
+%% \usepackage[citecolor=blue,colorlinks=true,plainpages=false,pdfpagelabels]{hyperref}
+%% \usepackage[pdftex]{graphicx} %% \usepackage[demo]{graphicx}
+%% \usepackage{ifthen}
+%% \usepackage[utf8x]{inputenc}
+\usepackage{amsmath}
+%% \usepackage{amssymb}
+%% \usepackage{array} % For \extrarowheight.
+\usepackage{bussproofs}
+\usepackage{multirow}
+
+
+\usepackage{caption}
+\usepackage{subcaption}
+\DeclareCaptionType{copyrightbox}
+
+\newcommand{\todo}[2][?]{\marginpar{\raggedright \tiny TODO: #2}}
+\newcommand{\refSec}[1]{Sec.~\ref{#1}}
+\newcommand{\refSecI}[1]{Section~\ref{#1}}
+\newcommand{\refFig}[1]{Fig.~\ref{#1}}
+\newcommand{\refFigI}[1]{Figure~\ref{#1}}
+\newcommand{\refFigs}[1]{Figs~\ref{#1}}
+\newcommand{\refTab}[1]{Tab.~\ref{#1}}
+\newcommand{\refTabI}[1]{Table~\ref{#1}}
+% used in figures
+\newcommand{\breakline}[1][1.0ex]{\\[#1]}
+\newenvironment{multilines}{%
+  \begin{array}{@@{\!}l@@{\ }l@@{}}
+}{%
+  \end{array}}
+
+\newcommand{\lang}{\ensuremath{\mathcal{L}}}
+\newcommand{\stimes}{{\scriptscriptstyle\times}}
+%% % ----------------------------------------------------
+
+% Setup for bussproofs. (proof.sty works better, but it is
+% licensed under the GPL so I can't use it in material that
+% I will give to ACM. The resulting PDF mustn't be GPL‐ed.)
+%% \renewcommand{\ScoreOverhang}{0pt}
+\newcommand{\inference}[1]{\hspace{-1.6ex}\text{#1\DisplayProof}}
+
+% Make a constant out of a word.
+\newcommand{\const}[1]{\ensuremath{\mathsf{#1}}}
+
+% Object-level unit type.
+\newcommand{\lunittype}{\text{1}}
+
+% Separate cases in a BNF-style grammar.
+\newcommand{\vbar}{\,||\,}
+
+% Macros for typing rules and contexts.
+\newcommand{\ty}[3]{#1 \vdash #2 : #3}
+\newcommand{\tyctxt}{\ensuremath{\Gamma}}
+\newcommand{\semctxt}{\rho}
+\newcommand{\update}[3]{#1\!\gparen{[}{]}{#2 \mapsto #3}}
+
+
+% Various categories.
+\newcommand{\CPO}{\textsf{CPO}}
+
+% Lifting of a CPO, or something else.
+\newcommand{\lift}[1]{{#1}_{\bot}}
+% Continuous function space.
+\newcommand{\contfun}[2]{\gparen{\langle}{\rangle}{#1 \rightarrow #2}}
+
+% Lifted function application.
+\newcommand{\liftap}[2]{#1 \mbox{\scriptsize @@} #2}
+
+% Domain-theoretic and set-theoretic semantics.
+\newcommand{\sem}[1]{\gparen{\llbracket}{\rrbracket}{#1}}
+
+
+% Various useful macros.
+\newcommand{\gparen}[3]{\left#1#3\right#2}
+\newcommand{\paren}[1]{\gparen{(}{)}{#1}}

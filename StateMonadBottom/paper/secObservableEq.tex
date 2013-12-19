@@ -1,0 +1,156 @@
+% -*- mode: latex; mode: folding -*-
+
+\section{Observable Behaviour Equality}
+\label{sec:obs-eq}
+
+The notions of equality in \refSec{sec:equalities} fail to capture the
+intended semantics of state monadic code.
+%
+Direct comparison of state monad values is not always possible to use.
+%
+There is no guarantee that such an operation between state monad
+values will be available or that it is implemented as we expect.
+%
+Equality on monadic values is not a prerequisite for a monad
+implementation.
+%
+Further more, the implementation of a monad is not necessarily
+available for the programmer to inspect its values and devise an
+equality check.
+%
+Even if it is available, like it is for the state monad, it may be
+unclear how to define it for any datatype.
+
+
+In the particular case of the state monad implementation in the
+Haskell libraries we have functions as monadic expressions.
+%
+We can not define a generic equality for these values.
+%
+There is no structure comparing operation for functions (and it would
+be too restrictive) and neither can we afford to check extensional
+equality ($f = g  \iff  \forall x. f(x)=g(x)$) for arbitrary types.
+%
+As an alternative we have seen how we can use an evaluation/run
+function of the monadic structure to compare the result of two (state)
+monadic computations.
+%
+This approaches the meaning of the monadic expressions, but fails to
+distinguish some partial values of lifted domains.
+
+
+To solve the equality issue for the |MonadState| class generically we
+propose a notion of observable or behavioural equality that takes into
+account what the programmer can distinguish between values of an
+instance as well as their intended computational meaning.
+%
+We require that a notion of computation of state monadic expressions
+be given to any |MonadState| instance and use that to distinguish
+between non-bottom (state monad) values.
+%
+Let us then redefine the methods in |MonadState| to include the run
+function |runState|.
+%
+\begin{code}
+class (Monad m) => MonadState s m | m -> s where
+    get       ::  m s
+    put       ::  s   ->  m ()
+    runState  ::  m a ->  s  -> (a,s)
+\end{code}
+%
+State monad values are made \emph{observable} w.r.t. a (final) state
+and the result value of the monadic computation through |runState|.
+%
+Another way to \emph{observe} state monad values in a language with
+partial values and lifted domains is by means of Haskell's |seq|
+function.
+%
+We say two non-bottom monadic expressions are \emph{behaviourally
+  equal} if they cannot be distinguished by operations on observable
+results.
+
+
+Operations on values/results are \emph{contexts} (programs with
+\emph{holes}) that use the values.
+%
+\begin{definition}{Context}
+A context is a Haskell term with a exactly one context variable.
+
+A context is identified with a type |(a -> b)| where |a| is the type
+of the context variable and |b| the type of the result of applying
+the context to a value (of type |a|).
+
+$C[t]$ denotes the term obtained by replacing the context variable in
+$C$ by the term $t$ (of type |a|).
+\end{definition}
+
+
+Using contexts we can define \emph{contextual equality}.
+%
+Intuitively, two elements are contextually equal if they cannot be
+distinguished by any contexts.
+%
+\begin{definition}{Contextual Equality}
+Two objects |(x,y :: a)| are contextually equal, w.r.t. an arbitrary
+set of contexts $\mathcal{C}$, $\mbox{iff}\ \forall C \in \mathcal{C}$
+with context variable |v| of type |a| we have c[x]=c[y]
+(set-theoretically equal).
+\end{definition}
+
+
+Operations on observable values are given by \emph{observable
+  contexts}.
+%
+For state monad values we can think of this as any program that takes
+the result of the |runState| function.
+%
+In a language such as Haskell it is important to note that it is also
+possible to distinguish bottom from non-bottom values through |seq|.
+%
+\begin{definition}{Observable context}
+An observable context of a state monad is:
+\begin{itemize}
+\item any context $C$ of type |((x,s) -> b)| with |s| the type of
+  states in the state monad and |x| the return type of the monadic
+  computation;
+\item any context $C$ built from a context $C'$ of arbitrary type |(a'
+  -> b')| by replacing the context variable |v'| by |seq v val| where
+  |z| is a context variable and |val :: a'|. 
+\end{itemize}
+\end{definition}
+
+
+When the set of contexts used to determine contextual equality is
+limited to observable contexts, we get a special definition of
+equality between values that is based on observable information.
+%
+\begin{definition}{Observable Equality}
+Is the contextual equality induced by the observable contexts.
+\end{definition}
+
+
+\begin{definition}{lemma}
+The observable equality on state monads is a congruence. (proof ??)
+\end{definition}
+
+``Note that, on observable sorts, the behavioural equality coincides
+with the set-theoretic equality, since the `observable contexts'
+always contains the ``trivial'' context $z_s$ when |s| is an
+observable sort. For the non observable sorts, the behavioural
+equality contains the set-theoretic equality, but there may be also
+distinct values which are behaviourally equal.''
+
+\begin{definition}{}
+\end{definition}
+
+
+\subsection{Observable Equality for |MonadState| Instances}
+
+Now we will present some results about state monad laws for instances
+given in (section State Monad) 
+
+\subsubsection*{Standard Lazy implementation}
+
+\begin{code}
+
+\end{code}

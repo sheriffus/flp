@@ -1,0 +1,33 @@
+% to handle ∀ a . t without making the dot be composition
+%format ..    = ".\;"
+%format forall(a) = "\forall{}" a
+%format forall = "\forall "
+% the `doubleequals' macro is due to Jeremy Gibbons
+\def\doubleequals{\mathrel{\unitlength 0.01em
+  \begin{picture}(78,40)
+    \put(7,34){\line(1,0){25}} \put(45,34){\line(1,0){25}}
+    \put(7,14){\line(1,0){25}} \put(45,14){\line(1,0){25}}
+  \end{picture}}}
+% If you remove the %format == command the lhs2TeX default yields ≡, which can be a problem
+%format ==   = "\doubleequals"
+%format ===   = "\equiv"
+%format ==/=   = "\not\equiv"
+%format ~~   = "\ "
+
+\newcommand{\shortequals}{
+  {\unitlength 0.01em
+  \begin{picture}(39,40)
+    \put(7,34){\line(1,0){25}}
+    \put(7,14){\line(1,0){25}}
+  \end{picture}}
+}
+
+\newcommand{\doubledotequals}{\ensuremath{\mathrel{
+  \shortequals . \shortequals}}}
+%format =.= = "\doubledotequals"
+
+%format ^ = " "
+%format ^^ = "\;"
+
+%format undefined = undef
+%format bottom    = "\ensuremath{\Varid{\perp}}"

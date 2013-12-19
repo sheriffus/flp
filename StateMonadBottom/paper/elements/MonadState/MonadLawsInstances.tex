@@ -1,0 +1,93 @@
+% -*- mode: latex; mode: folding -*-
+
+
+
+%{{{ laws
+
+\begin{figure}[!h]%[!b][!t]
+
+%% \begin{subfigure}
+  \subfloat[The |Monad| laws;\label{fig:m-laws}]{
+\begin{minipage}[b]{.5\textwidth}%
+\begin{code}
+  return a  >>=  k                   ^^  ===  ^^  k a
+  m         >>=  return              ^^  ===  ^^  m
+  m         >>=  (\x -> k x >>= h)   ^^  ===  ^^  (m >>= k) >>= h
+\end{code}    
+\end{minipage}%
+  }
+
+  \subfloat[|MonadState| laws;\label{fig:stm-laws}]{
+\begin{minipage}[b]{.5\textwidth}%
+\begin{code}
+  put s' >>   put s                 ^^  ===  ^^  put s
+  put s  >>   get                   ^^  ===  ^^  put s  >>  return s
+  get    >>=  put                   ^^  ===  ^^  skip
+  get    >>=  (\s -> get >>= k s)   ^^  ===  ^^  get    >>= \s -> k s s
+\end{code}    
+\end{minipage}%
+  }
+%% \caption{Laws for (state) monads;}
+%% \label{fig:laws}
+%% \end{subfigure}
+
+\caption{Laws for (state) monads.}
+\label{fig:laws}
+\end{figure}
+
+%}}}
+
+
+%{{{ class generics
+
+\begin{figure}%
+
+%{{{ signatures
+  \subfloat[(State) Monad class signatures;\label{fig:class-signatures}]{
+  %% \subfloat[fig:class-signatures][(State) Monad class signatures;]{
+\begin{minipage}[b]{.5\textwidth}%
+\begin{code}
+class (Monad m) => MonadState s m | m -> s where
+    get  :: m s
+    put  :: s -> m ()
+
+class Monad m where
+    (>>=)       :: m a -> (a -> m b) -> m b
+    return      :: a -> m a
+    (>>)        :: m a -> m b -> m b
+    m >> k      = m >>= \_ -> k
+\end{code} % $
+\end{minipage}%
+  }
+%}}}
+
+%{{{ State s instances
+  \subfloat[|State s| instances;\label{fig:st_m_instances}]{
+\begin{minipage}[b]{.5\textwidth}%
+\begin{code}
+instance Monad (State s) where
+    return a = returnSt a
+    (>>=) m k  = bindSt m k
+
+instance  Monad (State s) =>
+          MonadState s (State s) where
+    get = getSt
+    put = putSt
+\end{code} % $
+\end{minipage}%
+  }
+%}}}
+
+\caption{} % {Monad stuff.} 
+\label{fig:monads}
+\end{figure}
+
+%}}}
+
+
+
+%% \caption{} % {Monad stuff.} 
+%% \label{fig:monads}
+%% \end{figure}
+%% \begin{figure}%
+%% \ContinuedFloat

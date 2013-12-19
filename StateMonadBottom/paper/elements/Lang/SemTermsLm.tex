@@ -1,0 +1,135 @@
+% -*- mode: latex; mode: folding -*-
+
+
+\begin{figure}%[!ht]
+\centering
+
+\begin{subfigure}{.5\textwidth}
+  \centering
+\begin{equation*}
+  \setlength{\arraycolsep}{-0.2em}
+\begin{array}
+{@@{}r@@{\ }l@@{\ }lr@@{\ }l@@{\ }l@@{}}
+% get
+  \sem{|get|} \semctxt &=& \sem{|\s|. |(s,s)|} \semctxt
+ \breakline
+% put
+  \sem{|put s|} \semctxt &=& \sem{|const ((),s)|} \semctxt
+ \breakline
+% return
+  \sem{|return a|} \semctxt &=& \sem{|\s|. |(a,s)|} \semctxt
+ \breakline
+% bind
+  \sem{|(>>=) m k|} \semctxt &=&
+ |\s|.\ \,
+\begin{multilines}
+|let (a,s') = runS m s|\\
+|in runS (k a) s'      -- todo|
+\end{multilines}
+ \breakline
+% run
+  \sem{|runS s m|} \semctxt &=&
+     \liftap{\paren{\sem   {|m|} \semctxt}}
+            {\paren{\sem   {|s|} \semctxt}}
+ \breakline
+\end{array}
+\end{equation*}
+  \caption{Standard Lazy State Monad;} 
+  \label{fig:stm-lm-std-l}
+\end{subfigure}%
+
+%----------------------------------------------------
+
+\begin{subfigure}{.5\textwidth}
+  \centering
+\begin{equation*}
+  \setlength{\arraycolsep}{-0.2em}
+\begin{array}
+{@@{}r@@{\ }l@@{\ }lr@@{\ }l@@{\ }l@@{}}
+%% % get
+%%   \sem{|get|} \semctxt &=& \sem{|\s|. |(s,s)|} \semctxt
+%%  \breakline
+%% % put
+%%   \sem{|put s|} \semctxt &=& \sem{|const ((),s)|} \semctxt
+%%  \breakline
+%% % return
+%%   \sem{|return a|} \semctxt &=& \sem{|\s|. |(a,s)|} \semctxt
+%%  \breakline
+% bind
+  \sem{|(>>=) m k|} \semctxt &=&
+ |\s|.\ \,
+\begin{multilines}
+|case runS m s of|\\
+\ |(Pair a s') -> runS (k a) s'|
+\end{multilines}
+ \breakline
+%% % run
+%%   \sem{|runS s m|} \semctxt &=&
+%%      \liftap{\paren{\sem   {|m|} \semctxt}}
+%%             {\paren{\sem   {|s|} \semctxt}}
+%%  \breakline
+\end{array}
+\end{equation*}
+  \caption{Standard Strict State Monad;} 
+  \label{fig:stm-lm-std-s}
+\end{subfigure}%
+
+%----------------------------------------------------
+
+\begin{subfigure}{.5\textwidth}
+  \centering
+\begin{equation*}
+  \setlength{\arraycolsep}{-0.2em}
+\end{equation*}
+  \caption{Alpha State Monad;} 
+  \label{fig:stm-lm-alpha}
+\end{subfigure}%
+
+%% data State s a	= Ret a
+%%                 | Fun (s -> Pair a s)
+
+%% getSt    =   Fun $ \s -> Pair s s
+
+%% putSt s  =   Fun $ \s' -> Pair Uno s
+
+%% runS    (Ret a)    _  =   a
+%% runS    (Fun m)    s  =   a
+%%   where Pair a _ = m s
+
+%% returnSt         =  Ret
+
+%% bindSt  (Ret x)   f  =  f x
+%% bindSt  (Fun m)   f  =  Fun ^^ \s ->
+%%                        case m s of
+%% 			               Pair x s'   ->
+%%                                case f x of
+%%                                    Ret y   -> Pair y s'
+%%                                    Fun m'  -> m' s'
+
+%----------------------------------------------------
+
+\begin{subfigure}{.5\textwidth}
+  \centering
+\begin{equation*}
+  \setlength{\arraycolsep}{-0.2em}
+\end{equation*}
+  \caption{Beta State Monad;} 
+  \label{fig:stm-lm-beta}
+\end{subfigure}%
+
+\caption{Semantics of well-typed \lang$_m$ terms.}
+\label{fig:semantics-terms-lm}
+\end{figure}
+
+%% \begin{figure}[p]
+%% \begin{center}
+%% \begin{equation*}
+%% %% \begin{array}{r r}
+%% todo
+%% %% \end{array}
+%% \end{equation*}
+%% %
+%% \caption{Semantics of well-typed \lang$_m$ terms.}
+%% \label{fig:semantics-terms-lm}
+%% \end{center}
+%% \end{figure}

@@ -1,0 +1,128 @@
+% -*- mode: latex; mode: folding -*-
+
+\section{Introduction}
+\label{sec:intro}
+%{{{ introduction text
+
+%Narrative: 
+%  What (is the subject),
+%  why  (are we exploring it) and 
+%  how  (are we doing it)
+
+%Start of "What" 
+Monads were introduced by Moggi~\cite{Moggi} to the computer science
+world  as a way to structure the semantics of effectful functional
+computations.
+%
+Wadler\cite{MFFP} further popularised them in the functional programming
+community and they have become very closely associated with Haskell
+\cite{haskell98}.
+
+
+State monads are widely used in pure functional programs for
+structuring stateful computations.
+%
+The (state) monad laws explain how to refactor (state) monadic code.
+%
+Refactoring is used for calculating programmes from specifications and
+compilers \todo{cite GHC} use refactoring to optimise the code.
+%
+The correctness of the refactoring steps depends on the (state) monad
+laws correctness.
+
+
+%  introducing "why"
+But do the laws really hold?
+%
+For finite, total values, the answer is yes, but in a setting with
+lifted pairs and function spaces this is not the case.
+%
+We show that the implementations of the state monad in the Haskell
+libraries fail to obey some interpretations of the laws.
+%% For finite, total values, the answer is yes, but Haskell has more than
+%% that.
+%% %
+%% In a setting with lifted pairs and function spaces we show that the
+%% current standard implementations of the sate monad do not satisfy its
+%% laws.
+
+
+%  how  (are we doing it)
+This paper explores possible implementations of state monad instances
+that may better satisfy the intended laws.
+%
+These implementations will be matched with either a counter-example or
+a proof of its correctness w.r.t. the laws in a small language we
+define in \refSec{sec:language}.
+%
+We perform QuickCheck~\cite{claessen-hughes-quickcheck} property (law)
+based testing with the
+ClassLaws~\cite{jeuring-jansson-amaral:2012:classlaws} framework to
+help find counter-examples of Haskell state monad implementations
+which we translate to our language.
+%
+In order to prove correct an implementation w.r.t. the laws we apply
+equational reasoning.
+%
+It is also discussed how to interpret the laws of the state monad and
+given an adequate notion of observable equality to evaluate the laws
+with.
+%
+We give an implementation of a state monad and proof that it satisfies
+this interpretation of the laws.
+
+%}}} introduction
+
+
+%{{{ paper outline
+This paper is organised as follows.
+%
+\refSecI{sec:stm} introduces Haskell versions of state monad
+implementations we intend to check.
+%
+\refSecI{sec:equalities} shows two different equality checks for
+(state) monadic computations and counter-examples for the laws using
+each equality for each implementation.
+%
+\refSecI{sec:language} introduces a small pure functional call-by-need
+language with which we reproduce the implementations in
+\refSec{sec:stm} and go through the respective counter-examples for
+the equalities in \refSec{sec:equalities}.
+%
+\refSecI{sec:obs-eq} defines an observable equality check for state
+monadic computations and shows an implementation satisfying the laws
+given observable equality over state monadic terms.
+%
+\refSecI{sec:conclusion} concludes with a discussion of the results
+and possible future work.
+%}}} outline
+
+
+%% \subsection{Preliminaries}
+%{{{ some preliminary information
+%% \paragraph{}{Testing will be property-based and/or exhaustive.
+%% %
+%% Property-based testing will be done using Haskell
+%% QuickCheck \cite{claessen-hughes-quickcheck} and exhaustive testing
+%% will require the design and implementation of some domain
+%% enumeration techniques.}
+
+%% \paragraph{}{Bottom values shall be addressed relying on the
+%%   ChasingBottoms Haskell library 
+%%   ({\tt \$: cabal install ChasingBottoms}) introduced in
+%%   \cite{danielssonjansson04:chasingbottoms}.
+%% }
+
+%% \paragraph{}{Reasoning about the State Monad implementations can
+%%   follow the procedure in \cite{danielssonetal06:fastandloose} and try
+%%   to reach conclusions about totality$\times$strictness.
+%% }
+
+%% \paragraph{}{Monomorphisation of the State Monad type parameters
+%%   should follow a technique/theory with some guaranties, as in
+%%   \cite{bernardy_testing_2010} (other approaches should be checked as
+%%   well).
+%% }
+%}}} some preliminary information
+
+

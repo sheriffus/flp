@@ -1,0 +1,166 @@
+% -*- mode: latex; mode: folding -*-
+
+\section{State Monads}
+\label{sec:stm}
+
+%include elements/MonadState/MonadLawsInstances.tex
+
+Monads, in Haskell, are members of the |Monad| class, which defines
+the basic operations over a monad.
+%
+These operations, |return| and |(>>=)| (read bind), should satisfy the
+monad laws in \refFig{fig:m-laws}.
+%
+In the case of state monads, although there is no official standard
+laws, it is accepted to think of them as the simplification of all four
+combinations of |MonadState|-specific operations, |get| and |put| (in
+addition to the monad laws).
+%
+\refFigI{fig:stm-laws} contains the laws that should define a state
+monad.
+
+
+In Haskell, state monads are identified through an instance of the
+|MonadState| class.
+%
+The class is defined in |Control.Monad.State.Class| and its instances
+are equipped with the methods |get| and |put| in addition to the monad
+operations, as you can see from the class signatures in
+\refFig{fig:class-signatures}.
+%
+A monad |m| can be upgraded to a state monad on a state type |s| by
+providing a |get| and a |put| implementation, where the type |s|
+depends on the monad itself.
+%
+Intuitively, |get| is said to return the state from the internals of
+the monad and |put| to replace the state inside the monad.
+
+
+
+In the rest of this section we present some possible implementations
+of the state monad which we will latter check the laws against.
+%
+These state monad implementations will include the functions necessary
+for the instances in \refFig{fig:st_m_instances}.
+%
+We have a clone of the implementation in the Haskell libraries, which
+we call the standard implementation, and a couple other
+implementations, that we call $\alpha$ and $\beta$, for comparison.
+%
+We reproduce the \emph{standard} implementation for containment and to
+enable us to make changes for testing the laws.
+
+
+A small change we make in the Haskell implementations is the use of
+our own pairs instead of the built-in ones.
+%
+This is something that traverses all of the tested code where pairs
+are used.
+\begin{code}
+data Pair a b = Pair a b
+
+fstP ~(Pair a b) = a
+sndP ~(Pair a b) = b
+\end{code} % $
+%
+The |ClassLaws| testing framework for classes uses the built-in pairs to
+group the arguments of a law and to enable partial value generation in
+the framework we use |Pair| to separate concerns.
+%
+With |Pair| we are also able to explore strictness variations in the
+data structure of the state monad.
+
+\subsection*{Standard Implementations}
+
+%include elements/MonadState/StdState.tex
+
+The implementations we call \emph{standard} are the in the libraries
+(\emph{mtl} package) under |Control.Monad.State| (versions
+\emph{mtl-1.x}).
+%
+We use an older version if the library to simplify code and its testing.
+%
+From \emph{mtl-2.x} the state monad is defined by the state monad
+transformer.
+%
+The latter would complicate the presentation which we deem unnecessary
+for the purpose of this paper.
+
+
+\paragraph{Lazy state monad.}
+In terms of state monad implementation, the code in \refFig{fig:st_m_stdL}
+is enough to define a minimal structure.
+%
+We use that structure to instance the classes |Monad|, |MonadState|
+and |Functor| as in \refFig{fig:st_m_instances}.
+
+
+\paragraph{Strict state monad.}
+In the libraries there is also a \emph{strict} version of the state
+monad in |Control.Monad.State.Strict|.
+%
+The differences between the strict and the lazy implementations is the
+use of |case|-expressions for patterns matching, which are strict, and
+|let|-expressions, which are lazy.
+%
+In \refFig{fig:st_m_stdS} are represented the functions with different
+implementations.
+
+
+\paragraph{Strictness variations.}
+\todo{not yet done}
+For completeness, we test the strictness variations of the elements of
+|Pair| with the lazy state monad.
+%
+\refFigI{fig:pair_strict_var} shows all four variations, repeating the
+case where no element is strict (|P|) for control.
+%
+The constructors |P1|, |P2| and |P12| refer to pairs that are strict
+on the first, second and both elements, respectively.
+
+
+\subsection*{Non-Standard Implementations}
+
+%include elements/MonadState/NonStdState.tex
+
+
+Standard implementations may be seen as shallow embeddings of the
+state monad interface.
+%
+They map the state monadic operations directly to their semantics -
+which in this case is a function from states to the product of states
+and the value inside the monad.
+%
+\todo{CA: fishy sentence describing the function.}
+%
+We also present here other implementations with deeper embeddings of
+the state monad.
+
+
+\paragraph{Implementation $\alpha$.}
+This implementation is a shallow embedding with a deep embedding
+flavour.
+%
+It has two constructors for monadic expressions, for plain values and
+functionality in general.
+%
+The constructor for functionality implements multiple features using
+their semantics directly.
+%
+The bind operation composes the functionality of its arguments.
+%
+The details of implementation $\alpha$ are presented in
+\refFig{fig:st_m_alpha}.
+
+
+\paragraph{Implementation $\beta$.}
+A deeper embedding of the state monad is given by implementation
+$\beta$.
+%
+This implementation has a constructor for each state monadic
+operation and return.
+%
+As in the previous implementation, bind is a derived construct.
+%
+See details in \refFig{fig:st_m_beta}.
+

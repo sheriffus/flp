@@ -1,0 +1,135 @@
+% -*- mode: latex; mode: folding -*-
+
+\section{Evaluating laws}
+%% \section{Equality checking}
+\label{sec:equalities}
+
+The satisfiability of the (state) monad laws is checked by the
+evaluation of a binary relation on (state) monadic expressions.
+%
+This relation is denoted in \refFig{fig:laws} as (|===|) and represents
+equational equivalence that (state) monadic expressions should obey.
+
+
+It is not clear from the laws what the exact semantics of the (|===|)
+relation is.
+%
+Expressions have to be \emph{equal} in some sense.
+%
+For complex structures such as the standard implementations of the
+state monad there is more than one way to check equivalence of
+expressions.
+
+
+For common types (lifted sets, products and sums) the usual recursive
+notion of equality is the operation that better represents equivalence
+of values of such types.
+%
+\[
+\forall x \in t. \quad x =_E x
+\]
+But (state) monadic values are more complex and need to be carefully
+addressed.
+
+
+\paragraph{Exact equality.} % (|(==)|)}
+Exact equality of monadic values examines the exact domain elements that
+the (monadic) values refer to.
+%
+This equality check is aware of the implementation of the state monad
+type and compares the underlying structure for equality.
+%
+Values of common types are compared as previously mentioned.
+%
+For the lifted function space we compare the objects that represent
+them in the respective domain.
+%
+\todo{worth doing?\\
+  In refFig\{UnitBoolDom\} we can see an example of a domain of the
+  function space.
+  %
+  It is the domain of functions from \emph{unit} (one-element set) to
+  \emph{bool} (two-element set).
+}
+%
+Any function will either be the |bottom| function or result in one of
+the possible maps domain/co-domain, independently of differences in
+the implementation.
+%
+Intuitively, two function values are equal if they are either both
+|bottom| or if they map all elements of the domain to equal images.
+%
+\begin{align}
+\forall & f, g \in (a \rightarrow b). \notag\\
+%  & 
+\quad & f =_E g \iff \lnot (f = \bot \land g = \bot)
+%\notag\\
+    \Rightarrow (\forall x \in a. \ f x =_E g x)
+\notag
+\end{align}
+
+
+\paragraph{Run equality.} % (|. runS  ==  . runS|)}
+Another way to compare complex expressions is to compute the
+result of the expressions. 
+%
+We can use the state monadic interpretations available and compare the
+results of such interpretations.
+%
+The state monads in \refSec{sec:stm} all present the |runS|
+interpretation function.
+%
+This function \emph{runs} the state monadic computation from some
+initial state to a pair of the final state and the result value of the
+monad.
+%
+We proceed to check equality of the result values to determine the
+equality of the original monadic expressions.
+
+
+\subsubsection*{Law Evaluation Results}
+\todo{CA: choose counter-examples and write the derivations to put here.}
+
+Refer \refTab{tab:stm-results} for a summary of the results. 
+
+
+\newcolumntype{C}{>{\centering\arraybackslash} m{\fill} }  %# New column type
+
+\begin{table}[tb]
+\centering
+\begin{tabular}[m]{p{.75cm}lCccc}
+\hline
+ && \multicolumn{2}{c}{\textbf{Lazy}} & \multicolumn{2}{c}{\textbf{Strict}} \\ [0.2ex]
+& \textbf{Law}      &|run|&|ex|.&|run|&|ex|.\\ [0.2ex]
+\hline
+\multirow{4}{*}{\vbox{|Monad| |State|}}
+& |PutPut|  &  .  &  .  &  .  &  .  \\
+& |PutGet|  &  .  &  .  &  .  &  .  \\
+& |GetPut|  &  .  &  .  &  .  &  .  \\
+& |GetGet|  &  .  &  .  &  .  &  .  \\[3pt]
+%% %
+%% \multirow{2}{*}{|Functor|}
+%% & |Law1|       &  $\times$  &  $\times$  &  .  &  $\times$  \\
+%% & |Law2|       &  .         &  .         &  .  &  .  \\[3pt]
+%
+\multirow{3}{*}{|Monad|}
+& |Law1|       &  .         &  $\times$  &  .  &  $\times$  \\
+& |Law2|       &  $\times$  &  $\times$  &  .  &  $\times$  \\
+& |Law3|       &  .         &  .         &  .  &  .         \\[3pt]
+%% %
+%% |Functor| |Monad|
+%% & |Law|        &  .  &  .  &  .  &  .  \\
+\end{tabular}
+\caption{Summary of the Lazy and Strict state monad with
+\label{tab:stm-results}
+%
+  |run| = run equality, |ex|. = exact equality, 
+%
+  ``$\times$'' = fails QuickCheck test, ``.'' = passes 100 QuickCheck tests.
+%
+  %% \todo{
+  %% The tests were run with ghc version 7.4.2 and the results are same 
+  %% both with and without the flag \texttt{-fpedantic-bottoms}.
+  %% }
+}
+\end{table}

@@ -1,0 +1,152 @@
+\section{Language}
+\label{sec:language}
+
+This section defines the \lang{} language, used to obtain the main
+results.
+%
+\lang{} is a
+ %% small
+ strongly typed,
+ pure,
+ %% monomorphic,
+ call-by-need
+ functional
+ language.
+
+
+Since we want our results to also be applicable to Haskell programs we
+include the explicit strictness operator \const{seq}.
+%
+We have lifted domains (sets, composed types and function space) in
+the domain-theoretic semantics given later in this section.
+
+
+%include elements/Lang/TypingTypes.tex
+
+\paragraph{Syntax}
+\label{sec:syntax}
+{%** Start of block
+  The syntax for terms of the language \lang{} is inductively defined
+  by
+%
+\newcommand{\ind}{&\mspace{22mu}}
+\begin{align}
+  \begin{split}
+      t &::= v \vbar x \vbar t_{1}\ t_{2} \vbar \lambda  x.t \\
+    \ind \vbar \const{let}\ x \ =\ t_{1}\ \const{in}\ t_{2}  \\
+    \ind \vbar \const{seq}\ t_{1}\ t_{2}
+         \vbar C^{a, r, n}\ x_1 \ldots x_a\\
+    \ind \vbar \const{case}\ t\ \const{of}\ 
+               \{C^{a_r, r, n}\ x_1 \ldots x_{a_r} \rightarrow\ t_{r} \}
+  \end{split}
+  \intertext{
+    where $v$ are values of one of the primitive types (|Prim|) of the
+    language.
+    %
+    Types of composed values ($C^{a, r, n}\ x_1 \ldots x_a$) are assumed
+    to be defined before typing and form |Predef|, the set of predefined
+    xcomposed types.
+    %
+    Let expressions may be recursive.
+    %
+    The syntax for types is}
+  \begin{split} %,\, \tau ,\, \gamma
+    \sigma\  &::= \sigma_{1}  \rightarrow \sigma_{2}
+             %% \vbar \sigma_{1}  \times  \sigma_{2}
+             %% \vbar \sigma_{1}  + \sigma_{2}
+             \vbar s \vbar c
+    \\
+    c\ \ &::=  \const{C}\ \tau_1 \ldots \tau_k
+    \\
+    c'\  &::=  c'_1 + c'_2 \vbar \const{c}\ c''
+    \\
+    c''  &::=  \sigma  \times  c''
+               \vbar \emptyset
+    .
+  \end{split}
+\end{align}
+\todo{why is the type syntax so much to the left??}
+%
+There are three main kinds of types denoting functions, sets of values
+and composed values.
+%
+The type constructor for the function space ($\rightarrow$) is right
+associative and parentheses are sometimes omitted.
+%
+The other two \emph{top} types are sets of values and composed types which
+represent |Prim| and |Predef| respectively.
+%
+A composed type from |Predef| is a type synonym for the corresponding
+type defined with the secondary type constructors $\times$ and $+$
+($c'$) allowing the composition of types (products and sums).
+
+
+In order to reason about state monad implementations we define the
+language \lang$_m$ to be \lang{} extended with the (state) monadic
+interface and interpretation function
+\begin{align}
+  \begin{split}
+  t &::= \dots
+       \vbar \const{get}
+       \vbar \const{put}\ t
+       \vbar \const{runS}\ t_{1}\ t_{2}\\
+  \ind \vbar \const{return}\ t
+       \vbar \const{(|>>=|)}\ t_{1}\ t_{2}
+       .
+  \end{split}
+\end{align}
+%
+The binding function |(>>=)| can be used in an infix style, as in
+$(t_{1}\ |>>=|\ t_{2})$.
+%
+}%** End of block
+
+%include elements/Lang/Sugar.tex
+
+We only consider well-typed terms.
+%
+Typing of terms follows the rules in \refFig{fig:typing-rules}.
+%
+Primitive and composed types used in this paper are shown in
+\refFig{fig:types-used}.
+%
+Composed types are presented polymorphic, representing any
+well-founded representation definable.
+%
+\refFigI{fig:sugar} introduces some syntactic sugar to ease the
+presentation of some of the language elements.
+
+
+
+\paragraph{Semantics}
+\label{sec:semantics}
+
+%include elements/Lang/SemDomTypes.tex
+%include elements/Lang/SemTerms.tex
+%include elements/Lang/SemTermsLm.tex
+
+
+Here we define a domain-theoretic denotational semantics for the
+language introduced in this section.
+%
+The semantic domains for all types are defined in
+\refFig{fig:semantics-types}.
+%
+The semantics of all terms of \lang{} are given in
+\refFig{fig:semantics-terms}.
+%
+Note that when $t$ is closed we sometimes use $\sem{t}$ as
+a shorthand for $\sem{t} \semctxt$.
+
+
+The semantics lives in the category \CPO{} of CPOs and continuous
+functions.
+%
+All top types in the domain-theoretic semantics are lifted (like in
+Haskell).
+%
+In \refFig{fig:semantics-terms-lm} we define the semantics for the
+terms of \lang$_m$ extending \lang{} for each implementation of the
+state monad presented in \refSec{sec:stm}.
+
+

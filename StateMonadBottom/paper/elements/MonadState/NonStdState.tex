@@ -1,0 +1,85 @@
+% -*- mode: latex; mode: folding -*-
+
+\begin{figure}[]%[!h][!b][!t]
+
+
+%{{{ implementation alpha
+  \subfloat[Implementation \emph{Alpha};\label{fig:st_m_alpha}]{
+\begin{minipage}[b]{.5\textwidth}%
+\begin{code}
+data State s a	= Ret a
+                | Fun (s -> Pair a s)
+
+getSt    =   Fun $ \s -> Pair s s
+
+putSt s  =   Fun $ \s' -> Pair Uno s
+
+runS    (Ret a)    _  =   a
+runS    (Fun m)    s  =   a
+  where Pair a _ = m s
+
+returnSt         =  Ret
+
+bindSt  (Ret x)   f  =  f x
+bindSt  (Fun m)   f  =  Fun ^^ \s ->
+                       case m s of
+			               Pair x s'   ->
+                               case f x of
+                                   Ret y   -> Pair y s'
+                                   Fun m'  -> m' s'
+\end{code}
+\end{minipage}%
+  }
+%}}} alpha
+
+
+%% getSt    ::  State s s
+%% putSt    ::  s -> State s Uno
+%% runS  ::  State s a ->  s  ->  a
+%% returnSt :: a -> State s a
+%% bindSt :: State s t -> (t -> State s a) -> State s a
+
+
+\caption{Non-standard |State Monad| implementations.} 
+\label{fig:st_m_std_not}
+\end{figure}
+\begin{figure}%
+\ContinuedFloat
+
+
+%{{{ implementation beta
+  \subfloat[Implementation \emph{Beta};\label{fig:st_m_beta}]{
+\begin{minipage}[b]{.5\textwidth}%
+\begin{code}
+data State s a	= Ret a
+		| Put s (State s a)
+		| Get (s -> State s a)
+                  deriving (Data, Typeable)
+
+getSt = Get (\s -> Ret s)
+
+putSt s = Put s (Ret Uno)
+
+returnSt         =  Ret
+
+bindSt  (Ret x)    f  =  f x
+bindSt  (Put s k)  f  =  simp $ Put s (bindSt k f)
+bindSt  (Get k)    f  =  Get $ k `seq` \s -> bindSt (k s) f
+
+simp  (Put s (Get k))     = simp $ k s
+simp  (Put s (Put s' k))  = simp $ Put s' k
+simp  x                   = x
+\end{code}
+\end{minipage}%
+  }
+%}}}
+
+%% getSt :: State s s
+%% putSt :: s -> State s Uno
+%% returnSt :: a -> State s a
+%% bindSt :: State s t -> (t -> State s a) -> State s a
+
+\caption{Non-standard |State Monad| implementations.} 
+\label{fig:st_m_std_not}
+\end{figure}
+

@@ -1,0 +1,57 @@
+% -*- mode: latex; mode: folding -*-
+
+\begin{figure}[!h]%[!b][!t]
+
+  \subfloat[Standard |State Monad Lazy| implementation;\label{fig:st_m_stdL}]{
+\begin{minipage}[b]{.5\textwidth}%
+\begin{code}
+newtype State s a = S {runS :: s -> Pair a s}
+
+getSt         = S $ \s -> Pair s s
+
+putSt s       = S $ const (Pair () s)
+
+returnSt a   = S $ \s -> Pair a s
+
+bindSt m k   = S $ \s ->  let (Pair a s') = runS m s
+                          in runS (k a) s'
+\end{code} % $
+\end{minipage}%
+  }
+
+%% \caption{} % {Monad stuff.} 
+%% \label{fig:monads}
+%% \end{figure}
+%% \begin{figure}%
+%% \ContinuedFloat
+
+
+  \subfloat[Standard |State Monad Strict| implementation;\label{fig:st_m_stdS}]{
+\begin{minipage}[b]{.5\textwidth}%
+\begin{code}
+bindStateS m k  = S $ \s ->  case runS m s of
+                               (Pair a s') -> runS (k a) s'
+\end{code}%$
+\end{minipage}%
+  }
+
+
+
+  \subfloat[Pair strictness variations;\label{fig:pair_strict_var}] {
+\begin{minipage}[b]{.5\textwidth}%
+\begin{code}
+data P    a b = P    a   b
+
+data P1   a b = P1   !a  b
+
+data P2   a b = P2   a   !b
+
+data P12  a b = P12  !a  !b
+\end{code}
+\end{minipage}%
+  }
+
+\caption{Standard |State Monad| implementations.} 
+\label{fig:st_m_std}
+\end{figure}
+

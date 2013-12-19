@@ -1,0 +1,77 @@
+% -*- mode: latex; mode: folding -*-
+
+\begin{figure}
+\newenvironment{narrowcases}{%
+  \!\left\{\begin{array}{@@{\!}l@@{\ }l@@{}}}{%
+    \end{array}\right.}
+\begin{center}
+
+\begin{equation*}
+  \setlength{\arraycolsep}{-0.2em}
+\begin{array}
+{@@{}r@@{\ }l@@{\ }lr@@{\ }l@@{\ }l@@{}}
+% Values
+  \sem{v} \semctxt &=& v
+ \breakline
+% Variables
+  \sem   {x} \semctxt &=& \semctxt(x)
+ \breakline
+% Application
+  \sem   {t_1 t_2} \semctxt &=&
+     \liftap{\paren{\sem   {t_1} \semctxt}}
+            {\paren{\sem   {t_2} \semctxt}}
+ \breakline
+% Lambda expressions
+  \sem   {\lambda x.t} \semctxt &=&
+     \lambda v.\sem   {t} \update{\semctxt}{x}{v}
+ \breakline
+% Let
+  \sem { \const{let}\ x \ =\ t_{1}\ \const{in}\ t_{2}}  \semctxt
+ &=& \sem{t_2}  \update{\semctxt}{x}{\sem{t_1}}
+ \breakline
+% Seq
+  \sem   {\const{seq}} &=& \lambda v_1 \  v_2.
+    \begin{narrowcases}
+      \bot, & v_1 = \bot \\
+      v_2,  & \text{otherwise}
+    \end{narrowcases}
+ \breakline
+% Constructor
+ \sem {c^{a, r, n}\ x_1 \ldots x_a} \semctxt &=&
+   c^{a, r, n}\ \sem {x_1} \semctxt \ldots \sem {x_a} \semctxt
+ %% &
+ %%  \setsem{\const{seq}} &=& \lambda v_1 \  v_2. v_2 \breakline[2ex]
+\end{array}
+\end{equation*}
+
+\vspace{-2ex}
+
+%% \setlength{\textasvaluewidth}{0.74\linewidth}
+\newlength{\otherlength}
+\setlength{\otherlength}{0.68\linewidth}
+\begin{align*}
+% Case analysis
+  &\sem { \const{case}\ t\ \const{of}\ 
+  \{c^{a_r, r, n}\ x_1 \ldots x_{a_r} \rightarrow\ t_{r} \}
+       }  \semctxt
+%% \begin{array}{l}
+%% \\
+%% \end{array}
+\\
+&\qquad=
+    %% \lambda v\ f_1\ f_2.
+    \begin{narrowcases}
+      \sem{t_r} \update{\semctxt}{x_i}{v_i} , & \sem{t} = c^{a_r, r, n}\ x_1 \ldots x_{a_r}
+ \\
+      \bot, & \text{otherwise}
+      %% \bot, & v \!=\! \bot \\
+      %% \liftap{f_1}{v_1}, & v \!=\! \inl{v_1} \\
+      %% \liftap{f_2}{v_2}, & v \!=\! \inr{v_2}
+    \end{narrowcases}
+\end{align*}
+%
+\caption{Semantics of well-typed terms, for some context
+  $\semctxt$ mapping variables to semantic values.}
+\label{fig:semantics-terms}
+\end{center}
+\end{figure}

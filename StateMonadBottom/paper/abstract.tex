@@ -1,0 +1,37 @@
+Monads are ubiquitous in pure functional languages such as
+Haskell.
+\todo{CA: is this still true for pure functional languages in
+  general? found at least one more (don't remember which). Dig into
+  this.}
+%
+They are applied to structure programs and stateful computations where
+state monads are extensively used. % ??
+%% State monads are ubiquitous in Haskell.
+%% %
+The (state) monad laws enable reasoning with and refactoring of
+(state) monadic code.
+%
+But do the laws really hold?
+%
+%% For finite, total values, the answer is yes, but Haskell has more
+%% than that.
+For finite, total values, the answer is yes, but in a setting with
+lifted pairs and function spaces this is not the case.
+%
+We show that the implementations of the state monad in the Haskell
+libraries fail to obey some interpretations of the laws.
+%% %
+%% In a setting with lifted pairs and function spaces we show that the
+%% implementations of the state monad in the Haskell libraries fail to
+%% obey some interpretations of the laws.
+
+
+This paper explores possible interpretations of laws for the state
+monad and implementations of state monads to check the laws against.
+%
+We suggest an interface of observable actions for implementations of
+state monads together with a concrete meaningful set of laws that
+account for the observability of state monadic expressions.
+%
+We also present an implementation of a state monad with such an
+interface and that satisfies the mentioned laws.

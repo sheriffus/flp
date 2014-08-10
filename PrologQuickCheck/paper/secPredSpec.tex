@@ -34,15 +34,15 @@ question can be added to a specification clause.
 %
 If there is
 a \emph{parameter relation} or
- a relation that arguments must fulfil one can implement it
+ a relation that input parameters must fulfil one can implement it
 as a predicate %% , say \yap{irel/1},
 which checks if such a relation is
-valid for the list of arguments given as parameter.
+valid for the list of input parameters given.
 %% \todo{era para cortar? 'which checks if such a relation is
-%% valid for the list of arguments given as parameter'}
+%% valid for the list of input parameters given as parameter'}
 %
-The \emph{modes} of each parameter can be given for the input arguments and also
-for any output answer.
+The \emph{modes} of each parameter can be given for the input parameters and also
+for  output answers.
 %
 The language also allows stating the number of
 answers of a predicate,
@@ -110,13 +110,13 @@ different generators.
 The %% effect of a procedure execution
 behaviour of a procedure
 for types not covered by any of the
-specification clauses is considered undefined.
+specification clauses is considered undefined/unspecified.
 
 
-We can now easily specify input modes for program predicates like \yap{app/3}.
+We can now easily specify input types for program predicates like \yap{app/3}.
 %
-We identify the specification clauses as \yap{{app,K}}, clause \yap{K} of
-predicate \yap{app}, and declare the \plqc{} types.
+We identify the specification clauses as \yap{\{app,K\}}, specification
+clause \yap{K} of predicate \yap{app}, and declare the \plqc{} types.
 %
 The specifications can be tested and the predicate checked to succeed
 for the corresponding input types.
@@ -134,7 +134,7 @@ for the corresponding input types.
 Correct typing of parameters is crucial but may be insufficient to
 express the allowed input.
 %
-Sometimes the arguments must obey a relation extending type information,
+Sometimes the input parameters must obey a relation extending type information,
 based on the actual values of the parameters.
 %
 The domain of a predicate is the set of parameters accepted by a
@@ -148,7 +148,7 @@ Suppose that \yap{minimum(A,B,C)} is a predicate that succeeds when
 %
 The predicate has the type \yap{(int, int, int)} and the domain is the
 restriction \yap{(C==A; C==B),(C<=A, C<=B)}.
-%% Suppose that \yap{even/1} is a predicate that succeeds when the argument
+%% Suppose that \yap{even/1} is a predicate that succeeds when the input parameter
 %% is an even number.
 %% %
 %% The predicate has the type \yap{int} and the domain is the restriction \yap{N rem 2 == 0}.
@@ -184,10 +184,10 @@ An example could be that we want to test \yap{app} with at least one
 non-empty list input.
 %
 This can be used, for example, to guarantee that the variable given in
-the third argument will be instantiated with a non-empty list.
+the third input parameter will be instantiated with a non-empty list.
 \begin{yapcode}
- non_empty( {[_||_],_,_} ).
- non_empty( {_,[_||_],_} ).
+ non_empty( [[_||_],_,_] ).
+ non_empty( [_,[_||_],_] ).
  {app,3b} of_type (listOf(int), listOf(int), variable)
     such_that m:non_empty.
 \end{yapcode}
@@ -260,14 +260,20 @@ paired with a list of output forms.
 \begin{definition}
 \label{def:directionality}
 A \emph{directionality} of a specification clause of a predicate
-\yap{p/n} is a sequence of \emph{predicate modes}, with one input mode
+p/n is a sequence of \emph{predicate modes}, with one input mode
 followed by one or more output modes.
 \\
-A predicate mode of \yap{p}, or just mode of \yap{p}, is denoted as
-\begin{itemize}
-  \item $i(m_1, ..., m_n)$
-  \item $o(M_1, ..., M_n)$
-\end{itemize}
+A predicate mode of p, or just mode of p, is denoted as
+
+\;\;  -- $i(m_1, ..., m_n)$
+
+\;\;  -- $o(M_1, ..., M_n)$
+\\
+%% \quad
+%% \begin{itemize}
+%%   \item $i(m_1, ..., m_n)$
+%%   \item $o(M_1, ..., M_n)$
+%% \end{itemize}
 where $m_i,M_i \in Modes$ and $i, o$ respect to input and output modes
 respectively.
 \end{definition}
@@ -279,11 +285,11 @@ predicate behaviours that may be oblivious to a library user.
 From using the predicate \yap{app/3} with a list and two variables, for
 example, two distinct directionalities may arise.
 %
-This is due to the fact that an empty list in the first argument does
+This is due to the fact that an empty list in the first input parameter does
 not contribute to instantiate any part of the third parameter.
 %
 \begin{yapcode}
- {app, 4} of_type (A-(listOf(int)), B-(variable), C-(variable))
+ {app, 4} of_type (listOf(int), variable, variable)
     where (i(g, v, v), o(g, v, ngv), o(g, v, v)).
 \end{yapcode}
 
@@ -343,9 +349,12 @@ In this case we have a total function behaviour, always yielding one and
 only one answer.
 %
 \begin{yapcode}
- {app, 4b} of_type (A-(listOf(int)), B-(variable), C-(variable))
+ {app, 4b} of_type (listOf(int), variable, variable)
     where (i(g, v, v), o(g, v, ngv), o(g, v, v))
     has_range {1,1}.
+ {app, 4c} of_type (variable, listOf(int), variable)
+    where (i(v, g, v), o(g, g, g), o(ngv, g, ngv))
+    has_range {1,inf} limit 50.
 \end{yapcode}
 
 %% \subsection{Pre- and Post-conditions}
@@ -361,7 +370,7 @@ In the predicate specification language they are pre- and
 post-conditions and are expressed as \plqc{} properties.
 
 
-A pre-condition is a property that does only inspects its input.
+A pre-condition is a property that only inspects its input.
 %
 It does not change the generated values to be applied to the specified
 predicate.
@@ -374,6 +383,9 @@ the answer substitution.
 Now we can describe the property relating the lengths of \yap{app/3}'s
 parameters in a post-condition of a specification clause of the
 respective type.
+%
+We identify the parameters of \yap{app} so that we can use them in the
+post-condition as \yap{A},  \yap{B} and  \yap{C}.
 %
 \begin{yapcode}
  {app, 5} of_type (A-(listOf(int)), B-(listOf(int)), C-(variable))

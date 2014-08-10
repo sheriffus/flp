@@ -10,7 +10,8 @@
 :- reconsult(plqc).
 :- use_module(plqc).
 
-:- meta_predicate pcprop(:).
+%% :- meta_predicate prop(:).
+%% :- meta_predicate pcprop(:).
 
 % {{{ convert between regular and difference lists
 %% difference list to list
@@ -39,8 +40,10 @@ l2dl([X|XS], [X|L]-T) :- l2dl(XS, L-T).
 %% property saying these are 'mirror' relations
 %% the cuts enforce the first result they give
 %% resulting in a functional use of the predicates
-pcprop(l2dl2l) :- 
-        plqc:pcforall( listOf(int), L, (listsTest:l2dl(L,DL-T), !,
+prop(l2dl2l) :- 
+        plqc:for_all( listOf(int), L, (listsTest:l2dl(L,DL-T), !,
+%% pcprop(l2dl2l) :- 
+%%         plqc:pcforall( listOf(int), L, (listsTest:l2dl(L,DL-T), !,
                                         listsTest:dl2l(DL-T,L1), !,
                                         L == L1), 50).
     % }}}
@@ -135,53 +138,107 @@ append([X|XS], YS, [X|AS]) :-
         append(XS, YS, AS).
 
     % {{{ append manual props
-pcprop({appLLL, L1, L2}) :- append(L1, L2, L), (L = []; L = [_|_]).
-pcprop({appLLEmpty, L1, L2}) :- append(L1, L2, L), L = [].
-pcprop({appLLCons, L1, L2}) :- append(L1, L2, L), L = [_|_].
-pcprop({appLLLen, L1, L2}) :-
+prop({appLLL, L1, L2}) :- append(L1, L2, L), (L = []; L = [_|_]).
+prop({appLLEmpty, L1, L2}) :- append(L1, L2, L), L = [].
+prop({appLLCons, L1, L2}) :- append(L1, L2, L), L = [_|_].
+%% pcprop({appLLL, L1, L2}) :- append(L1, L2, L), (L = []; L = [_|_]).
+%% pcprop({appLLEmpty, L1, L2}) :- append(L1, L2, L), L = [].
+%% pcprop({appLLCons, L1, L2}) :- append(L1, L2, L), L = [_|_].
+prop({appLLLen, L1, L2}) :-
+%% pcprop({appLLLen, L1, L2}) :-
         append(L1, L2, L),
         length(L1, K1), length(L2, K2), length(L, K),
         K is K1 + K2.
 
-pcprop(appL) :-
-        pcforall(listOf(int), L1,
-          pcforall(listOf(int), L2,
-            pcprop({appLLL, L1, L2}) ) ).
-pcprop(appLen) :-
-        pcforall(listOf(int), L1,
-          pcforall(listOf(int), L2,
-             pcprop({appLLLen, L1, L2}) ) ).
+prop(appL2) :-
+        for_all(listOf(int), L1,
+          for_all(listOf(int), L2,
+(
+            prop({appLLEmpty, L1, L2})
+        or
+            prop({appLLCons, L1, L2})
+)
+       ) ).
+prop(appL) :-
+        for_all(listOf(int), L1,
+          for_all(listOf(int), L2,
+            prop({appLLL, L1, L2}) ) ).
+%% pcprop(appL) :-
+%%         pcforall(listOf(int), L1,
+%%           pcforall(listOf(int), L2,
+%%             pcprop({appLLL, L1, L2}) ) ).
+prop(appLen) :-
+        for_all(listOf(int), L1,
+          for_all(listOf(int), L2,
+             prop({appLLLen, L1, L2}) ) ).
+%% pcprop(appLen) :-
+%%         pcforall(listOf(int), L1,
+%%           pcforall(listOf(int), L2,
+%%              pcprop({appLLLen, L1, L2}) ) ).
 
 
-pcprop(wrong_appL) :-
-        pcforall(listOf(int), L1, pcforall(listOf(int), L2,
+prop(wrong_appL) :-
+        for_all(listOf(int), L1, for_all(listOf(int), L2,
+%% pcprop(wrong_appL) :-
+%%         pcforall(listOf(int), L1, pcforall(listOf(int), L2,
           (app(L1, L2, L), (L = [], L = [_|_])) )).
 
 
-pcprop({appLZero, L1, L2}) :- pcif(L1 = [], (append(L1, L2, L), L=L2), true).
-pcprop({appRZero, L1, L2}) :- pcif(L2 = [], (append(L1, L2, L), L=L1), true).
+prop({appLZero, L1, L2}) :- if L1 = [] then (append(L1, L2, L), L=L2) .
+prop({appRZero, L1, L2}) :- if L2 = [] then (append(L1, L2, L), L=L1) .
+%% prop({appLZero, L1, L2}) :- if L1 = [] then (append(L1, L2, L), L=L2) else true.
+%% prop({appRZero, L1, L2}) :- if L2 = [] then (append(L1, L2, L), L=L1) else true.
+%% pcprop({appLZero, L1, L2}) :- pcif(L1 = [], (append(L1, L2, L), L=L2), true).
+%% pcprop({appRZero, L1, L2}) :- pcif(L2 = [], (append(L1, L2, L), L=L1), true).
 
-pcprop(appAll) :- 
-        pcforall(listOf(int), L1,
-          pcforall(listOf(int), L2,
+prop(appAll) :- 
+        for_all(listOf(int), L1,
+          for_all(listOf(int), L2,
     (
-        pcprop({appLLLen, L1, L2}) pc_and pcprop({appLZero, L1, L2})  pc_and pcprop({appRZero, L1, L2})
-    pc_and pcprop({appLLL, L1, L2}) 
-    pc_and
-        (pcprop({appLLEmpty, L1, L2}) pc_or pcprop({appLLCons, L1, L2}))
-    %%     
+        prop({appLLLen, L1, L2})  and prop({appLZero, L1, L2})  and prop({appRZero, L1, L2})
+    and prop({appLLL, L1, L2}) 
+    and
+        (
+ prop({appLLEmpty, L1, L2})
+ %% '||'
+ or
+ prop({appLLCons, L1, L2})
+    )
     ) ) ).
+%% pcprop(appAll) :- 
+%%         pcforall(listOf(int), L1,
+%%           pcforall(listOf(int), L2,
+%%     (
+%%         pcprop({appLLLen, L1, L2}) pc_and pcprop({appLZero, L1, L2})  pc_and pcprop({appRZero, L1, L2})
+%%     pc_and pcprop({appLLL, L1, L2}) 
+%%     pc_and
+%%         (pcprop({appLLEmpty, L1, L2}) pc_or pcprop({appLLCons, L1, L2}))
+%%     %%     
+%%     ) ) ).
 
-pcprop(app1) :- 
-        pcforall(resize(0, listOf(int)), L1,
-          pcforall(listOf(int), L2,
+
+prop(app1) :- 
+        for_all(resize(0, listOf(int)), L1,
+          for_all(listOf(int), L2,
     (
-        pcprop({appLLLen, L1, L2}) pc_and pcprop({appLZero, L1, L2})  pc_and pcprop({appRZero, L1, L2})
-    pc_and pcprop({appLLL, L1, L2}) 
-    pc_and
-        (pcprop({appLLEmpty, L1, L2}) pc_or pcprop({appLLCons, L1, L2}))
-    %%     
+        prop({appLLLen, L1, L2}) and prop({appLZero, L1, L2})  and prop({appRZero, L1, L2})
+    and prop({appLLL, L1, L2}) 
+    and
+        (prop({appLLEmpty, L1, L2})
+ %% '||'
+ or
+ prop({appLLCons, L1, L2}))
     ) ) ).
+%% pcprop(app1) :- 
+%%         pcforall(resize(0, listOf(int)), L1,
+%%           pcforall(listOf(int), L2,
+%%     (
+%%         pcprop({appLLLen, L1, L2}) pc_and pcprop({appLZero, L1, L2})  pc_and pcprop({appRZero, L1, L2})
+%%     pc_and pcprop({appLLL, L1, L2}) 
+%%     pc_and
+%%         (pcprop({appLLEmpty, L1, L2}) pc_or pcprop({appLLCons, L1, L2}))
+%%     %%     
+%%     ) ) ).
 
     % }}}
 
@@ -221,16 +278,23 @@ rotate1([H|T],R) :- append(T,[H],R).
 drotate1([H|T]-[H|L],T-L).
 
 %% rotate property merge
-pcprop(rotate_prop) :- 
-        plqc:pcforall( listOf(int), L, listsTest:(pcprop({rotate_permute, L}),
+prop(rotate_prop) :- 
+        plqc:for_all( listOf(int), L, listsTest:(prop({rotate_permute, L}),
                                         %% pcprop({rotate_order, L}),
-                                        pcprop({rotate_drotate_eq, L})
+                                        prop({rotate_drotate_eq, L})
                                         )).
+%% pcprop(rotate_prop) :- 
+%%         plqc:pcforall( listOf(int), L, listsTest:(pcprop({rotate_permute, L}),
+%%                                         %% pcprop({rotate_order, L}),
+%%                                         pcprop({rotate_drotate_eq, L})
+%%                                         )).
 
 %% property saying rotate operation preserves size and
 %% elements (the result is a permutation of the input)
-pcprop({rotate_permute, L}) :- 
-        plqc:pcforall( elements(L), X, 
+prop({rotate_permute, L}) :- 
+        plqc:for_all( elements(L), X, 
+%% pcprop({rotate_permute, L}) :- 
+%%         plqc:pcforall( elements(L), X, 
             listsTest:(
             rotate1(L, L1),
             same_count(X, L, L1),
@@ -255,7 +319,8 @@ count_off1(X, L1, [_|L2]) :- count_off1(X, L1, L2).
         
 
 %% property stating rotate and drotate equivalence
-pcprop({rotate_drotate_eq, L}) :- 
+prop({rotate_drotate_eq, L}) :- 
+%% pcprop({rotate_drotate_eq, L}) :- 
         listsTest:rotate1(L, L1),
         listsTest:drotate1(L, L1x),
         !,
@@ -282,37 +347,51 @@ rev_dl([],T-T).
 rev_dl([X|Xs],Rs-T) :- rev_dl(Xs,Rs-[X|T]).
 
     % {{{ double reverse is id
-pcprop(double_rev_app) :-
-        plqc:pcforall( listOf(int), L, listsTest:pcprop({double_rev_app_body, L})).
+prop(double_rev_app) :-
+        plqc:for_all( listOf(int), L, listsTest:prop({double_rev_app_body, L})).
+%% pcprop(double_rev_app) :-
+%%         plqc:pcforall( listOf(int), L, listsTest:pcprop({double_rev_app_body, L})).
 
-pcprop({double_rev_app_body, L}) :- 
+prop({double_rev_app_body, L}) :- 
+%% pcprop({double_rev_app_body, L}) :- 
         listsTest:rev_app(L, LR), !, % first solution
         listsTest:rev_app(LR, L2), !, L == L2.
 
-pcprop(double_rev_acc) :-
-        plqc:pcforall( listOf(int), L, listsTest:pcprop({double_rev_acc_body, L})).
+prop(double_rev_acc) :-
+        plqc:for_all( listOf(int), L, listsTest:prop({double_rev_acc_body, L})).
+%% pcprop(double_rev_acc) :-
+%%         plqc:pcforall( listOf(int), L, listsTest:pcprop({double_rev_acc_body, L})).
 
-pcprop({double_rev_acc_body, L}) :- 
+prop({double_rev_acc_body, L}) :- 
+%% pcprop({double_rev_acc_body, L}) :- 
         listsTest:rev_acc(L, LR), !, % first solution
         listsTest:rev_acc(LR, L2), !, L == L2.
     % }}}
 
-pcprop(wrong_drev) :-
-        plqc:pcforall( listOf(int), XS, (listsTest:rev_acc(XS,RX), listsTest:rev_app(RX,RX))).
+prop(wrong_drev) :-
+        plqc:for_all( listOf(int), XS, (listsTest:rev_acc(XS,RX), listsTest:rev_app(RX,RX))).
+%% pcprop(wrong_drev) :-
+%%         plqc:pcforall( listOf(int), XS, (listsTest:rev_acc(XS,RX), listsTest:rev_app(RX,RX))).
 
     % {{{ reverse implementations should be equiv
-pcprop(equiv_acc_app) :-
-        plqc:pcforall( listOf(int), L, (listsTest:rev_acc(L,LR), listsTest:rev_app(L,LR))).
+prop(equiv_acc_app) :-
+        plqc:for_all( listOf(int), L, (listsTest:rev_acc(L,LR), listsTest:rev_app(L,LR))).
+%% pcprop(equiv_acc_app) :-
+%%         plqc:pcforall( listOf(int), L, (listsTest:rev_acc(L,LR), listsTest:rev_app(L,LR))).
     % }}}
 
     % {{{ index check on reversed list
-pcprop(rev_app_index) :-
-        plqc:pcforall( suchThat(structure({listOf(int), int}), listsTest:valid_index), {L,I},
-                       listsTest:pcprop({double_rev_index_body, L, I})).
+prop(rev_app_index) :-
+        plqc:for_all( suchThat(structure({listOf(int), int}), listsTest:valid_index), {L,I},
+                       listsTest:prop({double_rev_index_body, L, I})).
+%% pcprop(rev_app_index) :-
+%%         plqc:pcforall( suchThat(structure({listOf(int), int}), listsTest:valid_index), {L,I},
+%%                        listsTest:pcprop({double_rev_index_body, L, I})).
 valid_index({L, I}) :-
         length(L,X), I<X. 
 
-pcprop({double_rev_index_body, L, I}) :- 
+prop({double_rev_index_body, L, I}) :- 
+%% pcprop({double_rev_index_body, L, I}) :- 
         listsTest:rev_app(L, LR), !, % first solution
         length(L,X),
         Index is I+1, RevIndex is X-I,
@@ -351,36 +430,49 @@ odd_list([X|XS]) :- 0 is X mod 2, odd_list(XS).
 
 
 
-pcprop(int10) :- 
-        plqc:pcforall( int, I, (I =< 10)).
+prop(int10) :- 
+        plqc:for_all( int, I, (I =< 10)).
+%% pcprop(int10) :- 
+%%         plqc:pcforall( int, I, (I =< 10)).
 
 
 
 %% paper summary
 
-pcprop(double_rev) :-
-        pcforall( listOf(int), L, pcprop({drev, L})).
+prop(double_rev) :-
+        for_all( listOf(int), L, prop({drev, L})).
+%% pcprop(double_rev) :-
+%%         pcforall( listOf(int), L, pcprop({drev, L})).
 
-pcprop({drev, L}) :- 
+prop({drev, L}) :- 
+%% pcprop({drev, L}) :- 
         rev_app(L, LR), !, % first solution
         rev_app(LR, L2), !, L == L2.
 
-pcprop(w_drev) :-
-        pcforall( listOf(int), XS, (rev_acc(XS,RX), rev_app(RX,RX))).
+prop(w_drev) :-
+%% pcprop(w_drev) :-
+        for_all( listOf(int), XS, (rev_acc(XS,RX), rev_app(RX,RX))).
+        %% pcforall( listOf(int), XS, (rev_acc(XS,RX), rev_app(RX,RX))).
 
-pcprop(r_app_i) :-
-        pcforall( suchThat(structure({listOf(int), int}),
+prop(r_app_i) :-
+%% pcprop(r_app_i) :-
+        for_all( suchThat(structure({listOf(int), int}),
+        %% pcforall( suchThat(structure({listOf(int), int}),
                            listsTest:valid_index),
                   {L,I},
-                  listsTest:pcprop({dr_app_i_body, L, I}) ).
+                  listsTest:prop({dr_app_i_body, L, I}) ).
+                  %% listsTest:pcprop({dr_app_i_body, L, I}) ).
 valid_index({L, I}) :- length(L,X), I<X.
 
-pcprop({dr_app_i_body, L, I}) :- 
+prop({dr_app_i_body, L, I}) :- 
+%% pcprop({dr_app_i_body, L, I}) :- 
         rev_app(L, LR),
         length(L,X), 
         Index is I+1,
         RevIndex is X-I,
         lists:nth(Index, L, Val),
         lists:nth(RevIndex, LR, Val).
-pcprop(equiv_revs) :-
-        pcforall( listOf(int), L, (rev_acc(L,LR), rev_app(L,LR))).
+prop(equiv_revs) :-
+%% pcprop(equiv_revs) :-
+        for_all( listOf(int), L, (rev_acc(L,LR), rev_app(L,LR))).
+        %% pcforall( listOf(int), L, (rev_acc(L,LR), rev_app(L,LR))).

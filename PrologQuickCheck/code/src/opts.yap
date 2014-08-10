@@ -4,21 +4,21 @@
 
 % {{{ defaults
 
-%% fun io   :: output_fun()
-%% false    :: boolean(),
-%% 100      :: pos_integer(),
-%% 1        :: size(),
-%%          :: seed(),  % TODO
-%% 42       :: size(),
-%% 500      :: non_neg_integer(),
-%% false    :: boolean(),
-%% 50       :: pos_integer(),
-%% false    :: boolean(),
-%%          :: {'type', plqc_types:any_type()},
-%% infinity :: timeout()}).
-
 %% default options
-default({opts, format, false, 100, 1, some_seed, 42, 500, false, 50, false, {type, plqc:int}, infinity}) :-
+default({opts,
+    format,            %% function for output  :: output_fun()
+    false,             %% present long result  :: boolean(),
+    100,               %% number of tests      :: pos_integer(),
+    1,                 %% initial size param   :: size(),
+    some_seed,         %% seed for random      :: seed(),  % TODO
+    42,                %% maximum size param   :: size(),
+    500,               %% max num of shrinks   :: non_neg_integer(),
+    false,             %% not shrinkin    g    :: boolean(),
+    50,                %% times to try to
+                       %%   gen constraint     :: pos_integer(),
+    false,             %% expect test fail     :: boolean(),
+    {type, plqc:int},  %% default 'any' type   :: {'type', types:any_type()},
+    infinity}) :-      %% max time to test :: timeout()}).
         %% plqc_types:any_type(T).
         T=fix_default_any__opts.
 

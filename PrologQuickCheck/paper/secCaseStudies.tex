@@ -39,7 +39,7 @@
 %% %% For the automatic generation of input
 %% First, we must describe what is the input.
 %% %
-%% The procedure receives a list as first argument, and is polymorphic in
+%% The procedure receives a list as first input parameter, and is polymorphic in
 %% the type of the list's elements.
 %% %% The procedure is polymorphic on the type of the elements of an
 %% %% argument list
@@ -68,9 +68,9 @@
 %% %
 %% The property underwent testing, passing all given tests.
 %% %
-%% %   ?- plqc:prologcheck(m:pcprop(double_rev_app), [{numtests, 1000}]), plqc:prologcheck(m:pcprop(double_rev_acc), [{numtests, 1000}]).
+%% %   ?- plqc:prologcheck(m:prop(double_rev_app), [{numtests, 1000}]), plqc:prologcheck(m:prop(double_rev_acc), [{numtests, 1000}]).
 %% \begin{yapcode}
-%%    ?- prologcheck(m:pcprop(d_rev_app)).
+%%    ?- prologcheck(m:prop(d_rev_app)).
 %%  OK: Passed 100 test(s).
 %% \end{yapcode}
 %% %
@@ -81,10 +81,10 @@
 %% %% %
 %% %% For the \yap{rev_app/2} predicate we have.
 %% %% \begin{yapcode}
-%% %%  pcprop(double_rev_app) :-
-%% %%    plqc:pcforall(listOf(int), L, m:pcprop({dbl_rev_app_body, L})).
+%% %%  prop(double_rev_app) :-
+%% %%    plqc:for_all(listOf(int), L, m:prop({dbl_rev_app_body, L})).
 %% %% 
-%% %%  pcprop({dbl_rev_app_body, L}) :- 
+%% %%  prop({dbl_rev_app_body, L}) :- 
 %% %%    m:rev_app(L, LR), !, m:rev_app(LR, L2), !, L == L2.
 %% %% \end{yapcode}
 %% %% %
@@ -105,12 +105,12 @@
 %% Choosing random elements prevent us from checking the whole list.
 %% %
 %% \begin{yapcode}
-%%  pcprop(rev_app_i) :- plqc:pcforall(
+%%  prop(rev_app_i) :- plqc:for_all(
 %%      suchThat(structure({listOf(int), int}), m:valid_index),
-%%      {L,I}, m:pcprop({double_rev_i_body, L, I}) ).
+%%      {L,I}, m:prop({double_rev_i_body, L, I}) ).
 %%  valid_index({L, I}) :- length(L,X), I<X.
 
-%%  pcprop({double_rev_i_body, L, I}) :- 
+%%  prop({double_rev_i_body, L, I}) :- 
 %%    m:rev_app(L, LR), length(L,X), Index is I+1, RevIndex is X-I,
 %%    lists:nth(Index, L, Val), lists:nth(RevIndex, LR, Val).
 %% \end{yapcode}
@@ -121,7 +121,7 @@
 %% element coverage.
 %% %
 %% \begin{yapcode}
-%%    ?- prologcheck(m:pcprop(rev_app_i)).
+%%    ?- prologcheck(m:prop(rev_app_i)).
 %%  OK: Passed 100 test(s).
 %% \end{yapcode}
 
@@ -132,7 +132,7 @@
 %% builds the result with an accumulator via an auxiliary predicate.
 %% %
 %% %% With proper property labelling  and predicate calls we can define
-%% %% \yap{pcprop(d_rev_app)} and \yap{pcprop(d_rev_acc)} to depict the
+%% %% \yap{prop(d_rev_app)} and \yap{prop(d_rev_acc)} to depict the
 %% %% behaviour of \yap{rev_app/2} and \yap{rev_acc/2} respectively.
 %% %
 %% The same property is defined for the new implementation with the same
@@ -151,13 +151,13 @@
 %% stating and testing a property comparing their behaviours.
 %% %
 %% \begin{yapcode}
-%%  pcprop(eqv_acc_app) :-
-%%    pcforall(listOf(int), L, (rev_acc(L,LR),rev_app(L,LR))).
+%%  prop(eqv_acc_app) :-
+%%    for_all(listOf(int), L, (rev_acc(L,LR),rev_app(L,LR))).
 %% \end{yapcode}
 %% The comparison succeeds if both have the same behaviour.
 %% %
 %% \begin{yapcode}
-%%    ?- prologcheck(m:pcprop(eqv_acc_app)).
+%%    ?- prologcheck(m:prop(eqv_acc_app)).
 %%  OK: Passed 100 test(s).
 %% \end{yapcode}
 
@@ -170,18 +170,18 @@
 %% implementation of the list concatenation predicate recurs on the first list
 %% and the appended list parameters, leaving the second list uninspected.
 %% %
-Here we describe some properties of  \yap{append/3}:
+Here we describe in more detail properties of  \yap{app/3}:
 %
 %% \todo{no texto fica melhor   \yap{append/3} ou 'append' em texto normal?}
 \begin{yapcode}
- append([], YS, YS).
- append([X||XS], YS, [X||AS]) :- append(XS, YS, AS).
+ app([], YS, YS).
+ app([X||XS], YS, [X||AS]) :- app(XS, YS, AS).
 \end{yapcode}
-%% %
-%% We check the behaviour of the \yap{append/3} predicate
-%% through its specification with the predicate specification language.
-%% %% presented in \refSec{sec:pred-spec}.
-%% %
+%
+We check the behaviour of the predicate through its specification with
+the predicate specification language presented in
+\refSec{sec:pred-spec}.
+%
 
 
 %% The most obvious way to use \yap{append/3} is by giving it two lists and expect
@@ -197,58 +197,58 @@ Here we describe some properties of  \yap{append/3}:
 %% It should also be the case that this use of the predicate behaves as a
 %% function, expecting exactly one answer.
 %% %
-\yap{append(A,B,C)} is used in a functional way in many programs,
-i.e. by giving it two lists as input and getting their concatenation as
+\yap{app(A,B,C)} is used in a functional way in many programs,
+i.e., by giving it two lists as input and getting their concatenation as
 output.
 %
 This behaviour is specified in \plqc{} as:
  %% (plqc:listOf(int), plqc:listOf(int), plqc:variable)
 \begin{yapcode}
- append of_type (A-(listOf(int)), B-(listOf(int)), C-(variable))
+ app of_type (A-(listOf(int)), B-(listOf(int)), C-(variable))
    where (i(g, g, v), o(g, g, g))  has_range {1,1}.
 \end{yapcode}
 %
-Prologchecking this specification clause bears no surprises.
+\emph{Prologchecking} this specification clause bears no surprises.
 %
 \begin{yapcode}
-   ?- prologcheck(m:pcprop(spec_append)).
+   ?- prologcheck(m:prop(spec_app)).
  OK: Passed 100 test(s).
 \end{yapcode}
 
 
 %% Although
-\yap{append/3} %% has an intended usage, it
+\yap{app/3} %% has an intended usage, it
 may be %% successfully
 also
 used in other situations.
 %
 For example, one can use it to create an open list, by %% giving a variable
 %% in place of the second list, which remains uninspected.
-calling it with a variable in the second argument.
+calling it with a variable in the second input parameter.
 %
-The result is a list with the ground elements of the first list and the
-second list variable as the tail, therefore it is neither ground nor
+The result is a list with the ground elements of the list and the
+variable in the second parameter as the tail, therefore it is neither ground nor
 variable.
 %% %
 %% This usage also behaves as a function, since the potentially mutating
 %% part of the input is not a target of pattern matches.
 %
 \begin{yapcode}
- {append, 1} of_type (A-(listOf(int)), B-(variable), C-(variable))
+ {app, 1} of_type (A-(listOf(int)), B-(variable), C-(variable))
    where (i(g, v, v), o(g, v, ngv))  has_range {1,1}.
 \end{yapcode}
 %
 Testing this specification clause reveals that the \emph{out} part of
 the directionality is not satisfied.
-%   ?- plqc:prologcheck(m:pcprop(spec_append_1)).
+%   ?- plqc:prologcheck(m:prop(spec_app_1)).
 \begin{yapcode}
-  ?- prologcheck(m:pcprop(spec_append_1), [noshrink]).
+  ?- prologcheck(m:prop(spec_app_1), [noshrink]).
  {failed_out_modes,[[o,g,v,ngv]], [[],_10258,_10258]}
  Failed: After 3 test(s).
  Counterexample found: [[[],_10258,_10260]] 
 \end{yapcode}
 %
-The counterexample shows that when the first argument is the empty
+The counterexample shows that when the first input parameter is the empty
 list, %% and the other two variables,
 the output modes do not respect %% comply with
 the specification %% .
@@ -257,7 +257,7 @@ the specification %% .
 %% Upon closer inspection it is noted that
 because
 the base case of the recursion
-%% on the first argument simply
+%% on the first input parameter simply
 unifies the second and third parameters.
 %% when it matches an empty list.
 %
@@ -299,7 +299,7 @@ is to add the missing directionality \yap{(i(g, v, v), o(g, v, ngv)), o(g,v,v)}.
 \subsection{AVL Trees}
 
 We have described AVL properties and performed black-box testing of an
-implementation of AVL trees in a \Yap{} module, \yap{avl.yap} with
+implementation of AVL trees in a \Yap{} module, \yap{avl.yap}, with
 \plqc{}\footnote{All the details can be found in the tool's website.}.
 %%
 Due to space restrictions we only present a general description of the
@@ -329,12 +329,12 @@ requires attention to detail.
 First, we only want to generate valid sequences to save effort of
 checking validity and not suffer from sparse valid values.
 %
-Using the same module implies the existence of two sets of important
-terms: key terms, and value terms, which we parametrise as generators.
+Using the \yap{avl} module implies the existence of two sets of important
+terms: key terms, and value terms, which we represent as generators.
 %
 In order to test the correct failure of wrong look-ups, a set of values
 for failed look-ups disjoint from the regular values is also
-parametrised.
+implemented.
 
 
 The generator starts by creating the tree, independently of the
@@ -349,6 +349,9 @@ Each element of the sequence is obtained by randomly choosing between
 insert and look-ups.
 
 
+When an insert command is added to the sequence, the value to be
+inserted is kept so that it can be used in later look-ups.
+%
 Look-ups are divided between valid look-up and invalid look-up.
 %
 Valid look-ups are only generated after the corresponding insert and
@@ -359,10 +362,9 @@ key-value pair and looking up a key and retrieving its value.
 %
 These elements are  branded by a command identifier to recognise their
 correct behaviour during testing.
-
-
-%% The relative probabilities are such that we get a big variety of commands within
-%% relatively small sequences.
+%
+The relative probabilities are such that we get a big variety of commands within
+relatively small sequences.
 
 
 
@@ -389,7 +391,7 @@ In the case of a non-empty tree we retrieve its key and sub-trees.
 They are used in recursive checks of the property.
 %
 The recursive calls accumulate lists of keys that should be greater and
-less then the keys of the tree.
+less then the keys in the sub-trees.
 %
 If the sub-trees are individually compliant with the property, we
 proceed with the last check, comparing the returned heights for
@@ -401,16 +403,16 @@ This is how the property is outlined in \plqc{}:
 %\pagebreak 
       %% ((forall(member(X, Ls), cmpKeys(X, K, lte))) -> true; error1),
       %% ((forall(member(X, Gs), cmpKeys(X, K, gt))) -> true; error2))
-   %% pc_and (( abs(Hl-Hr) =< 1 -> true; error3), H is 1+max(Hl,Hr))),
+   %% and (( abs(Hl-Hr) =< 1 -> true; error3), H is 1+max(Hl,Hr))),
 \begin{yapcode}
-pcprop({avl, T, Gs, Ls, H}) :- pcif( (not isNil(T)),
+prop({avl, T, Gs, Ls, H}) :- if (not isNil(T)) then
  ((getKey(T, K), left(T, L),  right(T, R),
       ((forall(member(X, Ls), cmpKeys(X, K, gt))) -> error1),
       ((forall(member(X, Gs), cmpKeys(X, K, lte))) -> error2))
-   pc_and pcprop({avl, L, [Key||Gt], Lt, Hl})
-   pc_and pcprop({avl, R, Gt, [Key||Lt], Hr})
-   pc_and (( abs(Hl-Hr)>1 -> error3), H is 1+max(Hl,Hr))),
- (H = 0) ).
+   and prop({avl, L, [Key||Gt], Lt, Hl})
+   and prop({avl, R, Gt, [Key||Lt], Hr})
+   and (( abs(Hl-Hr)>1 -> error3), H is 1+max(Hl,Hr)))
+ else (H = 0).
 \end{yapcode}
 %
 We complete the property by inserting it into a loop that consumes the
@@ -430,16 +432,15 @@ The column \emph{Tests} is the number of tests needed to achieve a
 particular counter-example.
 %
 For the purpose of readability we will represent only the key and value
-arguments of the AVL operations.
+input parameters of the AVL operations.
 %
-%% \todo{frase longa dividida em duas frases}
 Thus consider \yap{i(N,V)} as insert an
 element with key \yap{N} and value  \yap{V}, and \yap{l(N,V)} as look up
 the pair \yap{(N,V)} in the tree.
-%
+
+
 Note that the counter-example found in the original version corresponds
 to an unspecified behaviour in the case of two insertions with the same key.
-%% \todo{se calhar nao \'e 'case', nao percebo a letra do mario...}
 %
 After several runs of the tool (10 for the first bug and 20 for the
 second) we managed to find a pattern on the counter-examples which led

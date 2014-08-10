@@ -44,12 +44,12 @@ to the standard output.
   % prologcheck(Property, []).
 %\end{yapcode}
 %
-%It is a default interface to \yap{prologcheck/2}, such that the second argument
+%It is a default interface to \yap{prologcheck/2}, such that the second input parameter
 %is the empty list (has no user options).
 %
 %In general, this list is expected to contain user options to change the default
 %values of key features of the testing process, covered later.
- %% | Tests a property, using test arguments,
+ %% | Tests a property, using test input parameters,
  %% and prints the results to 'stdout'.
 %\begin{yapcode}
  %prologcheck(Property, UserOpts)  :-
@@ -73,7 +73,7 @@ to the standard output.
 %The predicate \yap{prologcheckResult/3} is the main interface predicate,
 %since all the others call it, either by discarding the result or by applying
 %an empty list of options.
- %% | Tests a property, using test arguments,
+ %% | Tests a property, using test input parameters,
  %% produces a test result, and prints the
  %% results to 'stdout'.
 %\begin{yapcode}
@@ -271,7 +271,7 @@ This is possible with the option \yap{\{max_shrinks,N\}}.
 %% unification to the enclosed property.
 %% %
 %% \begin{yapcode}
-%%  run(pcforall(Gen, Var, Test, Size),
+%%  run(for_all(Gen, Var, Test, Size),
 %%      Opts, Ctx, IState, OState, Result) :- 
 %%    !, bind_forall(Gen, Ctx, Var, Size),
 %%    ctx:bind(Ctx, Var, Ctx1),
@@ -302,7 +302,7 @@ This is possible with the option \yap{\{max_shrinks,N\}}.
 %% \begin{yapcode}
 %%  user:term_expansion(
 %%        PredId of_type T,
-%%        (pcprop(PropName) :- PLQCProp) ) :-
+%%        (prop(PropName) :- PLQCProp) ) :-
 %%    (...).
 %% \end{yapcode}
 %% %
@@ -386,12 +386,12 @@ This is possible with the option \yap{\{max_shrinks,N\}}.
 %%  spec_expand(Modifs, Pred, Types, Prop) :-
 %% \end{yapcode}
 %% %
-%% The types are pre-processed into the type structure and argument labels.
+%% The types are pre-processed into the type structure and input parameter labels.
 %% %
-%% The type structure then originates the generator of arguments.
+%% The type structure then originates the generator of input parameters.
 %% %
 %% A goal centred in the predicate and respecting the collected modifiers
-%% is wrapped in a quantification abstracting the arguments.
+%% is wrapped in a quantification abstracting the input parameters.
 %% %
 %% The resulting property is ready to be tested.
 %% %
@@ -399,7 +399,7 @@ This is possible with the option \yap{\{max_shrinks,N\}}.
 %%    pp_typing(Types, TS, Args),
 %%    modify_gen(Modifs, structure(TS), ArgGen),
 %%    spec_prop(Modifs, Pred, Args, InnerProp),
-%%    Prop = pcforall(ArgGen, Args, InnerProp).
+%%    Prop = for_all(ArgGen, Args, InnerProp).
 %% \end{yapcode}
 
 
@@ -411,16 +411,16 @@ This is possible with the option \yap{\{max_shrinks,N\}}.
 %% patterns.
 %% %% , such as the list pattern.
 %% %
-%% In parallel it is also built the list of arguments that parametrise the
+%% In parallel it is also built the list of input parameters that parametrise the
 %% translated property.
 %% %
-%% %% The arguments are variables into which each generated argument will be
+%% %% The input parameters are variables into which each generated input parameter will be
 %% %% bound to, taking into account explicit variable names provided in the
 %% %% type specification.
 
 
 
-%% The list containing the argument patterns and generators is assembled
+%% The list containing the input parameter patterns and generators is assembled
 %% as a structure generator.
 %% %
 %% In the presence of a parameter relation, collected in the modifiers, the
@@ -428,7 +428,7 @@ This is possible with the option \yap{\{max_shrinks,N\}}.
 %% relation with the \yap{suchThat/2} generator combinator.
 %% %
 %% The final property universal quantification binds values from the
-%% generator with the arguments, parametrising the test goal.
+%% generator with the input parameters, parametrising the test goal.
 
 
 
@@ -460,7 +460,7 @@ This is possible with the option \yap{\{max_shrinks,N\}}.
 %%  procedures before enforcing backtracking for
 %% alternatives.
 %% %
-%% The original arguments are stored for inspection in case an error
+%% The original input parameters are stored for inspection in case an error
 %% occurs.
 %% %% %
 %% %% At each iteration the current number of retrieved answers is checked

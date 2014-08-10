@@ -10,7 +10,8 @@
                  oneof/3, frequency/3, variable/2, elements/3,
                  listOf/3, listOf1/3, vectorOf/4,
                  value/3, structure/3,
-                 pcforall/4
+                 for_all/4
+                 %% pcforall/4
                  ]).
 
 %% :- meta_predicate prologcheck(:).
@@ -27,8 +28,11 @@
 
 :- source.
 
-:- op(1010, xfy, pc_and).
-:- op(1011, xfy, pc_or).
+:- op(1010, xfy, and).
+:- op(1011, xfy, or).
+:- op(1014, fx, if).
+:- op(1013, xfx, then).
+:- op(1012, xfx, else).
 
 :- op(910, xfx, of_type).
 :- op(700, xfx, such_that).
@@ -154,6 +158,7 @@ report_error(Reason, Print) :- print(report_error_predicate_missing).
    % }}}
 
     % {{{ report_fail_reason
+
 report_fail_reason(false_prop, _Prefix, _Print) :- !.
 report_fail_reason(time_out, Prefix, Print) :-
         lists:append(Prefix, "Test execution timed out.~n", Msg),
@@ -166,6 +171,7 @@ report_fail_reason({exception,ExcKind,ExcReason,StackTrace}, Prefix, Print) :-
         call(Print, Msg1, [ExcKind,ExcReason]),
         lists:append(Prefix, "Stacktrace: ~a.~n", Msg2),
         call(Print, Msg2, [StackTrace]).
+
     % }}}
   % }}}
 
@@ -224,7 +230,8 @@ shrink(Binds, Test, Details, MaxShrinks, MaxShrinks, Flag, Opts, Ctx, MaxShrinks
 shrink(Binds, Mod:Test, Details, IShrinks, MaxShrinks, Flag, Opts, Ctx, OShrinks, OutRes) :-
         !, ctx:new_module(Ctx, Mod, Ctx1),
         shrink(Binds, Test, Details, IShrinks, MaxShrinks, Flag, Opts, Ctx1, OShrinks, OutRes).
-shrink([Bind|Binds], pcforall(Gen, Var, Test), Details, IShrinks, MaxShrinks, init, Opts, Ctx, OShrinks, OutRes) :-
+shrink([Bind|Binds], for_all(Gen, Var, Test), Details, IShrinks, MaxShrinks, init, Opts, Ctx, OShrinks, OutRes) :-
+%% shrink([Bind|Binds], pcforall(Gen, Var, Test), Details, IShrinks, MaxShrinks, init, Opts, Ctx, OShrinks, OutRes) :-
         !,
         shrink_candidates(Bind, Gen, ShrunkVals),
         duplicate_term({Var, Test}, {Var1, Test1}),
@@ -242,18 +249,25 @@ shrink([Bind|Binds], pcforall(Gen, Var, Test), Details, IShrinks, MaxShrinks, in
         ctx:bind(Ctx, Bind, Ctx1), Var = Bind,
         shrink(Binds, Test, Details, IShrinks, MaxShrinks, init, Opts, Ctx1, OShrinks, OutRes)
         ).
-shrink([Bind|Binds], pcforall(Gen, Var, Test), Details, IShrinks, MaxShrinks, done, Opts, Ctx, OShrinks, OutRes) :-
+shrink([Bind|Binds], for_all(Gen, Var, Test), Details, IShrinks, MaxShrinks, done, Opts, Ctx, OShrinks, OutRes) :-
+%% shrink([Bind|Binds], pcforall(Gen, Var, Test), Details, IShrinks, MaxShrinks, done, Opts, Ctx, OShrinks, OutRes) :-
         !,
         ctx:bind(Ctx, Bind, Ctx1), Var = Bind,
         shrink(Binds, Test, Details, IShrinks, MaxShrinks, done, Opts, Ctx1, OShrinks, OutRes).
-shrink(Binds, pcforall(Gen, Var, Test, Size), Details, IShrinks, MaxShrinks, Flag, Opts, Ctx, OShrinks, OutRes) :-
-        !, shrink(Binds, pcforall(Gen, Var, Test), Details, IShrinks, MaxShrinks, Flag, Opts, Ctx, OShrinks, OutRes).
-shrink(Binds, pcprop(Label), Details, IShrinks, MaxShrinks, Flag, Opts, Ctx, OShrinks, OutRes) :-
+shrink(Binds, for_all(Gen, Var, Test, Size), Details, IShrinks, MaxShrinks, Flag, Opts, Ctx, OShrinks, OutRes) :-
+%% shrink(Binds, pcforall(Gen, Var, Test, Size), Details, IShrinks, MaxShrinks, Flag, Opts, Ctx, OShrinks, OutRes) :-
+        !, shrink(Binds, for_all(Gen, Var, Test), Details, IShrinks, MaxShrinks, Flag, Opts, Ctx, OShrinks, OutRes).
+        %% !, shrink(Binds, pcforall(Gen, Var, Test), Details, IShrinks, MaxShrinks, Flag, Opts, Ctx, OShrinks, OutRes).
+shrink(Binds, prop(Label), Details, IShrinks, MaxShrinks, Flag, Opts, Ctx, OShrinks, OutRes) :-
+%% shrink(Binds, pcprop(Label), Details, IShrinks, MaxShrinks, Flag, Opts, Ctx, OShrinks, OutRes) :-
         !,
         ctx:module(Ctx, M),
-        clause(M:pcprop(Label), Body),
+        clause(M:prop(Label), Body),
+        %% clause(M:pcprop(Label), Body),
         shrink(Binds, Body, Details, IShrinks, MaxShrinks, Flag, Opts, Ctx, OShrinks, OutRes).
-shrink([Binds, BindsS], (Test pc_and Tests), Details, IShrinks, MaxShrinks, Flag, Opts, Ctx, OShrinks, OutRes) :-
+shrink([Binds, BindsS], (Test and Tests), Details, IShrinks, MaxShrinks, Flag, Opts, Ctx, OShrinks, OutRes) :-
+%% shrink([Binds, BindsS], (Test && Tests), Details, IShrinks, MaxShrinks, Flag, Opts, Ctx, OShrinks, OutRes) :-
+%% shrink([Binds, BindsS], (Test pc_and Tests), Details, IShrinks, MaxShrinks, Flag, Opts, Ctx, OShrinks, OutRes) :-
         !, shrink(Binds, Test, Details, IShrinks, MaxShrinks, Flag, Opts, Ctx, Shrinks1, Res1),
         (result:is_pass_res(Res1), !,
         shrink(BindsS, Tests, Details, Shrinks1, MaxShrinks, Flag, Opts, Ctx, OShrinks, Res2),
@@ -269,7 +283,9 @@ shrink([Binds, BindsS], (Test pc_and Tests), Details, IShrinks, MaxShrinks, Flag
         result:performed_fail(Res2, Performed),
         result:mk_fail([{reason, Reason}, {bound, Bound},{actions, Actions}, {performed, Performed}], OutRes)
         ).
-shrink([BindsA, BindsB], (TestA pc_or TestB), Details, IShrinks, MaxShrinks, Flag, Opts, Ctx, OShrinks, OutRes) :-
+shrink([BindsA, BindsB], (TestA or TestB), Details, IShrinks, MaxShrinks, Flag, Opts, Ctx, OShrinks, OutRes) :-
+%% shrink([BindsA, BindsB], (TestA '||' TestB), Details, IShrinks, MaxShrinks, Flag, Opts, Ctx, OShrinks, OutRes) :-
+%% shrink([BindsA, BindsB], (TestA pc_or TestB), Details, IShrinks, MaxShrinks, Flag, Opts, Ctx, OShrinks, OutRes) :-
         !, shrink(BindsA, TestA, Details, IShrinks, MaxShrinks, Flag, Opts, Ctx, Shrinks1, Res1),
         !, result:is_fail_res(Res1),
         shrink(BindsB, TestB, Details, Shrinks1, MaxShrinks, Flag, Opts, Ctx, OShrinks, Res2),
@@ -299,8 +315,10 @@ shrink([], Test, Reason, Shrinks, MaxShrinks, Flag, Opts, Ctx, Shrinks, OutRes) 
         ).
 
           % {{{ shrink_candidates
+
 shrink_candidates(Bind, Gen, ShrunkVals) :-
         call(Gen, Bind, shrink, ShrunkVals).
+
           % }}}
           % {{{ find_first_valid_shrink
 find_first_valid_shrink([V|VS], Var, Binds, Test, Details, IShrinks, MaxShrinks, Opts, Ctx, Val, OutRes) :-
@@ -318,10 +336,12 @@ find_first_valid_shrink([V|VS], Var, Binds, Test, Details, IShrinks, MaxShrinks,
       % }}}
 
       % {{{ report_shrinking
+
 report_shrinking(Shrinks, MinResult, MinActions, Print, Shrunk) :-
         call(Print, "(~d time(s))", [Shrinks]), nl,
         result:bound_fail(MinResult, Bound),
         print_testcase(Bound, Print).
+
       % }}}
   % }}}
 
@@ -407,14 +427,16 @@ run(Mod:Test, Opts, Ctx, IState, OState, Result) :-
         !, ctx:new_module(Ctx, Mod, Ctx1),
         run(Test, Opts, Ctx1, IState, OState, Result).
 %% universal quantification
-run(pcforall(Gen, Var, Test), Opts, Ctx, IState, OState, Result) :- 
+run(for_all(Gen, Var, Test), Opts, Ctx, IState, OState, Result) :- 
+%% run(pcforall(Gen, Var, Test), Opts, Ctx, IState, OState, Result) :- 
         !,
         state:get_size(IState,Size),
         bind_forall(Gen, Ctx, Var, Size),
         ctx:bind(Ctx, Var, Ctx1),
         run(Test, Opts, Ctx1, IState, OState, Result).
 %% explicitly sized quantification
-run(pcforall(Gen, Var, Test, Size), Opts, Ctx, IState, OState, Result) :- 
+run(for_all(Gen, Var, Test, Size), Opts, Ctx, IState, OState, Result) :- 
+%% run(pcforall(Gen, Var, Test, Size), Opts, Ctx, IState, OState, Result) :- 
         !,
         bind_forall(Gen, Ctx, Var, Size),
         ctx:bind(Ctx, Var, Ctx1),
@@ -422,14 +444,18 @@ run(pcforall(Gen, Var, Test, Size), Opts, Ctx, IState, OState, Result) :-
 %% a labeled property to be unfolded; requires compilation with 'source'
 %% Label is either the identifier (atom that identifies the property)
 %%  or a tuple with the identifier and the arguments
-run(pcprop(Label), Opts, Ctx, IState, OState, Result) :-
+run(prop(Label), Opts, Ctx, IState, OState, Result) :-
+%% run(pcprop(Label), Opts, Ctx, IState, OState, Result) :-
         !,
         ctx:module(Ctx, M),
-        clause(M:pcprop(Label), Body),
+        clause(M:prop(Label), Body),
+        %% clause(M:pcprop(Label), Body),
         run(Body, Opts, Ctx, IState, OState, Result).
 %% conjunction - individual calls
 %% run((Test , Tests), Opts, Ctx, IState, OState, Result) :- 
-run((Test pc_and Tests), Opts, Ctx, IState, OState, Result) :- 
+run((Test and Tests), Opts, Ctx, IState, OState, Result) :- 
+%% run((Test && Tests), Opts, Ctx, IState, OState, Result) :- 
+%% run((Test pc_and Tests), Opts, Ctx, IState, OState, Result) :- 
         !,
         run(Test, Opts, Ctx, IState, State1, Result1),
         (result:is_pass_res(Result1), !,
@@ -439,7 +465,9 @@ run((Test pc_and Tests), Opts, Ctx, IState, OState, Result) :-
         merge_results_and(Result1, Result2, Result).
 %% disjunction - individual calls
 %% run((TestA ; TestB), Opts, Ctx, IState, OState, Result) :- 
-run((TestA pc_or TestB), Opts, Ctx, IState, OState, Result) :- 
+run((TestA or TestB), Opts, Ctx, IState, OState, Result) :- 
+%% run((TestA '||' TestB), Opts, Ctx, IState, OState, Result) :- 
+%% run((TestA pc_or TestB), Opts, Ctx, IState, OState, Result) :- 
         !,
         run(TestA, Opts, Ctx, IState, State1, Result1),
         (result:is_fail_res(Result1), !,
@@ -450,7 +478,8 @@ run((TestA pc_or TestB), Opts, Ctx, IState, OState, Result) :-
     %% ;
     %%     Result = Result1, Ostate = State1) ,
         merge_results_or(Result1, Result2, Result).
-run(pcif(IfTest, TestA, TestB), Opts, Ctx, IState, OState, Result) :- 
+run( (if IfTest then TestA else TestB), Opts, Ctx, IState, OState, Result) :- 
+%% run(pcif(IfTest, TestA, TestB), Opts, Ctx, IState, OState, Result) :- 
         !,
         run(IfTest, Opts, Ctx, IState, State1, ResultI),
         (result:is_pass_res(ResultI), !,
@@ -461,10 +490,13 @@ run(pcif(IfTest, TestA, TestB), Opts, Ctx, IState, OState, Result) :-
         Result1 = none
         ),
         merge_results_if(Result1, Result2, Result).
+run( (if IfTest then Test), Opts, Ctx, IState, OState, Result) :- 
+        run( (if IfTest then Test else true), Opts, Ctx, IState, OState, Result).
 %% a leaf in the property syntax tree - a predicate call
 run(Test, Opts, Ctx, State, State, Result) :- 
         ctx:module(Ctx, M),
-        (call(M:Test), !,
+        (M:call(Test), !,
+        %% (call(M:Test), !,
         create_pass_result(Ctx, true_prop, Result)
         )
     ;
@@ -812,7 +844,8 @@ structure(X, Y, shrink, []).
 
 % --==================================================--
 
-pcforall(Gen, Var, Prop, Size) :-
+for_all(Gen, Var, Prop, Size) :-
+%% pcforall(Gen, Var, Prop, Size) :-
         call(Gen, Var, Size), call(Prop).
 
 % }}}
@@ -821,7 +854,8 @@ pcforall(Gen, Var, Prop, Size) :-
 % {{{ predicate specification language
 
 user:term_expansion( PredicateId of_type Typing,
-                     (pcprop(PropName) :- PLQCProperty)
+                     (prop(PropName) :- PLQCProperty)
+                     %% (pcprop(PropName) :- PLQCProperty)
  ) :-
         pred_spec_name(PredicateId, Predicate, PropName),
         spec_expand(Predicate, Typing, PLQCProperty)
@@ -848,7 +882,9 @@ pred_spec_name_aux(PredicateId, PostfixL, PropName) :-
   % }}}
 
   % {{{ expand the specification by accumulating property/generator modifiers
+
     % {{{ spec_expand(Predicate, TypingSpec, Property)
+
 spec_expand(Predicate, TypingSpec, Property) :- 
         %% mp - main property
         spec_expand([(dummy-mp)], Predicate, TypingSpec, Property).
@@ -886,7 +922,9 @@ spec_expand(Modifiers, Pred, Typing, Property) :-
         pp_typing(Typing, TS, Args), % pre-process typing for explicit arguments
         modify_gen(Modifiers, structure(TS), ArgGen), % modify generator if needed
         spec_prop(Modifiers, Pred, Args, InnerProperty), % build property
-        Property = plqc:pcforall(ArgGen, Args, InnerProperty).
+        Property = plqc:for_all(ArgGen, Args, InnerProperty).
+        %% Property = plqc:pcforall(ArgGen, Args, InnerProperty).
+
     % }}}
 
     % {{{ limit_mp(Modifiers, Range, NewModifiers)
@@ -1131,6 +1169,7 @@ bound_call(Lower, Upper, Limit, (Call, OutProp), Args) :-
       % }}}
 
     % }}}
+
   % }}}
 
 % }}}

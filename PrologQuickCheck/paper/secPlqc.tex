@@ -30,9 +30,9 @@ A \emph{primitive property} is a \Prolog{} goal. %% , hence, the whole
 Properties may then be composed according to composition rules described
 later in the paper.
 %
-This enables the specification of a wide range of properties about
-predicates. %% through the use of meta-predicates, 
-such as checking the mode and the type of a goal.
+This enables the specification of a wide range of properties. %% about
+%% predicates, %% through the use of meta-predicates, 
+%% such as checking the mode and the type of a goal.
 %
 %% \todo{um comentario do ricroc prende-se com a clarificação do que e'
 %%   implementação/faz parte da ferramenta e o que e' preciso fazer para a usar}
@@ -58,8 +58,8 @@ Consider the well-known concatenation predicate.
 \end{yapcode}
 %
 An example of a property of \yap{app/3} is that, assuming the first two
-arguments are lists, after its execution a variable given in the third
-argument is instantiated with a list.
+input parameters are lists, after its execution a variable given in the third
+input parameter is instantiated with a list.
 %
 This property can be represented by the first order formula
 %
@@ -69,7 +69,7 @@ This property can be represented by the first order formula
 where |l1| and |l2| denote  lists given as input and |++| is interpreted
 as list concatenation. 
 % 
-The primitive property in the formula, |l1|{}|++|{}|l2|$\in$$list$,  can
+The primitive property in the formula, |l1|{}|++|{}$\,$|l2| $\in$ $list$,  can
 then be represented by the goal
 \begin{yapcode}
   app(L1, L2, L), (L = []; L = [_||_]).
@@ -87,15 +87,15 @@ We explicitly parametrise the property into a first order object.
 %
 The resulting property
 is  written as a clause for the special
-predicate \yap{pcprop/1} and parametrised accordingly.
+predicate \yap{prop/1} and parametrised accordingly.
 %
 \begin{yapcode}
- pcprop({appLLL, L1, L2}) :- app(L1, L2, L), (L = []; L = [_||_]).
+ prop({appLLL, L1, L2}) :- app(L1, L2, L), (L = []; L = [_||_]).
 \end{yapcode}
 %
 This is \plqc{}'s predicate for labelling properties.
 %
-The parametric label, \yap{{appLLL, L1, L2}} in the example, uniquely
+The parametric label, \yap{\{appLLL, L1, L2\}} in the example, uniquely
 identifies the property and holds the variables for all the input
 required. % by its body.
 %
@@ -115,33 +115,33 @@ instantiations.
 Values from this domain are used as test cases.
 %
 \begin{yapcode}
- pcprop(appL) :- pcforall(listOf(int), L1, pcforall(listOf(int), L2,
-                   pcprop({appLLL, L1, L2})))
+ prop(appL) :- for_all(listOf(int), L1, for_all(listOf(int), L2,
+                   prop({appLLL, L1, L2})))
 \end{yapcode}
 
 
 This more precise definition states that the property \yap{appL} is \yap{appLLL}
 over two lists of integers.
 %
-More precisely, we use \yap{pcforall/3} to represent \plqc{}'s universal quantification.
+More accurately, we use \yap{for_all/3} to represent \plqc{}'s universal quantification.
 %
-The first argument describes the \emph{type} of terms we want to
+The first input parameter describes the \emph{type} of terms we want to
 generate randomly, in this case lists of integers,
-\yap{listOf(int)}
-and the second argument names the variable they will bind to, in this case
+\yap{listOf(int)}, 
+and the second input parameter names the variable they will bind to, in this case
 \yap{L1} and \yap{L2}.
 %
 The third is the property we want to verify.
 %
 To check the property we can call \plqc{} using the alias
-\yap{pcprop(appL)}.
+\yap{prop(appL)}.
 %
-It starts with the outer \yap{pcforall} quantifier, generates a random
+It starts with the outer \yap{for_all} quantifier, generates a random
 list of integers, unifies it with \yap{L1} and repeats the process for
 the inner quantifier, unifying \yap{L2} with the second generated list.
 %
 \begin{yapcode}
-   ?- prologcheck(m:pcprop(appL)).
+   ?- prologcheck(m:prop(appL)).
  OK: Passed 100 test(s).
 \end{yapcode}
 %
@@ -149,21 +149,21 @@ The \yap{prologcheck/1} predicate is the simplest property tester in
 \plqc{}, taking a property as a parameter and checking it for a large
 number (100 is the default number) of generated test cases.
 %
-We use a generator such that test cases are randomly generated from
-terms up to a maximum term size.
+%% We use a generator such that test cases are randomly generated from
+%% terms up to a maximum term size.
 
 
 We could have mis-typed the property, making it impossible to be satisfied:
 %
 \begin{yapcode}
- pcprop(wrong_appL) :- pcforall(listOf(int), L1,
-   pcforall(listOf(int), L2, (app(L1, L2, L), (L=[], L=[_||_])))).
+ prop(wrong_appL) :- for_all(listOf(int), L1,
+   for_all(listOf(int), L2, (app(L1, L2, L), (L=[], L=[_||_])))).
 \end{yapcode}
 %
 Here we mistakenly determine \yap{L} to be both  \yap{[]} and  \yap{[_||_]}.
 %
 \begin{yapcode}
-   ?- prologcheck(m:pcprop(wrong_dr)).
+   ?- prologcheck(m:prop(wrong_dr)).
  Failed: After 1 test(s).
  Shrinking (1 time(s))
  Counterexample found: [[],[]]
@@ -205,17 +205,17 @@ We can, for example, separate property \yap{appLLL} into
 cell separately and compose them with property operators.
 %
 \begin{yapcode}
- pcprop({appLLE, L1, L2}) :- append(L1, L2, L), L = [].
- pcprop({appLLC, L1, L2}) :- append(L1, L2, L), L = [_||_].
+ prop({appLLE, L1, L2}) :- append(L1, L2, L), L = [].
+ prop({appLLC, L1, L2}) :- append(L1, L2, L), L = [_||_].
 \end{yapcode}
 
 
 Property operators currently  include conjunction
- (\yap{Prop1 pc_and Prop2}), disjunction (\yap{Prop1 pc_or Prop2}), conditional
-execution (\yap{pcif(Cond, Prop1, Prop2)}) and quantification
-(\yap{pcforall(Gen, Var, Prop)}).
+ (\yap{Prop1 and Prop2}), disjunction (\yap{Prop1 or Prop2}), conditional
+execution (\yap{if Cond then Prop1 else Prop2)}) and quantification
+(\yap{for_all(Gen, Var, Prop)}).
 %
-Property labelling (\yap{pcprop(Label)}) is also considered an operation.
+Property labelling (\yap{prop(Label)}) is also considered an operation.
 %
 %% \plqc{} inspects its body for the occurrence of other tool specific
 %% operations.
@@ -231,25 +231,34 @@ of lists' lengths and the left and right identity element of
 concatenation.
 %
 \begin{yapcode}
- pcprop({appLLLen, L1, L2}) :- app(L1, L2, L),
+ prop({appLLLen, L1, L2}) :- app(L1, L2, L),
    length(L1, K1), length(L2, K2), length(L, K), K is K1 + K2.
- pcprop({appLZ,L1,L2}) :- pcif(L1=[],(app(L1,L2,L), L=L2),true).
- pcprop({appRZ,L1,L2}) :- pcif(L2=[],(app(L1,L2,L), L=L1),true).
+ prop({appLZ,L1,L2}) :- if L1=[] then (app(L1,L2,L), L=L2).
+ prop({appRZ,L1,L2}) :- if L2=[] then (app(L1,L2,L), L=L1).
 \end{yapcode}
 %
 Conjunction and disjunction is used as expected.
 %
-The conditional \yap{pcif/3} has a similar behaviour to its ISO
-\Prolog{} counterpart, but at the level of \plqc{} properties.
+The conditional statement \yap{if A then B else C} performs a
+conditional execution on \yap{A}. 
 %
-This enables conditional properties without cut. %% , which would not be
+If \yap{A} runs successfully the tool continues by executing \yap{B} and in case it
+fails executing \yap{C} instead.
+%
+\yap{A}, \yap{B} and \yap{C} are \plqc{} properties.
+%
+In the example shown the \yap{else} branch is omitted.
+%
+This is equivalent to having the property \yap{true} in the omitted branch.
+%
+The conditional statement enables conditional properties without cut. %% , which would not be
 %% coincident with its semantics in \Prolog{} goals.
 %
 \begin{yapcode}
- pcprop(appAll) :- pcforall(listOf(int),L1, pcforall(listOf(int),L2,
-   (pcprop({appLLLen, L1, L2}) pc_and pcprop({appLZ, L1, L2})
-   pc_and pcprop({appRZ, L1, L2}) pc_and pcprop({appLLL, L1, L2})
-   pc_and (pcprop({appLLE,L1,L2}) pc_or pcprop({appLLC,L1,L2}))))).
+ prop(appAll) :- for_all(listOf(int),L1, for_all(listOf(int),L2,
+   (prop({appLLLen, L1, L2}) and prop({appLZ, L1, L2})
+   and prop({appRZ, L1, L2}) and prop({appLLL, L1, L2})
+   and (prop({appLLE,L1,L2}) or prop({appLLC,L1,L2}))))).
 \end{yapcode}
 
 
@@ -323,7 +332,7 @@ responsible for guaranteeing the safety of impure code in a property.
 %% %
 %% In this particular case we want to express the symmetry of the
 %% \yap{rev/2} relation in terms of its intended use: given a ground
-%% list in one argument retrieve a result in the other.
+%% list in one input parameter retrieve a result in the other.
 
 
 %% The next step is optional.
@@ -332,13 +341,13 @@ responsible for guaranteeing the safety of impure code in a property.
 %% %% The idea is to generalise the goal.%% , give it the desired label and parametrise it accordingly.
 %% %
 %% \begin{yapcode}
-%%  pcprop({dr, XS}) :- rev(XS, RX), rev(RX, XS).
+%%  prop({dr, XS}) :- rev(XS, RX), rev(RX, XS).
 %% \end{yapcode}
 %% %
 %% %% Note that the generalised call
 %% The resulting property
 %% is  written as a clause for the special
-%% predicate \yap{pcprop/1} and parametrised accordingly.
+%% predicate \yap{prop/1} and parametrised accordingly.
 %% %
 %% This is \plqc{}'s predicate for labelling properties.
 %% %
@@ -361,11 +370,11 @@ responsible for guaranteeing the safety of impure code in a property.
 %% %%   instantiations' e 'test cases' nao esta no ponto...}
 %% %
 %% \begin{yapcode}
-%%  pcprop(d_rev) :- pcforall(listOf(int), XS, pcprop({dr, XS}))
+%%  prop(d_rev) :- for_all(listOf(int), XS, prop({dr, XS}))
 %% \end{yapcode}
 %% %% \begin{yapcode}
-%% %%  pcprop(d_rev) :-
-%% %%    plqc:pcforall(listOf(int), XS, m:pcprop({dr, XS}))
+%% %%  prop(d_rev) :-
+%% %%    plqc:for_all(listOf(int), XS, m:prop({dr, XS}))
 %% %% \end{yapcode}
 %% %
 
@@ -374,13 +383,13 @@ responsible for guaranteeing the safety of impure code in a property.
 %% states that the property \yap{d_rev} is \yap{dr}
 %% over lists of integers.% \yap{XS}.
 %% %
-%% More precisely, we use \yap{pcforall/3} to represent \plqc{}'s universal quantification.
+%% More precisely, we use \yap{for_all/3} to represent \plqc{}'s universal quantification.
 %% %
-%% The first argument describes the \emph{type} of terms we want to
+%% The first input parameter describes the \emph{type} of terms we want to
 %% generate randomly, in this case lists of integers,
 %% \yap{listOf(int)}.
 %% %
-%% The second argument names the variable of interest, in this case \yap{XS}.
+%% The second input parameter names the variable of interest, in this case \yap{XS}.
 %% %
 %% The third %% names
 %% is
@@ -394,14 +403,14 @@ responsible for guaranteeing the safety of impure code in a property.
 %% %% This is done by calling
 %% we can call
 %%  \plqc{} using the alias
-%% \yap{pcprop(d_rev)} to define the property.
-%% %% \yap{m:pcprop(d_rev)} to define the property.
+%% \yap{prop(d_rev)} to define the property.
+%% %% \yap{m:prop(d_rev)} to define the property.
 %% \begin{yapcode}
-%%    ?- prologcheck(m:pcprop(d_rev)).
+%%    ?- prologcheck(m:prop(d_rev)).
 %%  OK: Passed 100 test(s).
 %% \end{yapcode}
 %% %% \begin{yapcode}
-%% %%    ?- plqc:prologcheck(m:pcprop(d_rev)).
+%% %%    ?- plqc:prologcheck(m:prop(d_rev)).
 %% %%  OK: Passed 100 test(s).
 %% %% \end{yapcode}
 %% %%  yes
@@ -424,8 +433,8 @@ responsible for guaranteeing the safety of impure code in a property.
 %% it impossible to be satisfied:
 %% %
 %% \begin{yapcode}
-%%  pcprop(wrong_dr) :-
-%%    pcforall(listOf(int), XS, (rev(XS,RX), rev(RX,RX))).
+%%  prop(wrong_dr) :-
+%%    for_all(listOf(int), XS, (rev(XS,RX), rev(RX,RX))).
 %% \end{yapcode}
 %% %
 %% %% Here we
@@ -433,7 +442,7 @@ responsible for guaranteeing the safety of impure code in a property.
 %% the second parameter.
 %% %
 %% \begin{yapcode}
-%%    ?- prologcheck(m:pcprop(wrong_dr)).
+%%    ?- prologcheck(m:prop(wrong_dr)).
 %%  Failed: After 11 test(s).
 %%  Shrinking (6 time(s))
 %%  Counterexample found: [[0,6]] 
@@ -459,21 +468,21 @@ responsible for guaranteeing the safety of impure code in a property.
 %% %% Available property operators currently include conjunction
 %% %% Property operators currently available in \plqc{} include conjunction
 %% Property operators currently  include conjunction
-%%  (\yap{Prop1 pc_and Prop2}), disjunction (\yap{Prop1 pc_or Prop2}), conditional
+%%  (\yap{Prop1 and Prop2}), disjunction (\yap{Prop1 or Prop2}), conditional
 %% execution (\yap{pcif(Cond, Prop1, Prop2)}) and quantification
-%% (\yap{pcforall(Gen, Var, Prop)}).
+%% (\yap{for_all(Gen, Var, Prop)}).
 %% %
 %% %% \begin{yapcode}
-%% %%    Prop1 pc_and Prop2
-%% %%    Prop1 pc_or Prop2
+%% %%    Prop1 and Prop2
+%% %%    Prop1 or Prop2
 %% %%    pcif(Cond, Prop1, Prop2)
-%% %%    pcforall(Gen, Var, Prop)
-%% %%    pcprop(Label)
+%% %%    for_all(Gen, Var, Prop)
+%% %%    prop(Label)
 %% %% \end{yapcode}
 %% %
 %% Quantification is explained in the example presented in this section.
 %% %
-%% Property labelling (\yap{pcprop(Label)}) is also %% considered
+%% Property labelling (\yap{prop(Label)}) is also %% considered
 %% an operation.
 %% %
 %% %% It has no real effect on the labelled property, but is at the level of
@@ -568,18 +577,21 @@ responsible for guaranteeing the safety of impure code in a property.
 \label{sec:generators}
 
 Input for testing properties is randomly generated through explicitly
-defined procedures: generators.
+defined procedures: \emph{generators}.
 %
 There are  differences between \plqc{} generators and the
 generators in a strongly typed version of the tool.
 %
 In \Haskell{} \QuickCheck{}, or any language with strong types,
-generators pick values inside a type according to some criteria.
+generators pick values inside a preexisting type according to some criteria.
 %
-In \plqc{} generators represent procedures that randomly choose an element
-from a set of values.
+In \plqc{} generators represent procedures that randomly construct
+elements according to the shape of the term.
+%% choose an element from a set of values.
 %
-In fact, the generators themselves define the set by the elements
+In fact, the generators themselves define 
+%% the
+a set by the elements
 they generate, with non-zero probability.
 %
 Thus, they define a set of terms, here denoted as a \emph{type}.
@@ -593,7 +605,7 @@ property.
 \plqc{} has {\it generators} and {\it generator
 predicates}.
 %
-Generators specify the input arguments of properties.
+Generators specify the input parameters of properties.
 %
 One example generator is \yap{listOf(int)}.
 %
@@ -614,7 +626,7 @@ The corresponding example of a call to a generator predicate is \yap{listOf(Type
 %% size parameter.
 %% %
 %% \plqc{} calls the generator with two extra
-%% arguments: the quantified variable and the current size parameter.
+%% input parameters: the quantified variable and the current size parameter.
 %% %
 %% The generator predicate can use the size to guide value
 %% construction.
@@ -636,7 +648,7 @@ in generators.
 %
 The \yap{choose/4} predicate discards the size parameter and randomly
 chooses an integer between the inclusive range given by the first two
-arguments.
+input parameters.
 %
 \yap{elements/3}  randomly chooses an element
 from a non-empty list of possible elements.
@@ -652,31 +664,25 @@ They are implemented as follows:
 
 \paragraph{\bf Combinators}
 
-Together with generator predicates for predefined types, we
-provide combinators to define more complex generators.
+We extend generator predicates with \emph{generator combinators} that
+allow us to define more complex generators.
 %
-Generator combinators are generator predicates that are parametrised by
-some generators.
+More precisely, combinators are generator predicates that are parametrised by
+generators.
 %
-This is shown in the example, where the generator for lists,
-\yap{listOf(int)}, is parametrised by a generator for the integers.
+This is shown in the \yap{app/3} example, where the generator for lists,
+\yap{listOf(int)}, is parametrised by a generator for integers.
 %
 Generator predicates can have several parameters, but the two last
-arguments must always be, in this order, the generated value and the
-size.
+must always be, in this order, the generated value and the size.
 %
 %% When a generator predicate uses another generator predicate to build a
 %% value, the parameter passed is in generator form.
 
 
-\plqc{} generator combinators
-%% , these are generator predicates that are
-%% parametrised by other generators.
-%% %
-%% They
-are used to build generator predicates for complex data and to
-adjust the probability distribution of a generator to fit the needs of
-the tester.
+\plqc{} combinators enable the generation of complex data and can tune
+the probability distribution of the generated values to better fit the
+needs of the tester.
 %
 Next, we present some combinators distributed with the tool.
 
@@ -692,7 +698,7 @@ Random size lists can be generated by \yap{listOf/3}, which randomly
 chooses a list length and uses \yap{vectorOf/4}. 
 %
 \yap{vectorOf/4} is a fixed length generator predicate that recurs on
-the integer given as the first argument, generating each element.
+the integer given as the first input parameter, generating each element.
 \begin{yapcode}
  listOf(GenA, AS, S) :- choose(0, S, K, S),vectorOf(K, GenA, AS, S).
 
@@ -706,8 +712,8 @@ in an interval ($[2,5]$) and create lists whose elements are in an
 interval ($[0,9]$).
 %
 \begin{yapcode}
-   pcforall( choose(2,5),I, pcforall( vectorOf(I,int),L1,
-     pcforall( listOf(choose(0,9)),L2, (pcprop({appLLC, L1, L2}))))
+   for_all( choose(2,5),I, for_all( vectorOf(I,int),L1,
+     for_all( listOf(choose(0,9)),L2, (prop({appLLC, L1, L2}))))
 \end{yapcode}
 
 
@@ -718,7 +724,7 @@ with a certain structure is also possible with \yap{value/3},
 With such generators/combinators we can describe and therefore test a
 different input mode.
 \begin{yapcode}
-   pcforall( structure([listOf(int), value(v), variable]),[L1,X,L],
+   for_all( structure([listOf(int), value(v), variable]),[L1,X,L],
      app(L1, X, L))
 \end{yapcode}
 %% \begin{yapcode}
@@ -736,7 +742,7 @@ different input mode.
 
 
 %% To build a generator that only produces a certain value, ground or not,
-%% we use \yap{value/3}, giving the element as the first argument.
+%% we use \yap{value/3}, giving the element as the first input parameter.
 %% %
 %% If a fresh variable is needed, one can use the \yap{variable}
 %% generator.
@@ -750,7 +756,7 @@ different input mode.
 %% structure with random parts we can use \yap{structure/3}.
 %% %
 %% This generator predicate descends on the structure of the first
-%% argument, list or tuple, replicating it for the generated value.
+%% input parameter, list or tuple, replicating it for the generated value.
 %% %
 %% When reaching a leaf-pattern, it evokes the generator found and
 %% uses the leaf-value generated to construct the the output value.
@@ -791,8 +797,8 @@ Resizing can contribute to better chances of fulfilling a condition,
 e.g., a size near zero improves the chances of generating empty lists.
 %
 \begin{yapcode}
- pcforall(  resize(0,listOf(int)),  L1,
-   pcforall(listOf(int),L2, (pcprop({appLZ, L1, L2}))))
+ for_all(  resize(0,listOf(int)),  L1,
+   for_all( listOf(int), L2, (prop({appLZ, L1, L2})) ))
 \end{yapcode}
 
 
@@ -800,7 +806,7 @@ The \yap{suchThat/4} combinator restricts the values of a generator.
 %
 If not all generated elements for a generator are useful, wrapping it
 with \yap{suchThat/4} will select the elements of the generator in the
-first argument that satisfy the predicate in the second.
+first input parameter that satisfy the predicate in the second.
 %% %
 %% \begin{yapcode}
 %%  suchThat(GenA, PredA, A, S) :- suchThatMaybe(GenA, PredA, A, S), !
@@ -819,8 +825,8 @@ lists.
 \begin{yapcode}
  posLen([_||_]).
  ...
-   pcforall(  suchThat(listOf(int), posLen),  L1,
-     pcforall(listOf(int),L2, (pcprop({appLLC, L1, L2}))))
+   for_all(  suchThat(listOf(int), posLen),  L1,
+     for_all(listOf(int),L2, (prop({appLLC, L1, L2}))))
 \end{yapcode}
 
                                                         
@@ -836,7 +842,7 @@ Grouping generators can be done in several ways.
 %
 We can randomly choose from a list of generators with \yap{oneof/3}.
 %
-The list of generators given in the first argument must be non-empty.
+The list of generators given in the first input parameter must be non-empty.
 %
 \begin{yapcode}
  oneof(LGenA, A, S) :- length(LGenA, Cap), choose(1,Cap,I,S),
@@ -847,7 +853,7 @@ If an uniform distribution between the generators is not suitable one can
 specifically state the proportions of the probabilities to choose each
 generator.
 %
-The first argument of \yap{frequency/3} is a list of pairs
+The first input parameter of \yap{frequency/3} is a list of pairs
 \yap{\{}\emph{weight}\yap{,}\emph{generator}\yap{\}} representing such
 proportions.
 %
@@ -867,8 +873,8 @@ We can use both combinators to randomly choose generators for each test case.
  Gen1 = resize(0,listOf(int))
  Gen2 = suchThat(listOf(int), posLen)
  ...
-   pcforall( frequency([{4,listOf(int)}, {1,Gen2}]),  L1,
-     pcforall( oneof([Gen1,Gen2],L2, (pcprop({appLLC, L1, L2}))))
+   for_all( frequency([{4,listOf(int)}, {1,Gen2}]),  L1,
+     for_all( oneof([Gen1,Gen2],L2, (prop({appLLC, L1, L2}))))
 \end{yapcode}
 
 
@@ -898,6 +904,7 @@ The following auxiliary predicate builds a list of the possible shrunk
 lists.
 %
 \begin{yapcode}
+ genL(GenA, A, Size) :- listOf(GenA, A, Size).
  genL(GenA, L, shrink, Shrs) :-  shrL(L, Shrs).
  shrL([], []).
  shrL([A], [[]]) :- !.
@@ -917,3 +924,7 @@ the shrinking of many combinators to an empty list of shrunk values.
 Instead of directly using combinators in a property quantification
 the user can wrap them in a generator predicate with a meaningful name,
 implementing the shrink behaviour for this specific type.
+%
+This is exemplified by the \yap{genL} generator predicate, which is a
+redefinition of \yap{listOf} and can therefore implement a different
+shrinking process.

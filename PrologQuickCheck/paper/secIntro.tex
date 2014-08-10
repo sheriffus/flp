@@ -180,7 +180,7 @@ naturally supports domain quantification.
 %
 In this language primitive properties are %% defined as
 \Prolog{} goals which can be composed by \plqc{}
-property combinators.
+property operators. %combinators.
 %% a property is a goal or a composition of
 %% properties.
 %% \todo{havia aqui um comentario a dizer que estava confuso, espero que
@@ -237,7 +237,7 @@ implemented  to complement the power of built-in generators.
 %% From simple generators and using the provided predicate generator
 %% combinators it is possible to obtain generators for more complex
 %% domains, provide suitable value distributions for specific predicates or
-%% predicate usages and to ensure the relation between the arguments applied
+%% predicate usages and to ensure the relation between the input parameters applied
 %% to the predicates being tested is valid.
 
 
@@ -260,7 +260,7 @@ implemented  to complement the power of built-in generators.
 %% On top of this lightweight testing tool we have built predicate
 %% specification testing.
 We also define a language of testable predicate specifications including
-types, modes and determinism, which the tester can use to encode
+types, modes and multiplicity, which the tester can use to encode
 interesting properties of the predicate under test.
 %% %
 %% By specifying some aspects of a predicate in a proper specification
@@ -279,10 +279,10 @@ The rest of this paper is organised as follows.
 \refSecI{sec:rel-work} encloses the presentation of related work.
 %
 In \refSec{sec:properties} we introduce property definitions and their
-testing in \plqc{} and in \refSec{sec:generators} we describe details
+testing in \plqc{} and in \refSec{sec:generators} we discuss details
 about test case generation.
 %
-\refSecI{sec:pred-spec} presents the predicate specification language
+\refSecI{sec:pred-spec} describes the predicate specification language
 and how to test the specifications, followed by the presentation of case
 studies in \refSec{sec:case-studies}
 %

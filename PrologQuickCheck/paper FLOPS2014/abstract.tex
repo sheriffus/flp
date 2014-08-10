@@ -1,0 +1,26 @@
+
+
+We present \plqc{}, an automatic tool for property-based
+testing of programs in the logic programming language \Prolog{} with
+randomised test data generation.
+%
+The tool is inspired by the well known \QuickCheck, originally designed
+for the functional programming language \Haskell{}. It includes features
+that deal with specific characteristics of \Prolog{} such as its
+relational nature (as opposed to \Haskell{}) and the absence of a strong
+type discipline.
+
+
+\plqc{} expressiveness stems from describing properties as
+\Prolog{} goals.
+%
+It enables the definition of custom test data generators for
+random testing tailored for the property to be tested.
+%
+Further, it allows the use of a predicate specification language that
+supports types, modes and constraints on the number of successful
+computations.
+%
+We evaluate our tool on a number of  examples and apply
+it successfully to debug a \Prolog{} library for AVL search trees.
+

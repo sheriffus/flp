@@ -1,0 +1,184 @@
+% -*- mode: latex; mode: folding -*-
+\documentclass[11pt,twoside]{article}
+
+\usepackage{techReps}
+\usepackage{epsfig}
+
+
+\makeatletter
+\def\cleardoublepage{\clearpage\if@twoside \ifodd\c@page\else%
+\hbox{}%
+\thispagestyle{empty}
+\newpage%
+\if@twocolumn\hbox{}\newpage\fi\fi\fi}
+\makeatother
+
+\begin{document}
+
+\trtitle{Title}
+\trauthor{author 1 \hspace{1cm} author 2 \hspace{1cm} etc}
+
+\trnumber{ToDo\\Version $1.0$ September 2013}
+%% \trnumber{DCC-2006-07\\Version $1.1$ September 2013}
+
+\mkcoverpage
+
+\title{Title2}
+\author{author\thanks{author is funded by FCT grant
+SFRH/BD/XXXXX/20XX.}\hspace{0.5cm} author 2 \hspace{0.5cm}
+etc\\ {\tt \{xxx,xxx,xxx\}@dcc.fc.up.pt}}
+
+\date{}
+\cleardoublepage
+
+\maketitle
+
+%{{{ List Reverse
+
+Here we return to the first example given in \refSec{sec:properties}.
+%
+%% In general people have a conception of what is reversing the order of
+%% elements, reversing a list is to observe the $i^th$ element of the original list as
+%% the $(1+n-i)^th$ element of the reversed one for a list of size $n$.
+%% %
+%% There is also the idea of how to code such a procedure, independently of
+%% the programming language.
+%% %
+%% In fact, there are quite a few ways to implement this procedure and we
+%% discuss several implementations.% of the procedure.
+%
+%
+We want to check attributes of a reversing procedure.
+%% What we intend to check about our reverse procedures is the ability to
+%% transform an input list into its reversed counterpart.
+%
+%% This implies that the property must have an input for random testing.
+%irst, f
+%% For the automatic generation of input
+First, we must describe what is the input.
+%
+The procedure receives a list as first argument, and is polymorphic in
+the type of the list's elements.
+%% The procedure is polymorphic on the type of the elements of an
+%% argument list
+It is usually sufficient to check the behaviour for a
+single type of elements.
+%
+Moreover, sometimes even a type with a finite number of values suffice,
+but we can safely overestimate the size of the
+type~\cite{Bernardy-testing-poly-prop}.
+%
+%% We choose to test the list predicates with lists of integer elements.
+%
+Therefore, we use the generator for integers, \yap{int}, as the elements
+of the parametric list generator, \yap{listOf(int)}.
+
+
+
+\begin{yapcode}
+ rev_app([],[]).
+ rev_app([X||XS], YS) :- rev_app(XS,ZS), append(ZS, [X], YS).
+\end{yapcode}
+
+
+For the previous implementation of reverse we can define the 
+property in \refSec{sec:properties}.
+%
+The property underwent testing, passing all given tests.
+%
+%   ?- plqc:prologcheck(m:pcprop(double_rev_app), [{numtests, 1000}]), plqc:prologcheck(m:pcprop(double_rev_acc), [{numtests, 1000}]).
+\begin{yapcode}
+   ?- prologcheck(m:pcprop(d_rev_app)).
+ OK: Passed 100 test(s).
+\end{yapcode}
+%
+%% We can adapt the properties in \refSec{sec:properties} to both versions.
+%% %
+%% %% We do it by identifying the property names and called predicates
+%% %% appropriately.
+%% %
+%% For the \yap{rev_app/2} predicate we have.
+%% \begin{yapcode}
+%%  pcprop(double_rev_app) :-
+%%    plqc:pcforall(listOf(int), L, m:pcprop({dbl_rev_app_body, L})).
+%% 
+%%  pcprop({dbl_rev_app_body, L}) :- 
+%%    m:rev_app(L, LR), !, m:rev_app(LR, L2), !, L == L2.
+%% \end{yapcode}
+%% %
+%% The version for \yap{rev_acc/2} is obtained by changing the affix of
+%% identifiers from \yap{app} to \yap{acc}
+%% ,
+%%           [{numtests, 1000}]
+ %% OK: Passed 1000 test(s).
+ %% yes
+
+
+To check that the order is being reversed we can randomly choose an
+element (or a %even a random
+ set of elements) and inspect
+ its position in the parameters.
+%% if it is correctly positioned in the reversed list.
+%
+Choosing random elements prevent us from checking the whole list.
+%
+\begin{yapcode}
+ pcprop(rev_app_i) :- plqc:pcforall(
+     suchThat(structure({listOf(int), int}), m:valid_index),
+     {L,I}, m:pcprop({double_rev_i_body, L, I}) ).
+ valid_index({L, I}) :- length(L,X), I<X.
+
+ pcprop({double_rev_i_body, L, I}) :- 
+   m:rev_app(L, LR), length(L,X), Index is I+1, RevIndex is X-I,
+   lists:nth(Index, L, Val), lists:nth(RevIndex, LR, Val).
+\end{yapcode}
+%
+When performing a large number of tests this method should
+ randomly choose enough indexes to 
+give good
+element coverage.
+%
+\begin{yapcode}
+   ?- prologcheck(m:pcprop(rev_app_i)).
+ OK: Passed 100 test(s).
+\end{yapcode}
+
+%% We start with
+We have another implementation of reverse.
+%, described later, 
+While the first implementation uses concatenation, the following
+builds the result with an accumulator via an auxiliary predicate.
+%
+%% With proper property labelling  and predicate calls we can define
+%% \yap{pcprop(d_rev_app)} and \yap{pcprop(d_rev_acc)} to depict the
+%% behaviour of \yap{rev_app/2} and \yap{rev_acc/2} respectively.
+%
+The same property is defined for the new implementation with the same
+testing result.
+\begin{yapcode}
+ rev_acc([], LR, LR).
+ rev_acc([X||XS], Acc, LR) :- rev_acc(XS, [X||Acc], LR).
+
+ rev_acc(L, LR) :- rev_acc(L, [], LR).
+\end{yapcode}
+
+
+Since we have two implementations of the same concept we can explore
+this by 
+%% only performing tests on one version and
+stating and testing a property comparing their behaviours.
+%
+\begin{yapcode}
+ pcprop(eqv_acc_app) :-
+   pcforall(listOf(int), L, (rev_acc(L,LR),rev_app(L,LR))).
+\end{yapcode}
+The comparison succeeds if both have the same behaviour.
+%
+\begin{yapcode}
+   ?- prologcheck(m:pcprop(eqv_acc_app)).
+ OK: Passed 100 test(s).
+\end{yapcode}
+
+%}}}
+
+\end{document}

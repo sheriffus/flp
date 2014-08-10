@@ -1,0 +1,73 @@
+% Definicao do estilo para Technical Reports DCC/FCUP (LIACC)
+% 4/97, Fernando:
+%  Adjusted for Technical Reports
+
+% settings for margins
+\oddsidemargin 0.25in \evensidemargin 0in  %one-sided
+%\oddsidemargin 0.50in \evensidemargin 0.75in  %two-sided
+\topmargin -0.25in
+\textheight 9.0in 
+\textwidth 6.06in
+% settings for paragraphs
+%\setlength{\parindent}{0mm}
+%\setlength{\parskip}{2mm}
+%
+\hyphenpenalty=1000
+\flushbottom
+
+\def\trauthor#1{\gdef\@trauthor{#1}}
+\def\trtitle#1{\gdef\@trtitle{#1}}
+\def\trnumber#1{\gdef\@trnumber{#1}}
+\def\@trtitle{}
+\def\@trauthor{}
+\def\@trnumber{}
+
+\def\titlep{%
+        \thispagestyle{empty}%
+         \begin{center}
+              {\Huge \bf \expandafter{\@trtitle}\\}
+              \vspace{1cm}
+              {\Large \@trauthor}\\
+        \end{center}
+        \vspace{1cm}
+        \begin{center}
+                {\Large Technical Report Series: \@trnumber\\}
+        \end{center}
+	\vspace{1cm}
+	\hrule
+        \vspace{0.5cm}
+	\begin{center}
+	 %% \epsfxsize=8cm
+	 \epsfxsize=10cm
+	 \epsffile{fc_logo.ps}
+	 \end{center}
+        \vspace{0.5cm}
+	\hrule
+	\vspace{1cm}
+         \begin{center}
+                 %%  {\large Departamento de Ci\^encia de Computadores\\
+                 %%  \&\\
+                 %%  Laborat\'orio de Intelig\^encia Artificial e
+                 %%  Ci\^encia de Computadores\\}
+		 %%  \vspace{0.2cm} 
+		 %%  Faculdade de Ci\^encias da Universidade do Porto\\
+         	 %%  Rua do Campo Alegre, 1021/1055, \\
+                 %%  4169-007 PORTO, \\
+		 %%  PORTUGAL\\
+		 %%  \vspace{0.1cm}
+		 %%  Tel:~220~402~900\hspace{0.3cm}
+		 %%  Fax:~220~402~950\hspace{0.3cm}\\
+      		 %% {\tt http://www.dcc.fc.up.pt/Pubs/}
+         \end{center}
+
+        \vfill
+	
+}
+
+\def\mkcoverpage{
+        \titlep
+        \newpage
+        \normalsize
+}
+
+

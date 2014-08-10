@@ -1,0 +1,2911 @@
+% -*- mode: latex; mode: folding -*-
+\documentclass[runningheads,a4paper]{../../PaperStyles/llncs}
+%% \documentclass[authoryear,9pt,preprint]{../../PaperStyles/acm_proc_article-sp}
+%% \documentclass[authoryear,9pt,preprint]{../../PaperStyles/sigplanconf}
+
+%% ODER: format ==         = "\mathrel{==}"
+%% ODER: format /=         = "\neq "
+%
+%
+\makeatletter
+\@ifundefined{lhs2tex.lhs2tex.sty.read}%
+  {\@namedef{lhs2tex.lhs2tex.sty.read}{}%
+   \newcommand\SkipToFmtEnd{}%
+   \newcommand\EndFmtInput{}%
+   \long\def\SkipToFmtEnd#1\EndFmtInput{}%
+  }\SkipToFmtEnd
+
+\newcommand\ReadOnlyOnce[1]{\@ifundefined{#1}{\@namedef{#1}{}}\SkipToFmtEnd}
+\usepackage{amstext}
+\usepackage{amssymb}
+\usepackage{stmaryrd}
+\DeclareFontFamily{OT1}{cmtex}{}
+\DeclareFontShape{OT1}{cmtex}{m}{n}
+  {<5><6><7><8>cmtex8
+   <9>cmtex9
+   <10><10.95><12><14.4><17.28><20.74><24.88>cmtex10}{}
+\DeclareFontShape{OT1}{cmtex}{m}{it}
+  {<-> ssub * cmtt/m/it}{}
+\newcommand{\texfamily}{\fontfamily{cmtex}\selectfont}
+\DeclareFontShape{OT1}{cmtt}{bx}{n}
+  {<5><6><7><8>cmtt8
+   <9>cmbtt9
+   <10><10.95><12><14.4><17.28><20.74><24.88>cmbtt10}{}
+\DeclareFontShape{OT1}{cmtex}{bx}{n}
+  {<-> ssub * cmtt/bx/n}{}
+\newcommand{\tex}[1]{\text{\texfamily#1}}	% NEU
+
+\newcommand{\Sp}{\hskip.33334em\relax}
+
+
+\newcommand{\Conid}[1]{\mathit{#1}}
+\newcommand{\Varid}[1]{\mathit{#1}}
+\newcommand{\anonymous}{\kern0.06em \vbox{\hrule\@width.5em}}
+\newcommand{\plus}{\mathbin{+\!\!\!+}}
+\newcommand{\bind}{\mathbin{>\!\!\!>\mkern-6.7mu=}}
+\newcommand{\rbind}{\mathbin{=\mkern-6.7mu<\!\!\!<}}% suggested by Neil Mitchell
+\newcommand{\sequ}{\mathbin{>\!\!\!>}}
+\renewcommand{\leq}{\leqslant}
+\renewcommand{\geq}{\geqslant}
+\usepackage{polytable}
+
+%mathindent has to be defined
+\@ifundefined{mathindent}%
+  {\newdimen\mathindent\mathindent\leftmargini}%
+  {}%
+
+\def\resethooks{%
+  \global\let\SaveRestoreHook\empty
+  \global\let\ColumnHook\empty}
+\newcommand*{\savecolumns}[1][default]%
+  {\g@addto@macro\SaveRestoreHook{\savecolumns[#1]}}
+\newcommand*{\restorecolumns}[1][default]%
+  {\g@addto@macro\SaveRestoreHook{\restorecolumns[#1]}}
+\newcommand*{\aligncolumn}[2]%
+  {\g@addto@macro\ColumnHook{\column{#1}{#2}}}
+
+\resethooks
+
+\newcommand{\onelinecommentchars}{\quad-{}- }
+\newcommand{\commentbeginchars}{\enskip\{-}
+\newcommand{\commentendchars}{-\}\enskip}
+
+\newcommand{\visiblecomments}{%
+  \let\onelinecomment=\onelinecommentchars
+  \let\commentbegin=\commentbeginchars
+  \let\commentend=\commentendchars}
+
+\newcommand{\invisiblecomments}{%
+  \let\onelinecomment=\empty
+  \let\commentbegin=\empty
+  \let\commentend=\empty}
+
+\visiblecomments
+
+\newlength{\blanklineskip}
+\setlength{\blanklineskip}{0.66084ex}
+
+\newcommand{\hsindent}[1]{\quad}% default is fixed indentation
+\let\hspre\empty
+\let\hspost\empty
+\newcommand{\NB}{\textbf{NB}}
+\newcommand{\Todo}[1]{$\langle$\textbf{To do:}~#1$\rangle$}
+
+\EndFmtInput
+\makeatother
+%
+
+%
+%
+%
+%
+%
+% This package provides two environments suitable to take the place
+% of hscode, called "plainhscode" and "arrayhscode". 
+%
+% The plain environment surrounds each code block by vertical space,
+% and it uses \abovedisplayskip and \belowdisplayskip to get spacing
+% similar to formulas. Note that if these dimensions are changed,
+% the spacing around displayed math formulas changes as well.
+% All code is indented using \leftskip.
+%
+% Changed 19.08.2004 to reflect changes in colorcode. Should work with
+% CodeGroup.sty.
+%
+\ReadOnlyOnce{polycode.fmt}%
+\makeatletter
+
+\newcommand{\hsnewpar}[1]%
+  {{\parskip=0pt\parindent=0pt\par\vskip #1\noindent}}
+
+% can be used, for instance, to redefine the code size, by setting the
+% command to \small or something alike
+\newcommand{\hscodestyle}{}
+
+% The command \sethscode can be used to switch the code formatting
+% behaviour by mapping the hscode environment in the subst directive
+% to a new LaTeX environment.
+
+\newcommand{\sethscode}[1]%
+  {\expandafter\let\expandafter\hscode\csname #1\endcsname
+   \expandafter\let\expandafter\endhscode\csname end#1\endcsname}
+
+% "compatibility" mode restores the non-polycode.fmt layout.
+
+\newenvironment{compathscode}%
+  {\par\noindent
+   \advance\leftskip\mathindent
+   \hscodestyle
+   \let\\=\@normalcr
+   \let\hspre\(\let\hspost\)%
+   \pboxed}%
+  {\endpboxed\)%
+   \par\noindent
+   \ignorespacesafterend}
+
+\newcommand{\compaths}{\sethscode{compathscode}}
+
+% "plain" mode is the proposed default.
+% It should now work with \centering.
+% This required some changes. The old version
+% is still available for reference as oldplainhscode.
+
+\newenvironment{plainhscode}%
+  {\hsnewpar\abovedisplayskip
+   \advance\leftskip\mathindent
+   \hscodestyle
+   \let\hspre\(\let\hspost\)%
+   \pboxed}%
+  {\endpboxed%
+   \hsnewpar\belowdisplayskip
+   \ignorespacesafterend}
+
+\newenvironment{oldplainhscode}%
+  {\hsnewpar\abovedisplayskip
+   \advance\leftskip\mathindent
+   \hscodestyle
+   \let\\=\@normalcr
+   \(\pboxed}%
+  {\endpboxed\)%
+   \hsnewpar\belowdisplayskip
+   \ignorespacesafterend}
+
+% Here, we make plainhscode the default environment.
+
+\newcommand{\plainhs}{\sethscode{plainhscode}}
+\newcommand{\oldplainhs}{\sethscode{oldplainhscode}}
+\plainhs
+
+% The arrayhscode is like plain, but makes use of polytable's
+% parray environment which disallows page breaks in code blocks.
+
+\newenvironment{arrayhscode}%
+  {\hsnewpar\abovedisplayskip
+   \advance\leftskip\mathindent
+   \hscodestyle
+   \let\\=\@normalcr
+   \(\parray}%
+  {\endparray\)%
+   \hsnewpar\belowdisplayskip
+   \ignorespacesafterend}
+
+\newcommand{\arrayhs}{\sethscode{arrayhscode}}
+
+% The mathhscode environment also makes use of polytable's parray 
+% environment. It is supposed to be used only inside math mode 
+% (I used it to typeset the type rules in my thesis).
+
+\newenvironment{mathhscode}%
+  {\parray}{\endparray}
+
+\newcommand{\mathhs}{\sethscode{mathhscode}}
+
+% texths is similar to mathhs, but works in text mode.
+
+\newenvironment{texthscode}%
+  {\(\parray}{\endparray\)}
+
+\newcommand{\texths}{\sethscode{texthscode}}
+
+% The framed environment places code in a framed box.
+
+\def\codeframewidth{\arrayrulewidth}
+\RequirePackage{calc}
+
+\newenvironment{framedhscode}%
+  {\parskip=\abovedisplayskip\par\noindent
+   \hscodestyle
+   \arrayrulewidth=\codeframewidth
+   \tabular{@{}|p{\linewidth-2\arraycolsep-2\arrayrulewidth-2pt}|@{}}%
+   \hline\framedhslinecorrect\\{-1.5ex}%
+   \let\endoflinesave=\\
+   \let\\=\@normalcr
+   \(\pboxed}%
+  {\endpboxed\)%
+   \framedhslinecorrect\endoflinesave{.5ex}\hline
+   \endtabular
+   \parskip=\belowdisplayskip\par\noindent
+   \ignorespacesafterend}
+
+\newcommand{\framedhslinecorrect}[2]%
+  {#1[#2]}
+
+\newcommand{\framedhs}{\sethscode{framedhscode}}
+
+% The inlinehscode environment is an experimental environment
+% that can be used to typeset displayed code inline.
+
+\newenvironment{inlinehscode}%
+  {\(\def\column##1##2{}%
+   \let\>\undefined\let\<\undefined\let\\\undefined
+   \newcommand\>[1][]{}\newcommand\<[1][]{}\newcommand\\[1][]{}%
+   \def\fromto##1##2##3{##3}%
+   \def\nextline{}}{\) }%
+
+\newcommand{\inlinehs}{\sethscode{inlinehscode}}
+
+% The joincode environment is a separate environment that
+% can be used to surround and thereby connect multiple code
+% blocks.
+
+\newenvironment{joincode}%
+  {\let\orighscode=\hscode
+   \let\origendhscode=\endhscode
+   \def\endhscode{\def\hscode{\endgroup\def\@currenvir{hscode}\\}\begingroup}
+   %\let\SaveRestoreHook=\empty
+   %\let\ColumnHook=\empty
+   %\let\resethooks=\empty
+   \orighscode\def\hscode{\endgroup\def\@currenvir{hscode}}}%
+  {\origendhscode
+   \global\let\hscode=\orighscode
+   \global\let\endhscode=\origendhscode}%
+
+\makeatother
+\EndFmtInput
+%
+% to handle ∀ a . t without making the dot be composition
+% the `doubleequals' macro is due to Jeremy Gibbons
+\def\doubleequals{\mathrel{\unitlength 0.01em
+  \begin{picture}(78,40)
+    \put(7,34){\line(1,0){25}} \put(45,34){\line(1,0){25}}
+    \put(7,14){\line(1,0){25}} \put(45,14){\line(1,0){25}}
+  \end{picture}}}
+% If you remove the %format == command the lhs2TeX default yields ≡, which can be a problem
+
+\newcommand{\shortequals}{
+  {\unitlength 0.01em
+  \begin{picture}(39,40)
+    \put(7,34){\line(1,0){25}}
+    \put(7,14){\line(1,0){25}}
+  \end{picture}}
+}
+
+\newcommand{\doubledotequals}{\ensuremath{\mathrel{
+  \shortequals . \shortequals}}}
+
+% %format ^ = " "
+
+
+% -*- mode: latex; mode: folding -*-
+
+%% \usepackage[citecolor=blue,colorlinks=true,plainpages=false,pdfpagelabels]{hyperref}
+%% \usepackage[pdftex]{graphicx} %% \usepackage[demo]{graphicx}
+%% \usepackage{ifthen}
+%% \usepackage[utf8x]{inputenc}
+\usepackage{amsmath}
+%% \usepackage{amssymb}
+%% \usepackage{array} % For \extrarowheight.
+%% \usepackage{bussproofs}
+%% \usepackage{multirow}
+\usepackage{listings}
+\usepackage{url}
+
+%% \usepackage{caption}
+%% \usepackage{subcaption}
+%% \DeclareCaptionType{copyrightbox}
+
+\lstset{language=Prolog}          % Set your language (you can change
+                                % the language for each code-block
+                                % optionally)
+%style for prolog programs
+\lstdefinestyle{yap}{
+  language=Prolog,
+%  basicstyle=\small\ttfamily,
+%  basicstyle=\footnotesize\ttfamily,
+  basicstyle=\fontsize{8}{9.6}\ttfamily,
+%  basicstyle=\scriptsize\ttfamily,
+  keywordstyle=\ttfamily,
+  %% keywordstyle=\ttfamily\bfseries,
+  showstringspaces=false,
+  otherkeywords={ <->, (,) },
+}
+%% \providecommand{\yap}[1]{\lstinline[style=yap]@#1@}%
+\lstnewenvironment{yapcode}
+  %% {\lstset{style=yap}\lstset{basicstyle=\small\ttfamily}}
+  %% {\lstset{style=yap}\lstset{basicstyle=\footnotesize\ttfamily}}
+  {\lstset{style=yap}\lstset{basicstyle=\fontsize{8}{9.6}\ttfamily}}
+  %% {\lstset{style=yap}\lstset{basicstyle=\scriptsize\ttfamily}}
+  {}
+%% \lstnewenvironment{erlcodeB}
+%%   {\lstset{style=erl}
+%%    \lstset{basicstyle=\scriptsize\ttfamily}
+%% %   \lstset{float=*}
+%%    \lstset{multicols=2}
+%%    %% \lstset{columns=fixed}
+%%    %% \lstset{title=Example}
+%%    %% \lstset{caption=#2}
+%%    %% \lstset{label=#3}
+%%    %% \lstset{captionpos=b}
+%% }
+%%   {}
+
+\newcommand{\yap}[1]{\lstinline[style=yap]{#1}}
+
+\newcommand{\todo}[2][?]{\marginpar{\raggedright \tiny TODO: #2}}
+\newcommand{\refSec}[1]{Sec.~\ref{#1}}
+\newcommand{\refSecI}[1]{Section~\ref{#1}}
+\newcommand{\refFig}[1]{Fig.~\ref{#1}}
+\newcommand{\refFigI}[1]{Figure~\ref{#1}}
+\newcommand{\refFigs}[1]{Figs~\ref{#1}}
+\newcommand{\refTab}[1]{Tab.~\ref{#1}}
+\newcommand{\refTabI}[1]{Table~\ref{#1}}
+
+\newcommand{\Yap}[0]{{\sf Yap}}
+\newcommand{\Prolog}[0]{{\sf Prolog}}
+\newcommand{\Haskell}[0]{{\sf Haskell}}
+\newcommand{\QuickCheck}[0]{{\sf QuickCheck}}
+\newcommand{\plqc}[0]{{\sf PrologCheck}}
+%% \newcommand{\plqc}[0]{{\sf plqc}}
+
+%% % ----------------------------------------------------
+
+%% \newtheorem{definition}{Definition}
+
+
+%% LNCS stuff
+\newcommand{\keywords}[1]{\par\addvspace\baselineskip
+\noindent\keywordname\enspace\ignorespaces#1}
+
+
+\begin{document}
+%%%%%%%%%%%
+\newcommand{\papertitle}{{PrologCheck} -- property-based testing in {Prolog}}
+
+\mainmatter  % start of an individual contribution
+
+% first the title is needed
+\title{\papertitle}
+
+% a short form should be given in case it is too long for the running head
+%% \titlerunning{Lecture Notes in Computer Science: Authors' Instructions}
+
+\author{
+  Cl\'audio Amaral$^{1,2}$ \and
+  M\'ario Florido$^{1,2}$ \and
+  V\'itor Santos Costa$^{1,3}$
+}
+\authorrunning{Cl\'audio Amaral \and M\'ario Florido \and V\'itor Santos Costa}
+
+% the affiliations are given next; don't give your e-mail address
+% unless you accept that it will be published
+\institute{
+DCC - Faculty of Sciences, University of Porto
+\and LIACC - University of Porto \and CRACS - University of Porto
+\\
+\url{{coa,amf,vsc}@dcc.fc.up.pt}}
+
+
+
+
+%% \numberofauthors{3}
+
+%% \author{
+%% %% \conferenceinfo{Conf'13,} {Month 20, 2013, City, Country.}
+%% %% \CopyrightYear{2013}
+%% %% %\copyrightdata{978-1-4503-0860-1/11/09} %TBD
+%% \alignauthor
+%% Cl\'audio Amaral \\
+%%        \affaddr{DCC - Faculty of Science, University of Porto}\\
+%%        \affaddr{LIACC - University of Porto}\\
+%%        \email{coa@@dcc.fc.up.pt}
+%% \alignauthor
+%% M\'ario Florido \\
+%%        \affaddr{DCC - Faculty of Science, University of Porto}\\
+%%        \affaddr{LIACC - University of Porto}\\
+%%        \email{amf@@dcc.fc.up.pt}
+%% \alignauthor
+%% V\'itor Santos Costa \\
+%%        \affaddr{DCC - Faculty of Science, University of Porto}\\
+%%        \affaddr{CRACS - University of Porto}\\
+%%        \email{vsc@@dcc.fc.up.pt}
+%% }
+
+%% \toctitle{Lecture Notes in Computer Science}
+%% \tocauthor{Authors' Instructions}
+
+\maketitle
+\begin{abstract}
+
+
+We present \plqc{}, an automatic tool for property-based
+testing of properties of the logic programming language \Prolog{} with
+randomised test data generation.
+%
+The tool is inspired by the well known \QuickCheck, originally designed
+for the functional programming language \Haskell{}. It includes features
+that deal with specific characteristics of \Prolog{} such as its
+relational nature (as opposed to \Haskell{}) and the absence of a strong
+type discipline.
+
+
+\plqc{} expressiveness stems from describing properties as
+\Prolog{} goals.
+%
+It enables the definition of custom test data generators for
+random testing tailored for the property to be tested.
+%
+Further, it allows the use of a predicate specification language that
+supports types, modes and constraints on the number of successful
+computations.
+%
+We evaluate our tool on a number of  examples and apply
+it successfully to debug a \Prolog{} library for AVL search trees.
+
+%% \keywords{Property-based Testing, %Automatic Testing, Testing,
+%%   %Verification,
+%%   %Logic Programming,
+%%   Predicate Specification, Prolog}
+\end{abstract}
+
+
+%% % A category with the (minimum) three required fields
+%% \category{H.4}{Information Systems Applications}{Miscellaneous}
+%% % A category including the fourth, optional field follows...
+%% \category{D.2.8}{Software Engineering}{Metrics}[complexity measures, performance measures]
+
+%% \terms{Theory}
+
+%% \keywords{ACM proceedings, \LaTeX, text tagging} % NOT required for Proceedings
+
+%% \category{D.1.1}{Programming Techniques}{Applicative (Functional) Programming}
+%% \category{D.1.6}{Programming Techniques}{Logic Programming}
+%% \category{D.2.5}{Testing and Debugging}{Testing tools}
+%% \category{F.3.3}{Logics and Meanings of Programs}{Studies of Program Constructs}[Type Structure]
+%% \category{F.4.1}{Mathematical Logic and Formal Languages}{Mathematical Logic}
+
+%% \terms{Languages, Verification}
+
+%% \keywords{Prolog, Property-based Testing, Automatic Testing, Testing, Verification, Logic Programming}
+% Metaprogramming, Domain Specific Languages
+
+% -*- mode: latex; mode: folding -*-
+
+\section{Introduction}
+\label{sec:intro}
+%{{{ introduction text
+
+%% \todo{Whispec: White-box Testing of Libraries
+%% Using Declarative Specifications}
+%% \todo{Ranking Programs using Black Box Testing}
+%% \todo{Finding Race Conditions in Erlang with QuickCheck and
+%% pulse -- system }
+%% \todo{Property-based testing for functional programs, Nicholas
+%%   Smallbone, Lic Thesis at Chalmers -- mentions white,
+%%   black and system, includes two previous papers}
+%% \todo{QuickCheck-Style Testing of
+%% Embedded Software using the PropEr
+%% Framework -- system}
+%% \todo{Testing Telecoms Software with Quviq QuickCheck}
+%% \todo{Testing Erlang Data Types with Quviq quickcheck}
+%% \todo{Testing Java with QuickCheck}
+%% \todo{Testing Erlang Refactorings with QuickCheck}
+%% \todo{Early Fault Detection with Model-Based Testing}
+%% \todo{Automated, deterministic testing versus stochastic
+%% testing using Quickcheck -- MSc of Fredrik Hoback at KTH -- conformance}
+%% \todo{Ranking Programs using Black Box Testing -- in Software Quality Journal}
+%% \todo{}
+%% \todo{}
+
+%Narrative: 
+%  What (is the subject),
+%  why  (are we exploring it) and 
+%  how  (are we doing it)
+
+% the Introduction intro, a bit of 'what'
+%% The life-cycle, and often the cost, of most sofware systems is
+%% dominated by maintenance effort~\cite{wasnik2013software,DBLP:journals/tplp/SerebrenikSD08,swi-prolog}.
+%% %
+%% Maintenance may include porting a program to new platforms, or
+%% adapting the program to unexpected tasks, but most often is about
+%% debugging flaws in the original program.
+%% %
+%% Early detection and
+%% correction of bugs is thus crucial to minimize the total maintenance
+%% effort and its associated costs.
+%% %
+%% Ideally, bug detection would be possible by automatic verification
+%% against a specification.
+%% %
+%% High-level languages, such as logic and functional programming languages
+%% offer the promise to achieve this ultimate
+%% goal~\cite{wadler1989theorems,cortesi1997specification}.
+%% %
+%% In practice, testing is still necessary and often crucial for bug
+%% detection, and thus a fundamental component in software development.
+%% %
+%%  %, very widely used and with
+%% %growing importance in the industry.
+%% % coa: could not introduce industry examples in this text, maybe it is
+%% %      not needed
+%% % \cite{arts2006testing}
+%% %
+%% Notice that testing is not a one-shot operation in most software.
+%% %
+%% Regardless of the formal and constructive nature of logic programming,
+%% rare cases and typing mistakes make it necessary to regularly test
+%% throughout program development.
+
+%  What (is the subject)
+Software testing consists of executing a program on
+a pre-selected set of inputs and inspecting whether the outputs
+respect the expected results.
+%
+Each input tested is called a \emph{test case} and the set of inputs is
+a \emph{test suite}.
+%
+Testing tries to find counter-examples
+%% Software testing can be classified by the granularity of test focus, the
+%% tester point of view or approach.
+%% %
+%% Tests can focus on the behaviour of single components (unit testing), the
+%% correct interaction of components (integration testing) or that the
+%% whole system complies to its specification (system testing).
+%% %
+%% A library user has its access limited to the given interface in order to
+%% test its behaviour whereas the developer may want to check invariants
+%% and the integrity of internal data-structures.
+%
+%% How to choose
+and choosing 
+the test cases %% in a test suite
+to this effect
+is often a difficult
+task.
+%
+The approach used can be  manual, with the tester designing test cases
+one by one, or it can be automated to some extent, in this case
+resorting to tools for case generation.
+%
+Ideally, the best approach would be automatic testing.
+%
+%% \todo{remover esta frase, vsc?}
+%% \todo{Such tools reduce the time needed for testing software components and make
+%% it easier to test programs being developed.}
+
+
+In a property-based framework test cases are automatically generated and run
+from assertions about logical properties of the program.
+%
+Feedback is given to the user about their
+evaluation.
+%
+Property-based testing applications include
+black-box, white-box, unit, integration and system testing~\cite{Claessen-ranking-prog-blackbox,Claessen-find-race-cond-erl,Boberg-model-based-testing-erl}.
+
+
+
+
+Property-based testing naturally fits the logic programming paradigm. 
+%
+%% The high-level nature of the language makes it easy to
+%% specify properties. %% test cases.
+%
+%% On the other hand, 
+%% Due to its untyped nature programmers may be
+%% oblivious to important corner cases or odd behaviours.
+%% %
+%% Backtracking can also cause unexpected behaviours. %% in goal conjunctions.
+%% Prolog backtracking may also interfere in less than obvious
+%% ways, making the run-time behavior elude the programmer.
+%% %
+%% Being able to automatically test a property about a predicate or set of
+%% predicates is thus a clear advantage during software development.
+%
+Assertions are first order formulas and thus easily encoded as program predicates.
+%% \Prolog{}'s ties to logic reduces the gap between the program and the
+%% specification of properties. %% to be tested.
+%% \todo{tinha um coment\'ario do vsc, nao o entendi}
+%
+Therefore, a property based approach to testing is intuitive for the
+logic programmer.
+
+
+In this paper we introduce \plqc{}\footnote{The \plqc{} tool is available at \url{www.dcc.fc.up.pt/~coa/PrologCheck.html}.},
+a property-based testing framework for \Prolog{}.
+%%  inspired on
+ %% \QuickCheck~\cite{quickcheck}
+%
+We further discuss two main contributions: a specification language for \Prolog{} predicates
+and a translation procedure into testable properties.
+
+
+%  why  (are we exploring it) and 
+
+
+
+%  how  (are we doing it)
+%% \todo{sou contra o comentario para mudar 'generated' para antes de
+%%   'automatically' porque também se aplica ao 'run'}
+%
+In non-logic programming languages interfaces to testing frameworks rely
+on boolean functions, such as equality, to determine primitive properties. %%  \todo{em vez de
+  %% 'traditional interfaces'}
+%% %
+%% Since \plqc{} is a tool to test \Prolog{} programs we take advantage of
+%% the nature of the language and loosed the requirements for property
+%% specification.
+%% %
+%% Even if they are composed of software units of other types they still
+%% need to be able to evaluate to a truth value in order to assess a
+%% property validity.
+%% %
+%% With \Prolog{} %% there are no such restrictions: 
+%% any goal may be a property.
+%
+%% Instead of expecting a reduced set of syntactic elements to describe
+%% properties, i
+%
+\plqc{} states properties through a domain-specific language that
+naturally supports domain quantification.
+%
+In this language primitive properties are %% defined as
+\Prolog{} goals which can be composed by \plqc{}
+property operators. %combinators.
+%% a property is a goal or a composition of
+%% properties.
+%% \todo{havia aqui um comentario a dizer que estava confuso, espero que
+%%   não esteja pior...}
+
+
+
+%% A property is satisfied when the execution of the goal, given all
+%% necessary input, succeeds or the composition rules are met.
+%% %
+%% Input %% to such goals is given
+%% is based on \plqc{} value abstraction,
+%% quantification over a domain represented by a generator of terms.
+%
+%% Properties can be composed and their validity is defined by the
+%% composition operation.
+%
+\plqc{} testing consists on repetitively calling the goal for a large number of
+test cases.
+%
+%% Singleton properties are pure predicate calls
+%% or composed goals whose successful execution determines that the
+%% property holds for the given input.
+%% %
+%% These properties can be composed in order to achieve more complex
+%% specifications.
+%
+%
+We implement randomised test case generation, which frees the user
+from choosing input manually.
+%
+We also include a number of predefined generators for relevant sets of
+terms, such as integers and lists, and combinators to help define new
+generators.
+%
+The user can define new test case generators or combine
+existing ones.
+%
+Thus other generation techniques
+\cite{naylor2007logic,runciman2008smallcheck,Duregard-2012-feat} can be
+implemented  to complement the power of built-in generators.
+%
+%% The interface predicates of \plqc{} test if given properties hold for a number of inputs.
+
+%% %
+%% % vsc: this seems too much detail for the Intro
+%% %
+%% Note that the automatic generation of input for a particular test case of a
+%% property is random w.r.t.\ a size parameter for the generated value.
+%% %
+%% The user has the freedom to decide how to compose the test data
+%% generators to best fit the tests' purpose.
+%% %
+%% From simple generators and using the provided predicate generator
+%% combinators it is possible to obtain generators for more complex
+%% domains, provide suitable value distributions for specific predicates or
+%% predicate usages and to ensure the relation between the input parameters applied
+%% to the predicates being tested is valid.
+
+
+
+%  overview
+%% \plqc{} tool is inspired by \QuickCheck{} and retains its main
+%% ideas.
+%% %
+%% %It is an automatic software testing tool that generates test cases based
+%% %on properties written in a dialect of the programming language.
+%% %
+%% Nevertheless, since \Prolog{} does not possess a static strong
+%% type system, the interface of \plqc{} differs from the \Haskell{}
+%% \QuickCheck{}.
+
+
+%% Our tool is
+%% lightweight and completely integrated in \Prolog{}.
+%% %
+%% On top of this lightweight testing tool we have built predicate
+%% specification testing.
+We also define a language of testable predicate specifications including
+types, modes and multiplicity, which the tester can use to encode
+interesting properties of the predicate under test.
+%% %
+%% By specifying some aspects of a predicate in a proper specification
+%% language it is possible to generate a \plqc{} property and check it.
+%
+This allows us to  use \plqc{} and its predicate specification to test a
+number of non-trivial programs.
+
+
+%}}} introduction
+
+
+%{{{ paper outline
+The rest of this paper is organised as follows.
+%
+\refSecI{sec:rel-work} encloses the presentation of related work.
+%
+In \refSec{sec:properties} we introduce property definitions and their
+testing in \plqc{} and in \refSec{sec:generators} we discuss details
+about test case generation.
+%
+\refSecI{sec:pred-spec} describes the predicate specification language
+and how to test the specifications, followed by the presentation of case
+studies in \refSec{sec:case-studies}
+%
+We finalise with the conclusions in \refSec{sec:conclusion}
+%}}} outline
+
+
+% -*- mode: latex; mode: folding -*-
+
+\section{Related Work} 
+%% \paragraph{\bfseries \em Related Work} 
+%% \subsubsection{Related Work} 
+\label{sec:rel-work}
+
+
+%% As far as we know, there seems to be no previous work on automatic
+%% testing of \Prolog{} programs against specifications.%% , although tools
+%
+There is some previous support for automated testing in the logic programming
+community:
+%
+{\sf SWI-Prolog} supports unit testing through {\sf plunit}~\cite{swi-prolog};
+%
+the {\sf Ciao Prolog System} ~\cite{ciao-prolog} has an assertion language
+integrating run-time checking and unit testing~\cite{ciao-assert-unit}.
+%% \todo{em vez de 'Prolog System' o comentario tinha 'LP xzxdf'}
+%
+We also use a property specification language but in an
+automatic property-based randomly generated testing context.
+%% We also use a property specification language but in an
+%% automatic property-based randomly generated testing context.
+%
+Property specification languages for \Prolog{} were used
+before~\cite{ciao-assert-unit,Deville1990logprog,somogyi1995mercury} in
+different contexts.
+
+
+Automated test is supported in several languages and
+paradigms.
+%
+The three most influential tools for our work were \QuickCheck~\cite{quickcheck} for
+the functional programming language \Haskell, {\sf PropEr}~\cite{papadakis2011proper} for %% the
+%% functional programming language
+{\sf Erlang}
+and {\sf Curry}'s {\sf EasyCheck}~\cite{christiansen2008easycheck}.
+%% and {\sf EasyCheck} \cite{christiansen2008easycheck}  for
+%% the functional-logic language {\sf Curry}.
+
+
+{\sf Easycheck} is an automated tool for specification-based testing of
+declarative programs, which deals with logic programming features.
+%
+It is written in the functional-logic programming language Curry and it
+is based on the view of free variables of an appropriate type as
+nondeterministic generators~\cite{antoy2006overlapping} and mechanisms
+to specify  properties of
+nondeterministic operations by generalizing the set of combinators for
+non-deterministic operations of \QuickCheck{}.
+%
+In our work we focus on \Prolog{} and, in contrast with {\sf EasyCheck}, non-deterministic generators are implemented by non-deterministic \Prolog{}
+programs, types are implemented by monadic logic programs~\cite{fruhwirth1991logic,florido1992types}, and
+we use a specification language for standard features of
+%% with standard specification features of
+logic programming such as modes and number of
+answers~\cite{Deville1990logprog}.
+%
+%% {\sf EasyCheck} enables the use of different test-case generation strategies,
+%% \plqc{} uses only depth-first test-case generation (although it is
+%% not complete) because we want to exactly mimic \Prolog{} operational
+%% semantics.
+
+
+There are several automatic testing tools for functional programming
+languages, namely \QuickCheck, {\sf PropEr}, {\sf SmallCheck}~\cite{runciman2008smallcheck},
+%% SparseCheck \cite{}, 
+%% SML-QuickCheck \cite{...}, 
+and G$\forall$ST~\cite{koopman2003gast}.
+The %% first and
+most preeminent tool is \QuickCheck{}.
+%
+\QuickCheck{} uses a domain specific language of testable specifications
+as does {\sf PropEr}.
+%
+We define a specification language in \plqc{} but with
+differences related to the relational nature of \Prolog{}. %% , such as modes
+%% and constraints on the number of answers.
+As in \QuickCheck{}, we also use random testing - we choose this method
+compared to systematic methods due to its success in \QuickCheck{}.
+%
+%% The way
+\QuickCheck{} generates test data %% depends
+based
+on \Haskell{} types.
+In {\sf Erlang}, types are dynamically checked and {\sf PropEr}, as well
+as {\sf Erlang}\QuickCheck{}, guides value generation by functions,
+using quantified types defined by these generating functions.
+%
+\Prolog{} is an untyped language, but type information is crucial also in
+\plqc{} test data generation.
+%
+Similarly to the {\sf Erlang} tools, we adopt the view of types defined
+by test case generators.
+%
+Our types are intended to construct test cases that depict input
+instantiations.
+%
+Thus we would not take advantage of the use of restricted type languages
+based on regular types~\cite{Yardeni:1991:TSL:110703.110705,fruhwirth1991logic,DBLP:conf/iclp/Zobel87,florido1992types}.
+
+
+%% Recently a novel counterexample generator for the interactive theorem
+%% prover Isabelle~\cite{bulwahn2012smart} reformulates the preconditions
+%% also as logic programs and analyzes them with a mode inference.
+%% \todo{remove paragraph??}
+%% %
+%% %% But t
+%% The application of this tool is on the  synthesis of test data
+%% generators for functional programming languages (e.g. ML, \Haskell) from
+%% specifications in Isabelle, %% and is quite different from the use of logic
+%% %% programs in \plqc{} generators,
+%% but may be a promising approach for improving the generators.
+%% \todo{posso ter interpretado mal o comentario para a alteração desta
+%%   última frase}
+%% The two most inspiring tools were QuickCheck \cite{...} for the
+%% functional programming language Haskell and EasyCheck \cite{...}  for
+%% the functional-logic language Curry.
+
+%% Easycheck was another automated tool for specification-based testing of
+%% declarative programs, which deals with logic programming features.
+%% %
+%% It was written in the functional-logic programming language Curry and it
+%% is based on the view of free variables of an appropriate type as
+%% nondeterministic generators \cite{OVERLAPPING RULES AND LOGIC
+%%   VARIABLES...2006} and operations to specify properties of
+%% nondeterministic operations by generalizing the set of combinators for
+%% non-deterministic operations of QuickCheck.
+%% %
+%% In our work we focus on Prolog and, in contrast with EasyCheck, non
+%% deterministic generators are implemented by non-deterministic Prolog
+%% programs, types are implemented by monadic logic programs \cite{Types as
+%%   Logic Programs - Fruewirth, Types as Theories, Florido and Damas}, and
+%% we use a specification language with standard specification features of
+%% logic programming such as modes and number of answers\cite{Yves
+%%   Deville}.
+%% EasyCheck enabled the use of different test-case generation strategies,
+%% PrologCheck uses only depth-first test-case generation (although it is
+%% not complete) because we want to exactly mimic Prolog operational
+%% semantics.
+
+
+%% There were several automatic test tools for functional programming
+%% languages, namely QuickCheck \cite{...}, SmallCheck \cite{...},
+%% SparseCheck \cite{...}, SML-QuickCheck \cite{...}, and G$\forall$ST
+%% \cite{...}.
+%% The first and most preminent tool was QuickCheck.
+%% QuickCheck used a domain specific language of testable specifications.
+%% We also define a specification language in PrologCheck but with
+%% differences related to the relational nature of Prolog, such as modes
+%% and constraints on the number of answers.
+%% As in QuickCheck, we also use random testing - we choose this method
+%% compared to systemmatic methods, due to its success in QuickCheck.
+%% The way QuickCheck generated test data depends on Haskell types.
+%% Prolog is an untyped language, but type information is crucial also in
+%% PrologCheck test data generation.
+%% We adopt the view of types as monadic Prolog programs describing sets of
+%% terms, widely used in the  {\em regular types} approach for typing logic
+%% programs \cite{RegularTypes - Yardeni,Shapiro, Logic Programs as Types
+%%   for logic programs - Fruewirth, Types of Logic Programming - J. Zobel,
+%%   Types and Theories - Florido and Damas}.
+% -*- mode: latex; mode: folding -*-
+
+% should first explain quickcheck and random arguments
+
+%{{{ properties 
+
+\section{Properties}
+\label{sec:properties}
+
+%% The main idea of p
+Property-based testing extends program code with {\em property definitions}.
+%
+Properties are specifications in a suitable language and are tested
+automatically by generating test cases.
+
+
+
+\plqc{} is a property-based testing framework.
+%
+%% Properties are logical statements that specify the behaviour of or the relation between software
+%% elements.
+%
+%% The tool is g
+Given a specification it randomly generates test cases for the properties to be tested,
+ executing them to assess their validity.
+%
+A \emph{primitive property} is a \Prolog{} goal. %% , hence, the whole
+%% language can be used to define properties.
+%
+Properties may then be composed according to composition rules described
+later in the paper.
+%
+This enables the specification of a wide range of properties. %% about
+%% predicates, %% through the use of meta-predicates, 
+%% such as checking the mode and the type of a goal.
+%
+%% \todo{um comentario do ricroc prende-se com a clarificação do que e'
+%%   implementação/faz parte da ferramenta e o que e' preciso fazer para a usar}
+%% \todo{esta frase tenta mostrar que para usar a ferramenta e' preciso
+%%   definir propriedades}
+%% Formally defined properties are necessary for the tool to check the
+%% specified property for several automatically generated test cases.
+%
+Next, in this section we introduce \plqc{} through an example.
+
+
+
+We will go through the process of using the tool, beginning by turning a logical
+statement of a property into a \plqc{} testable property.
+%
+Suppose that the predicate and property to be tested are in module \yap{m}.
+%
+Consider the well-known concatenation predicate.
+%
+\begin{yapcode}
+ app([], YS, YS).
+ app([X|XS], YS, [X|AS]) :- app(XS, YS, AS).
+\end{yapcode}
+%
+An example of a property of \yap{app/3} is that, assuming the first two
+input parameters are lists, after its execution a variable given in the third
+input parameter is instantiated with a list.
+%
+This property can be represented by the first order formula
+%
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{6}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[6]{}\forall \;l_1 ,l_2 \;\in\;\Varid{list}.\;(l_1 \plus l_2 \;\in\;\Varid{list}){}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+where \ensuremath{l_1 } and \ensuremath{l_2 } denote  lists given as input and \ensuremath{\plus } is interpreted
+as list concatenation. 
+% 
+The primitive property in the formula, \ensuremath{l_1 }{}\ensuremath{\plus }{}$\,$\ensuremath{l_2 } $\in$ $list$,  can
+then be represented by the goal
+\begin{yapcode}
+  app(L1, L2, L), (L = []; L = [_|_]).
+\end{yapcode}
+
+
+
+
+
+
+
+The next step is optional.
+%
+We explicitly parametrise the property into a first order object.
+%
+The resulting property
+is  written as a clause for the special
+predicate \yap{prop/1} and parametrised accordingly.
+%
+\begin{yapcode}
+ prop({appLLL, L1, L2}) :- app(L1, L2, L), (L = []; L = [_|_]).
+\end{yapcode}
+%
+This is \plqc{}'s predicate for labelling properties.
+%
+The parametric label, \yap{\{appLLL, L1, L2\}} in the example, uniquely
+identifies the property and holds the variables for all the input
+required. % by its body.
+%
+The symbol \yap{appLLL} is the ``\emph{append of lists results in list}''
+property identifier and the variables \yap{L1, L2} the input.
+%
+The body of labelled properties is inspected by \plqc{},
+making it possible to abstract long or
+frequently used properties.
+
+
+A last step is needed to verify properties with \plqc{}.
+%
+In order to enable random testing, we define a domain of parameter
+instantiations.
+%
+Values from this domain are used as test cases.
+%
+\begin{yapcode}
+ prop(appL) :- for_all(listOf(int), L1, for_all(listOf(int), L2,
+                   prop({appLLL, L1, L2})))
+\end{yapcode}
+
+
+This more precise definition states that the property \yap{appL} is \yap{appLLL}
+over two lists of integers.
+%
+More accurately, we use \yap{for_all/3} to represent \plqc{}'s universal quantification.
+%
+The first input parameter describes the \emph{type} of terms we want to
+generate randomly, in this case lists of integers,
+\yap{listOf(int)}, 
+and the second input parameter names the variable they will bind to, in this case
+\yap{L1} and \yap{L2}.
+%
+The third is the property we want to verify.
+%
+To check the property we can call \plqc{} using the alias
+\yap{prop(appL)}.
+%
+It starts with the outer \yap{for_all} quantifier, generates a random
+list of integers, unifies it with \yap{L1} and repeats the process for
+the inner quantifier, unifying \yap{L2} with the second generated list.
+%
+\begin{yapcode}
+   ?- prologcheck(m:prop(appL)).
+ OK: Passed 100 test(s).
+\end{yapcode}
+%
+The \yap{prologcheck/1} predicate is the simplest property tester in
+\plqc{}, taking a property as a parameter and checking it for a large
+number (100 is the default number) of generated test cases.
+%
+%% We use a generator such that test cases are randomly generated from
+%% terms up to a maximum term size.
+
+
+We could have mis-typed the property, making it impossible to be satisfied:
+%
+\begin{yapcode}
+ prop(wrong_appL) :- for_all(listOf(int), L1,
+   for_all(listOf(int), L2, (app(L1, L2, L), (L=[], L=[_|_])))).
+\end{yapcode}
+%
+Here we mistakenly determine \yap{L} to be both  \yap{[]} and  \yap{[_|_]}.
+%
+\begin{yapcode}
+   ?- prologcheck(m:prop(wrong_dr)).
+ Failed: After 1 test(s).
+ Shrinking (1 time(s))
+ Counterexample found: [[],[]]
+\end{yapcode}
+A counterexample is found and showed.
+%
+We observe at this point that a counterexample is immediately found.
+%
+There is no possible value that can satisfy the written condition.
+%
+%% When the counter-example is found the tool successfully tries to shrink
+%% it and presents a smaller result.
+
+
+Often we want to find concise counterexamples.
+%
+To do this we use a \emph{shrinking} predicate that tries to reduce the
+counterexample found.
+%
+To improve the probability of finding smaller counter-examples the tool
+keeps track of a growing \emph{size parameter}.
+%
+This parameter  starts at an initial value and is updated with each
+successful test.
+%
+Its purpose is to control the size of produced test cases and it is used
+in test case generation.
+%
+The definition of the actual size of a term is flexible and definable by
+the generating procedure. 
+
+
+We can define general properties or define sub-properties individually. 
+%% properties with the granularity we want in order to easily
+%% switch elements of properties or test sub-properties individually.
+%
+We can, for example, separate property \yap{appLLL} into
+\yap{appLLE} and \yap{appLLC} to state the empty list and $cons$
+cell separately and compose them with property operators.
+%
+\begin{yapcode}
+ prop({appLLE, L1, L2}) :- append(L1, L2, L), L = [].
+ prop({appLLC, L1, L2}) :- append(L1, L2, L), L = [_|_].
+\end{yapcode}
+
+
+Property operators currently  include conjunction
+ (\yap{Prop1 and Prop2}), disjunction (\yap{Prop1 or Prop2}), conditional
+execution (\yap{if Cond then Prop1 else Prop2)}) and quantification
+(\yap{for_all(Gen, Var, Prop)}).
+%
+Property labelling (\yap{prop(Label)}) is also considered an operation.
+%
+%% \plqc{} inspects its body for the occurrence of other tool specific
+%% operations.
+%% %
+%% Using property connectives one can compose labelled properties or 
+%% other \plqc{} property operations.
+
+
+
+
+We now define other properties of \yap{app/3}, such as the relation
+of lists' lengths and the left and right identity element of
+concatenation.
+%
+\begin{yapcode}
+ prop({appLLLen, L1, L2}) :- app(L1, L2, L),
+   length(L1, K1), length(L2, K2), length(L, K), K is K1 + K2.
+ prop({appLZ,L1,L2}) :- if L1=[] then (app(L1,L2,L), L=L2).
+ prop({appRZ,L1,L2}) :- if L2=[] then (app(L1,L2,L), L=L1).
+\end{yapcode}
+%
+Conjunction and disjunction is used as expected.
+%
+The conditional statement \yap{if A then B else C} performs a
+conditional execution on \yap{A}. 
+%
+If \yap{A} runs successfully the tool continues by executing \yap{B} and in case it
+fails executing \yap{C} instead.
+%
+\yap{A}, \yap{B} and \yap{C} are \plqc{} properties.
+%
+In the example shown the \yap{else} branch is omitted.
+%
+This is equivalent to having the property \yap{true} in the omitted branch.
+%
+The conditional statement enables conditional properties without cut. %% , which would not be
+%% coincident with its semantics in \Prolog{} goals.
+%
+\begin{yapcode}
+ prop(appAll) :- for_all(listOf(int),L1, for_all(listOf(int),L2,
+   (prop({appLLLen, L1, L2}) and prop({appLZ, L1, L2})
+   and prop({appRZ, L1, L2}) and prop({appLLL, L1, L2})
+   and (prop({appLLE,L1,L2}) or prop({appLLC,L1,L2}))))).
+\end{yapcode}
+
+
+
+Primitive properties are \Prolog{} goals.
+%
+In a strongly typed language (such as \Haskell{}) only
+safe properties, pure functions or predicates, are allowed.
+%
+In \plqc{} the user is free to use simpler or more involved properties.
+%
+This provides extra flexibility but, ultimately, the user is
+responsible for guaranteeing the safety of impure code in a property.
+
+%}}}
+
+
+%{{{ properties old
+
+%% The example is a predicate to reverse lists.
+%% %
+%% We assume the existence of a predicate \yap{rev/2}, relating two lists
+%% with reversed element order.
+%% %
+%% The property and predicate to be tested are in %% the same
+%% module%% ,
+%%  \yap{m}.%% , and %% will
+%% %% have access to the \plqc{} tool module.
+%% %
+%% The \yap{rev/2} predicate has a set of desired behaviours, which
+%% correspond to the laws of a reversing operation (where |++| 
+%% represents list concatenation).%% (we use |++| to
+%% %% represent composition of lists).
+%% %
+%% Using a functional notation:
+%% %% \todo{era para por esta ultima frase em novo paragrafo?}
+%% {
+%% \aligncolumn{10}{@@{}>{\hspre}r<{\hspost}@@{}}
+%% \aligncolumn{12}{@@{}>{\hspre}r<{\hspost}@@{}}
+%% \begin{code}
+%% (1)        rev([])     == []
+%% (2)     rev(XS++YX)    == rev(YS) ++ rev(XS)
+%% (3)      rev(rev(XS))  == XS
+%% \end{code}
+%% }
+%% These laws are intended to be satisfied for ground, finite lists
+%% \yap{XS} and \yap{YS}.
+%% %
+%% We can represent
+%%  them as conjunctions of \Prolog{} goals. %%  such as the following for the
+%%  %% third law:
+%% For the third law we have:
+%% %%  the above properties as conjunctions of \Prolog{}
+%% %% goals:
+%% %
+%% %% \begin{yapcode}
+%% %%   (1)  rev([], [])
+%% %%   (2)  append(XS, YS, ZS), rev(ZS, RZ),
+%% %%         rev(XS, RX), rev(YS, RY), append(RY, RX, RZ)
+%% \begin{yapcode}
+%%   (3)  rev(XS, RX), rev(RX, XS)
+%% \end{yapcode}
+%% %
+%% %% Note that v
+%% Verifying the properties for a certain input consists of
+%% executing the code. %% in a \Prolog{} interpreter.
+%% %
+%% %% Moreover, n
+%% Note that this property can have multiple meanings
+%% depending on its parameter modes.
+%% %
+%% In this particular case we want to express the symmetry of the
+%% \yap{rev/2} relation in terms of its intended use: given a ground
+%% list in one input parameter retrieve a result in the other.
+
+
+%% The next step is optional.
+%% %
+%% We explicitly parametrise the property into a first order object.
+%% %% The idea is to generalise the goal.%% , give it the desired label and parametrise it accordingly.
+%% %
+%% \begin{yapcode}
+%%  prop({dr, XS}) :- rev(XS, RX), rev(RX, XS).
+%% \end{yapcode}
+%% %
+%% %% Note that the generalised call
+%% The resulting property
+%% is  written as a clause for the special
+%% predicate \yap{prop/1} and parametrised accordingly.
+%% %
+%% This is \plqc{}'s predicate for labelling properties.
+%% %
+%% The body of labelled properties is inspected by \plqc{},
+%% %% When a call to this predicate is found during testing, \plqc{} inspects
+%% %% the body of the clause, 
+%% making it possible to abstract long or
+%% frequently used properties.%%  and compose complex properties from smaller
+%% %% elements.
+
+
+%% A last step is needed %% We need to perform a last step
+%% to verify properties with \plqc{}.
+%% %
+%% In order to enable random testing, we
+%% define a domain for parameter instantiations.
+%% %% need to specify the set of values over which we abstract the property.
+%% Values from this domain are used as test cases.
+%% %% \todo{continuo a nao gostar destas frases, a ligação entre 'parameter
+%% %%   instantiations' e 'test cases' nao esta no ponto...}
+%% %
+%% \begin{yapcode}
+%%  prop(d_rev) :- for_all(listOf(int), XS, prop({dr, XS}))
+%% \end{yapcode}
+%% %% \begin{yapcode}
+%% %%  prop(d_rev) :-
+%% %%    plqc:for_all(listOf(int), XS, m:prop({dr, XS}))
+%% %% \end{yapcode}
+%% %
+
+
+%% This more precise definition %% says that we want to test our \yap{dr}
+%% states that the property \yap{d_rev} is \yap{dr}
+%% over lists of integers.% \yap{XS}.
+%% %
+%% More precisely, we use \yap{for_all/3} to represent \plqc{}'s universal quantification.
+%% %
+%% The first input parameter describes the \emph{type} of terms we want to
+%% generate randomly, in this case lists of integers,
+%% \yap{listOf(int)}.
+%% %
+%% The second input parameter names the variable of interest, in this case \yap{XS}.
+%% %
+%% The third %% names
+%% is
+%% the property we want to verify.
+%% %
+%% %
+%% %% Next, we can
+%% To
+%% check the property.
+%% %
+%% %% This is done by calling
+%% we can call
+%%  \plqc{} using the alias
+%% \yap{prop(d_rev)} to define the property.
+%% %% \yap{m:prop(d_rev)} to define the property.
+%% \begin{yapcode}
+%%    ?- prologcheck(m:prop(d_rev)).
+%%  OK: Passed 100 test(s).
+%% \end{yapcode}
+%% %% \begin{yapcode}
+%% %%    ?- plqc:prologcheck(m:prop(d_rev)).
+%% %%  OK: Passed 100 test(s).
+%% %% \end{yapcode}
+%% %%  yes
+%% %% \end{yapcode}
+%% %
+%% The \yap{prologcheck/1} predicate is the simplest property tester in
+%% \plqc{}, taking a property as a parameter and checking it for a large
+%% number (100 is the default number) of generated test cases.
+%% %
+%% We use a generator such that test cases are randomly generated from
+%% terms up to a maximum term size.
+%% %% %
+%% %% This is due to the fact that test cases are randomly generated based on
+%% %% a maximum term size.
+
+
+%% We could have %% made a mistake and
+%% mis-typed the property, %% which would deem
+%% making
+%% it impossible to be satisfied:
+%% %
+%% \begin{yapcode}
+%%  prop(wrong_dr) :-
+%%    for_all(listOf(int), XS, (rev(XS,RX), rev(RX,RX))).
+%% \end{yapcode}
+%% %
+%% %% Here we
+%% We mistakenly make the second call to \yap{rev/2} with \yap{RX} as
+%% the second parameter.
+%% %
+%% \begin{yapcode}
+%%    ?- prologcheck(m:prop(wrong_dr)).
+%%  Failed: After 11 test(s).
+%%  Shrinking (6 time(s))
+%%  Counterexample found: [[0,6]] 
+%% \end{yapcode}
+%% A counterexample is found and showed in a list of generated input
+%% values.
+%% %
+%% In this example it is %% just
+%% a list with four elements.%% , but it can show
+%% %% the sequence of values instantiated in each universal quantification of
+%% %% the property.
+%% %
+%% We observe at this point that a counterexample is only found
+%% after trying several tests.
+%% %
+%% The size criteria causes it to be more likely to get lists with 0 or 1
+%% element early-on, and these small lists trivially obey the property.
+%% %
+%% When the counter-example is found the tool successfully tries to shrink
+%% it and presents a smaller result.
+
+
+%% %% Available property operators currently include conjunction
+%% %% Property operators currently available in \plqc{} include conjunction
+%% Property operators currently  include conjunction
+%%  (\yap{Prop1 and Prop2}), disjunction (\yap{Prop1 or Prop2}), conditional
+%% execution (\yap{pcif(Cond, Prop1, Prop2)}) and quantification
+%% (\yap{for_all(Gen, Var, Prop)}).
+%% %
+%% %% \begin{yapcode}
+%% %%    Prop1 and Prop2
+%% %%    Prop1 or Prop2
+%% %%    pcif(Cond, Prop1, Prop2)
+%% %%    for_all(Gen, Var, Prop)
+%% %%    prop(Label)
+%% %% \end{yapcode}
+%% %
+%% Quantification is explained in the example presented in this section.
+%% %
+%% Property labelling (\yap{prop(Label)}) is also %% considered
+%% an operation.
+%% %
+%% %% It has no real effect on the labelled property, but is at the level of
+%% %% composed properties in the sense that it has an effect in the tool.
+%% %
+%% \plqc{} inspects its body for the occurrence of other tool specific
+%% operations.
+
+
+%% Conjunction and disjunction of properties is used %% in the place where
+%% %% conjunction and disjunction of goals is expected.
+%% as expected.
+%% %
+%% %% The main difference is that \plqc{} descends on the structure of
+%% %% properties and not on the structure of goals.
+%% %
+%% Using property connectives one can compose labelled properties or %% any
+%% other \plqc{} property operations.
+%% %
+
+
+%% The conditional \yap{pcif/3} has a similar behaviour to its ISO
+%% \Prolog{} counterpart, but at the level of \plqc{} properties.
+%% %
+%% It enables conditional properties without cut, which would not be
+%% coincident with its semantics in \Prolog{} goals.
+
+
+
+%% We can freely compose \Prolog{} goals as properties.
+%% %
+%% These goals' content is not inspected by the tool.
+%% %% These goals are indivisible and the tool does not inspect their content.
+%% %
+%% Namely, we can make logical statements with built-in control predicates:
+%% truth values (\yap{true} and \yap{fail}), conjunction (\yap{Goal1, Goal2}), disjunction (\yap{Goal1; Goal2}), implication (\yap{Goal1 -> Goal2}) and negation (\yap{\+(Goal)}).
+%% %
+%% \begin{yapcode}
+%%    true
+%%    fail
+%%    Goal1; Goal2
+%%    Goal1, Goal2
+%%    Goal1 -> Goal2
+%%    \+(Goal)
+%% \end{yapcode}
+%% %
+%% Other control predicates, such as cut (\yap{!}), are also allowed.%%  in
+%% %% order to refine the meaning of a property.
+%% %
+%% Extreme care is advised %% when choosing
+%% using
+%% goals containing impure or
+%% meta-predicates for properties.
+%% %
+%% For example, a \emph{cut} only affects the primitive
+%% property it is inserted in, not the whole property.
+%% %% For example, when applying a cut this only affects the primitive
+%% %% property it is inserted in, not the whole property.
+%% %
+
+
+%% Primitive properties are \Prolog{} goals.
+%% %% \todo{esta frase ja nao ficou grande coisa... amanha ha mais}
+%% %% In a setting with a strong static type system one can ensure that
+%% In a strongly typed language (such as \Haskell{}))
+%% only
+%% safe properties, pure functions or predicates, are allowed.
+%% %
+%% %% But this is not the case in \Prolog{}.
+%% %
+%% %% If we want \plqc{} to be able to inspect the structure of a property
+%% %% it has to be composed with \plqc{} operators.
+%% %
+%% %% We choose to let the user be
+%% In \plqc{} the user is
+%% free to use simpler or more involved
+%% properties.
+%% %
+%% This provides extra flexibility but, ultimately, the user
+%% is %% the one
+%% responsible for guaranteeing that the impure code in a property
+%% %% is self-contained and thus
+%% does not interfere with posterior test
+%% cases and is not influenced by previous ones.
+%% %% \todo{comentario talvez diga para colocar algo do tipo ' we jsjdjdsj to
+%% %%   the user' antes de 'the user is responsible'}
+
+%}}}
+
+
+\section{Generators}
+\label{sec:generators}
+
+Input for testing properties is randomly generated through explicitly
+defined procedures: \emph{generators}.
+%
+There are  differences between \plqc{} generators and the
+generators in a strongly typed version of the tool.
+%
+In \Haskell{} \QuickCheck{}, or any language with strong types,
+generators pick values inside a preexisting type according to some criteria.
+%
+In \plqc{} generators represent procedures that randomly construct
+elements according to the shape of the term.
+%% choose an element from a set of values.
+%
+In fact, the generators themselves define 
+%% the
+a set by the elements
+they generate, with non-zero probability.
+%
+Thus, they define a set of terms, here denoted as a \emph{type}.
+%
+Note that this set of terms is not necessarily composed of only ground
+terms, instead it exactly represents the form of an input parameter to a
+property.
+
+
+
+\plqc{} has {\it generators} and {\it generator
+predicates}.
+%
+Generators specify the input parameters of properties.
+%
+One example generator is \yap{listOf(int)}.
+%
+Generator predicates are the predicates responsible for the generation
+of test cases.
+%
+The corresponding example of a call to a generator predicate is \yap{listOf(Type,
+  Output, Size)} where \yap{Type} would be bound to \yap{int},
+\yap{Output} would be instantiated with the produced test case and
+\yap{Size} would be used to control the size of produced test cases.
+%% A generator is based on the notion of closure, it is an incomplete
+%% parametrisation of the corresponding generator predicate.
+%% %
+%% The bridge between the generator and the corresponding generator
+%% predicate is \plqc{}'s quantification.
+%% %
+%% A generator is any callable term that can generate a value given a
+%% size parameter.
+%% %
+%% \plqc{} calls the generator with two extra
+%% input parameters: the quantified variable and the current size parameter.
+%% %
+%% The generator predicate can use the size to guide value
+%% construction.
+%
+%% The value is passed to the property by the \plqc{} quantification
+%% through unification.
+
+
+%% \begin{yapcode}
+%%  generator_predicate(A1,...,An,Value,Size).
+%% \end{yapcode}
+%
+
+  \yap{choose/4} and \yap{elements/3} are examples of generator
+predicates.
+%
+Picking an integer in an interval is probably the most common operation
+in generators.
+%
+The \yap{choose/4} predicate discards the size parameter and randomly
+chooses an integer between the inclusive range given by the first two
+input parameters.
+%
+\yap{elements/3}  randomly chooses an element
+from a non-empty list of possible elements.
+%
+They are implemented as follows:
+\begin{yapcode}
+ elements(AS, A, S) :-
+   length(AS, Cap), choose(1,Cap,I,S), nth(I, AS, A).
+
+ choose(Min,Max, A, _) :- Cap is Max+1, random(Min,Cap,A).
+\end{yapcode}
+
+
+\paragraph{\bf Combinators}
+
+We extend generator predicates with \emph{generator combinators} that
+allow us to define more complex generators.
+%
+More precisely, combinators are generator predicates that are parametrised by
+generators.
+%
+This is shown in the \yap{app/3} example, where the generator for lists,
+\yap{listOf(int)}, is parametrised by a generator for integers.
+%
+Generator predicates can have several parameters, but the two last
+must always be, in this order, the generated value and the size.
+%
+%% When a generator predicate uses another generator predicate to build a
+%% value, the parameter passed is in generator form.
+
+
+\plqc{} combinators enable the generation of complex data and can tune
+the probability distribution of the generated values to better fit the
+needs of the tester.
+%
+Next, we present some combinators distributed with the tool.
+
+
+
+%
+To generate lists we provide generators for arbitrary and
+fixed length lists.
+%
+They are parametrised by a generator for the list elements.
+%
+Random size lists can be generated by \yap{listOf/3}, which randomly
+chooses a list length and uses \yap{vectorOf/4}. 
+%
+\yap{vectorOf/4} is a fixed length generator predicate that recurs on
+the integer given as the first input parameter, generating each element.
+\begin{yapcode}
+ listOf(GenA, AS, S) :- choose(0, S, K, S),vectorOf(K, GenA, AS, S).
+
+ vectorOf(0, _GenA, [], _Size) :- !.
+ vectorOf(K, GenA, [A|AS], Size) :-
+   call(GenA, A, Size), K1 is K-1, vectorOf(K1, GenA, AS, Size).
+\end{yapcode}
+%
+Combinators can interact and, for example, create lists of random length
+in an interval ($[2,5]$) and create lists whose elements are in an
+interval ($[0,9]$).
+%
+\begin{yapcode}
+   for_all( choose(2,5),I, for_all( vectorOf(I,int),L1,
+     for_all( listOf(choose(0,9)),L2, (prop({appLLC, L1, L2}))))
+\end{yapcode}
+
+
+Generating specific values, ground or not, fresh variables and terms
+with a certain structure is also possible with \yap{value/3},
+\yap{variable/2} and \yap{structure/3} respectively.
+%
+With such generators/combinators we can describe and therefore test a
+different input mode.
+\begin{yapcode}
+   for_all( structure([listOf(int), value(v), variable]),[L1,X,L],
+     app(L1, X, L))
+\end{yapcode}
+%% \begin{yapcode}
+%%  value(A, A, _Size).
+
+%%  variable(X, _Size) :- var(X).
+
+%%  structure(X, Y, Size) :- var(X), !, var(Y), X=Y.
+%%  structure([], [], Size) :- !.
+%%  structure([SX||SXS], [X||XS], Size) :-
+%%    !, structure(SX, X, Size), structure(SXS, XS, Size).
+%%  (...)
+%%  structure(GenX, X, Size) :- call(GenX, X, Size).
+%% \end{yapcode}
+
+
+%% To build a generator that only produces a certain value, ground or not,
+%% we use \yap{value/3}, giving the element as the first input parameter.
+%% %
+%% If a fresh variable is needed, one can use the \yap{variable}
+%% generator.
+%% \begin{yapcode}
+%%  value(A, A, _Size).
+
+%%  variable(X, _Size) :- var(X).
+%% \end{yapcode}
+%% %
+%% In the case where we want to generate values with a certain fixed
+%% structure with random parts we can use \yap{structure/3}.
+%% %
+%% This generator predicate descends on the structure of the first
+%% input parameter, list or tuple, replicating it for the generated value.
+%% %
+%% When reaching a leaf-pattern, it evokes the generator found and
+%% uses the leaf-value generated to construct the the output value.
+%% %
+%% \begin{yapcode}
+%%  structure(X, Y, Size) :- var(X), !, var(Y), X=Y.
+%%  structure([], [], Size) :- !.
+%%  structure([SX||SXS], [X||XS], Size) :-
+%%    !, structure(SX, X, Size), structure(SXS, XS, Size).
+%%  (...)
+%%  structure(GenX, X, Size) :- call(GenX, X, Size).
+%% \end{yapcode}
+%%  %% structure({ST}, {T}, Size) :-
+%%  %%   !,
+%%  %%   structure(ST, T, Size),
+%%  %%   structure(SXS, XS, Size).
+%%  %% structure( (SX, SXS), (X, XS), Size) :-
+%%  %%   !,
+%%  %%   structure(SX, X, Size),
+%%  %%   structure(SXS, XS, Size).
+
+
+%% During testing, the tool keeps a record of the size parameter, which
+%% increases with each test case.
+%% %
+%% This way, it is more likely to find smaller and more readable
+%% counter-examples if they exist.
+%% %
+If the values or part of the values to be generated have to be of a
+certain size, we override the size parameter with the \yap{resize/4}
+combinator.
+%
+\begin{yapcode}
+ resize(NewSize, GenA, A, _Size) :- call(GenA, A, NewSize).
+\end{yapcode}
+%
+Resizing can contribute to better chances of fulfilling a condition,
+e.g., a size near zero improves the chances of generating empty lists.
+%
+\begin{yapcode}
+ for_all(  resize(0,listOf(int)),  L1,
+   for_all( listOf(int), L2, (prop({appLZ, L1, L2})) ))
+\end{yapcode}
+
+
+The \yap{suchThat/4} combinator restricts the values of a generator.
+%
+If not all generated elements for a generator are useful, wrapping it
+with \yap{suchThat/4} will select the elements of the generator in the
+first input parameter that satisfy the predicate in the second.
+%% %
+%% \begin{yapcode}
+%%  suchThat(GenA, PredA, A, S) :- suchThatMaybe(GenA, PredA, A, S), !
+%%    ; stSizeStep(S, S1), suchThat(GenA, PredA, A, S1).
+%% \end{yapcode}
+%
+If a generated value is valid it is returned; if not, the size parameter is
+slowly increased to avoid a size without valid values.
+%
+This is a dangerous combinator in the sense that it can loop
+indefinitely  if the the valid values are too sparse.
+%
+We can restrict a list generator so that it only generates non-empty
+lists.
+%
+\begin{yapcode}
+ posLen([_|_]).
+ ...
+   for_all(  suchThat(listOf(int), posLen),  L1,
+     for_all(listOf(int),L2, (prop({appLLC, L1, L2}))))
+\end{yapcode}
+
+                                                        
+
+
+Often, it is hard to find a good generator.
+%
+Choosing from a set of generators that complement each other
+is a good way to generate values with a desired distribution.
+%% \todo{'many' sublinhado e um 'and' por cima... nao estou a perceber}
+%
+Grouping generators can be done in several ways.
+%
+We can randomly choose from a list of generators with \yap{oneof/3}.
+%
+The list of generators given in the first input parameter must be non-empty.
+%
+\begin{yapcode}
+ oneof(LGenA, A, S) :- length(LGenA, Cap), choose(1,Cap,I,S),
+   nth(I, LGenA, GenA), call(GenA, A, S).
+\end{yapcode}
+%
+If an uniform distribution between the generators is not suitable one can
+specifically state the proportions of the probabilities to choose each
+generator.
+%
+The first input parameter of \yap{frequency/3} is a list of pairs
+\yap{\{}\emph{weight}\yap{,}\emph{generator}\yap{\}} representing such
+proportions.
+%
+The input list must also be non-empty.
+%
+A frequency-index list is created with the correct proportions and a
+generator is then randomly chosen from that list to be called.
+%
+\begin{yapcode}
+ frequency(FGL, A, S) :- checkFreqWeights(FGL, FIL, Cap),
+   choose(1,Cap,I,S), nth(I, FIL, GenA), call(GenA, A, S).
+\end{yapcode}
+%
+We can use both combinators to randomly choose generators for each test case.
+%
+\begin{yapcode}
+ Gen1 = resize(0,listOf(int))
+ Gen2 = suchThat(listOf(int), posLen)
+ ...
+   for_all( frequency([{4,listOf(int)}, {1,Gen2}]),  L1,
+     for_all( oneof([Gen1,Gen2],L2, (prop({appLLC, L1, L2}))))
+\end{yapcode}
+
+
+
+
+
+
+\paragraph{\bf Shrinking}
+
+When a test fails the tool may try to simplify the failing input to a
+smaller and easier to understand counterexample.
+%
+Shrinking is a process by which a \emph{shrinker} predicate returns a
+possibly empty list of smaller elements than the one given as input.
+
+
+Similarly to generator predicates, shrinkers are calls to the
+corresponding generator.
+%
+To trigger shrinking a generator is called with the value to shrink, the
+flag \yap{shrink} and a variable to store the list of shrunk values.
+%
+An example of a shrinker behaviour for lists is to remove an
+element.
+%
+The following auxiliary predicate builds a list of the possible shrunk
+lists.
+%
+\begin{yapcode}
+ genL(GenA, A, Size) :- listOf(GenA, A, Size).
+ genL(GenA, L, shrink, Shrs) :-  shrL(L, Shrs).
+ shrL([], []).
+ shrL([A], [[]]) :- !.
+ shrL([A|AS], [AS|Shrs]) :-
+   shrL(AS, Shrs1), maplist(cons(A), Shrs1, Shrs).
+
+ cons(X, XS, [X|XS]).
+\end{yapcode}
+
+
+Most combinators do not have a default shrinking procedure.
+%
+Since it is hard to decide, for example, what is a proper shrink for
+values generated by a random choice between generators, we default
+the shrinking of many combinators to an empty list of shrunk values.
+%
+Instead of directly using combinators in a property quantification
+the user can wrap them in a generator predicate with a meaningful name,
+implementing the shrink behaviour for this specific type.
+%
+This is exemplified by the \yap{genL} generator predicate, which is a
+redefinition of \yap{listOf} and can therefore implement a different
+shrinking process.
+% -*- mode: latex; mode: folding -*-
+
+\section{Specification Language}
+\label{sec:pred-spec}
+
+In this section we describe our predicate specification language.
+%
+Throughout, we follow some of the principles presented
+by Deville~\cite{Deville1990logprog}.
+%
+There are several ways to state a predicate's specification, %% we do not
+%% argue that our specification process is superior to other approaches.
+%% %
+%% We do
+but we
+ believe that this approach fits naturally our needs, namely as a
+form to express testable predicate features. %% we thought to be of importance.
+
+
+The general specification form of a predicate \yap{p/n} consists, at its
+core, of a set of uniquely identified specification clauses
+ %% (with \emph{clause Id})
+ about \emph{input types} or the shape of the parameters when evoking the predicate.
+%
+%% \begin{code}
+%% predicate specification clause
+%%   p Id
+%% parameter input types
+%%   T1, ..., Tn
+%% \end{code}
+%
+Various aspects of the predicate for the particular input type in
+question can be added to a specification clause.
+%
+If there is
+a \emph{parameter relation} or
+ a relation that input parameters must fulfil one can implement it
+as a predicate %% , say \yap{irel/1},
+which checks if such a relation is
+valid for the list of input parameters given.
+%% \todo{era para cortar? 'which checks if such a relation is
+%% valid for the list of input parameters given as parameter'}
+%
+The \emph{modes} of each parameter can be given for the input parameters and also
+for  output answers.
+%
+The language also allows stating the number of
+answers of a predicate,
+or its \emph{range}.
+%
+Last, the user may state invariant properties that should hold both
+before and after the predicate is executed as \emph{pre-} and \emph{post-conditions}.
+%
+%% \begin{code}
+%% parameter relation
+%%   irel([A1,...,An])
+%% mode
+%%   i(Mi1,...,Min), [o(Mo1,...,Mon)]
+%% range
+%%   {Min,Max}
+%% pre/post conditions
+%%   Goal
+%% \end{code}
+Next, we discuss the main properties that we allow in our framework.
+
+%% \subsection{Types}
+\paragraph{\bf Types}
+
+Types are the mandatory part of the specification.
+%
+They are required to guarantee that the specification may be
+automatically tested.
+%
+We define a type as follows: 
+%
+\begin{definition}
+\label{def:type}
+A {\em type} is a non-empty set of terms.\\
+A term $t$ belongs to a type $\tau$ ($t \in \tau$) if it belongs to the set of
+terms that define the type.
+\end{definition}
+
+
+Types are not defined as a set of \emph{ground} terms but rather by
+a set of terms.
+%
+%% These are the types used in our predicate specifications.
+%
+Note that types defined in this manner depict perfectly possible forms of
+predicate input.
+%
+This approach for types %% already
+encloses, by definition, the type
+precondition, where the input must be compatible with the specified types.
+
+
+The types mentioned in a predicate specification clause correspond to \plqc{}
+generators used to automatically create %% individual
+test cases.
+%
+This means that the type in a specification clause is partial in the
+sense that it only specifies that the predicate should succeed when given
+elements of such types as parameters.
+%
+It states nothing about parameters of other types.
+%
+Other input types can be covered by other specification clauses with
+different generators.
+%
+The %% effect of a procedure execution
+behaviour of a procedure
+for types not covered by any of the
+specification clauses is considered undefined/unspecified.
+
+
+We can now easily specify input types for program predicates like \yap{app/3}.
+%
+We identify the specification clauses as \yap{\{app,K\}}, specification
+clause \yap{K} of predicate \yap{app}, and declare the \plqc{} types.
+%
+The specifications can be tested and the predicate checked to succeed
+for the corresponding input types.
+%
+\begin{yapcode}
+ {app,1} of_type (listOf(int), value(v), variable)
+ {app,2} of_type (listOf(int), variable, variable)
+ {app,3} of_type (listOf(int), listOf(int), variable)
+\end{yapcode}
+
+
+%% \subsection{Domain}
+\paragraph{\bf Domain}
+
+Correct typing of parameters is crucial but may be insufficient to
+express the allowed input.
+%
+Sometimes the input parameters must obey a relation extending type information,
+based on the actual values of the parameters.
+%
+The domain of a predicate is the set of parameters accepted by a
+predicate~\cite{Deville1990logprog}.
+%
+The domain precondition is a restriction over the set of parameters of a
+predicate.
+%
+Suppose that \yap{minimum(A,B,C)} is a predicate that succeeds when
+\yap{C} is the minimum of \yap{A} and \yap{B}.
+%
+The predicate has the type \yap{(int, int, int)} and the domain is the
+restriction \yap{(C==A; C==B),(C<=A, C<=B)}.
+%% Suppose that \yap{even/1} is a predicate that succeeds when the input parameter
+%% is an even number.
+%% %
+%% The predicate has the type \yap{int} and the domain is the restriction \yap{N rem 2 == 0}.
+%% \todo{colocar exemplo concreto? \yap{even(N) :- N rem 2 == 0.}}
+
+
+\begin{definition}
+\label{def:domain}
+A {\em domain} of a procedure p/n is a set of term
+n-tuples such that\\
+\qquad $\langle t_1,...,t_n \rangle \in (\tau_1 \times ... \times
+\tau_n)$\\
+\qquad $\langle t_1,...,t_n \rangle$ satisfies the input parameter relation
+\end{definition}
+
+
+This definition of a domain, similarly to what happens with types, is
+different from the usual notion of domain.
+%
+It focus on the shape of the input to a predicate and not the accepted
+answer set.
+%
+The \plqc{} domain of a predicate is then any set of terms produced by
+the generator that fulfils the domain precondition.
+%
+%% In the absence of a domain precondition relating parameters the domain
+%% is the set of terms generated.
+%
+A specification clause can thus be engineered to represent a subset of
+a more general type.
+%
+An example could be that we want to test \yap{app} with at least one
+non-empty list input.
+%
+This can be used, for example, to guarantee that the variable given in
+the third input parameter will be instantiated with a non-empty list.
+\begin{yapcode}
+ non_empty( [[_|_],_,_] ).
+ non_empty( [_,[_|_],_] ).
+ {app,3b} of_type (listOf(int), listOf(int), variable)
+    such_that m:non_empty.
+\end{yapcode}
+
+
+
+%% \subsection{Directionality}
+\paragraph{\bf Directionality}
+
+The directionality of a predicate describes its possible uses by
+specifying the possible forms of the parameters before and after
+execution.
+%
+We follow Deville~\cite{Deville1990logprog} where the main modes for a
+parameter are ground, variable and neither ground
+nor variable.
+%
+Conjunction of modes is also possible and all combinations are achieved
+by the notation for ground (\emph{g}) and variable (\emph{v}) as well as
+the negation (\emph{n?}).
+%
+This results in the main modes and their pairwise combinations: \emph{g},
+\emph{v}, \emph{gv},  \emph{ng}, \emph{nv}, \emph{ngv}.
+%
+A parameter that can be used in any form is denoted by the mode
+identifier \emph{any}.
+
+
+\begin{definition}
+\label{def:modes}
+The \emph{modes} or \emph{forms} a term may present are denoted by\\
+ $Modes = {g, v, gv, ng, nv, ngv, any}$
+\end{definition}
+
+
+There are two components to a directionality: input and output.
+%
+They must hold for a predicate's parameters before and after execution,
+respectively.
+%
+This means a full directionality denotes a pre- and a post-condition to
+the execution of the specified predicate.
+%
+In \plqc{} these properties are checked for each test case when
+specified before and after calling the predicate.
+
+
+Input directionality acts as a sanity check for the elements of the
+domain, meaning that the generators must be constructed to conform to the
+specified input modes.
+%
+Each specification clause is allowed one input directionality.
+%
+If the user wishes to specify more than one input form the clause should
+be divided into the number of input forms and its generators adapted
+accordingly.
+%
+This results in bigger predicate specifications with possibly
+duplicated code, but is a very simple way to express what happens to the
+parameters in finer detail.
+
+
+Each input may have more than one answer and therefore more than one
+output form.
+%
+For this reason we adopted a schema where an input directionality is
+paired with a list of output forms.
+
+
+\begin{definition}
+\label{def:directionality}
+A \emph{directionality} of a specification clause of a predicate
+p/n is a sequence of \emph{predicate modes}, with one input mode
+followed by one or more output modes.
+\\
+A predicate mode of p, or just mode of p, is denoted as
+
+\;\;  -- $i(m_1, ..., m_n)$
+
+\;\;  -- $o(M_1, ..., M_n)$
+\\
+%% \quad
+%% \begin{itemize}
+%%   \item $i(m_1, ..., m_n)$
+%%   \item $o(M_1, ..., M_n)$
+%% \end{itemize}
+where $m_i,M_i \in Modes$ and $i, o$ respect to input and output modes
+respectively.
+\end{definition}
+
+
+The specification of input and output modes is important to state
+predicate behaviours that may be oblivious to a library user.
+%
+From using the predicate \yap{app/3} with a list and two variables, for
+example, two distinct directionalities may arise.
+%
+This is due to the fact that an empty list in the first input parameter does
+not contribute to instantiate any part of the third parameter.
+%
+\begin{yapcode}
+ {app, 4} of_type (listOf(int), variable, variable)
+    where (i(g, v, v), o(g, v, ngv), o(g, v, v)).
+\end{yapcode}
+
+%% \todo{talk a little about inconsistent directionalities (v<ngv<g),
+%%   which are only caught during testing...}
+%% \todo{maybe also about minimality and how we just don't care, we test}
+
+%% \subsection{Multiplicity}
+\paragraph{\bf Multiplicity}
+The number of answers a predicate call has can also be valuable
+information.
+%
+Knowing a predicate has a finite search space is a termination
+guarantee for predicates using it.
+%
+Conventionally, multiplicity information, or \emph{range}, is given for
+each directionality~\cite{somogyi1995mercury}.
+%
+In \plqc{} we do not require that directionality is given, in which
+case no tests are performed regarding parameter form and the \emph{any}
+mode is assumed for all parameters.
+%
+The multiplicity is tied to the domain of each specification clause
+where defined.
+
+
+The range of answers is given with two bounds: \emph{Min} and
+\emph{Max}.
+%
+These values are the lower and upper bounds to the number of answers.
+%
+The lower bound should not exceed the upper bound and they both take
+non-negative integer values up to infinity (denoted by the atom
+\yap{inf}).
+%
+When no explicit multiplicity is given the default we %% choose to 
+follow is
+$\langle 1, inf \rangle $.
+%
+When testing a specification clause, the default minimal expected
+behaviour is that the domain is successfully accepted by the predicate.
+%
+Therefore we try to mirror this when there are other features
+specified but no multiplicity, expecting at least one solution.
+%
+It is necessary to impose a limit when the upper bound is infinity or an
+excessively large number.
+%
+One can state the maximum number of answers necessary to assume that the
+answer range is sufficiently close to the upper bound with a positive
+integer.
+%
+We can complement the previous specification clause with a statement
+about the predicate behaviour regarding the number of answers.
+%
+In this case we have a total function behaviour, always yielding one and
+only one answer.
+%
+\begin{yapcode}
+ {app, 4b} of_type (listOf(int), variable, variable)
+    where (i(g, v, v), o(g, v, ngv), o(g, v, v))
+    has_range {1,1}.
+ {app, 4c} of_type (variable, listOf(int), variable)
+    where (i(v, g, v), o(g, g, g), o(ngv, g, ngv))
+    has_range {1,inf} limit 50.
+\end{yapcode}
+
+%% \subsection{Pre- and Post-conditions}
+\paragraph{\bf Pre and Post-conditions}
+
+Along with all the other features of a predicate we can have a
+connection between the relations represented by the predicate being
+specified and other predicates.
+%
+These relations can be valid prior to or after execution.
+%
+In the predicate specification language they are pre- and
+post-conditions and are expressed as \plqc{} properties.
+
+
+A pre-condition is a property that only inspects its input.
+%
+It does not change the generated values to be applied to the specified
+predicate.
+%
+Post-conditions can also use any of the specified parameters.
+%
+Since they are no longer used, it does not matter if they are changed by
+the answer substitution.
+%
+Now we can describe the property relating the lengths of \yap{app/3}'s
+parameters in a post-condition of a specification clause of the
+respective type.
+%
+We identify the parameters of \yap{app} so that we can use them in the
+post-condition as \yap{A},  \yap{B} and  \yap{C}.
+%
+\begin{yapcode}
+ {app, 5} of_type (A-(listOf(int)), B-(listOf(int)), C-(variable))
+   post_cond (length(A,K1), length(B,K2), length(C,K), K is K1+K2).
+\end{yapcode}
+
+%% %include secImplementation.tex
+% -*- mode: latex; mode: folding -*-
+
+\section{Case Studies}
+\label{sec:case-studies}
+
+%% \subsection{List Processing}
+%% We start with small predicates and specifications.%%  in order to show the
+%% %% tool.
+%% %
+%% These small examples demonstrate some of the potential of \plqc{}.
+%% %
+%% They help in revealing discrepancies between predicate's intended and
+%% actual behaviour.
+
+
+%{{{ List Reverse
+
+%% \subsection{List Reverse}
+
+%% Here we return to the first example given in \refSec{sec:properties}.
+%% %
+%% %% In general people have a conception of what is reversing the order of
+%% %% elements, reversing a list is to observe the $i^th$ element of the original list as
+%% %% the $(1+n-i)^th$ element of the reversed one for a list of size $n$.
+%% %% %
+%% %% There is also the idea of how to code such a procedure, independently of
+%% %% the programming language.
+%% %% %
+%% %% In fact, there are quite a few ways to implement this procedure and we
+%% %% discuss several implementations.% of the procedure.
+%% %
+%% %
+%% We want to check attributes of a reversing procedure.
+%% %% What we intend to check about our reverse procedures is the ability to
+%% %% transform an input list into its reversed counterpart.
+%% %
+%% %% This implies that the property must have an input for random testing.
+%% %irst, f
+%% %% For the automatic generation of input
+%% First, we must describe what is the input.
+%% %
+%% The procedure receives a list as first input parameter, and is polymorphic in
+%% the type of the list's elements.
+%% %% The procedure is polymorphic on the type of the elements of an
+%% %% argument list
+%% It is usually sufficient to check the behaviour for a
+%% single type of elements.
+%% %
+%% Moreover, sometimes even a type with a finite number of values suffice,
+%% but we can safely overestimate the size of the
+%% type~\cite{Bernardy-testing-poly-prop}.
+%% %
+%% %% We choose to test the list predicates with lists of integer elements.
+%% %
+%% Therefore, we use the generator for integers, \yap{int}, as the elements
+%% of the parametric list generator, \yap{listOf(int)}.
+
+
+
+%% \begin{yapcode}
+%%  rev_app([],[]).
+%%  rev_app([X||XS], YS) :- rev_app(XS,ZS), append(ZS, [X], YS).
+%% \end{yapcode}
+
+
+%% For the previous implementation of reverse we can define the 
+%% property in \refSec{sec:properties}.
+%% %
+%% The property underwent testing, passing all given tests.
+%% %
+%% %   ?- plqc:prologcheck(m:prop(double_rev_app), [{numtests, 1000}]), plqc:prologcheck(m:prop(double_rev_acc), [{numtests, 1000}]).
+%% \begin{yapcode}
+%%    ?- prologcheck(m:prop(d_rev_app)).
+%%  OK: Passed 100 test(s).
+%% \end{yapcode}
+%% %
+%% %% We can adapt the properties in \refSec{sec:properties} to both versions.
+%% %% %
+%% %% %% We do it by identifying the property names and called predicates
+%% %% %% appropriately.
+%% %% %
+%% %% For the \yap{rev_app/2} predicate we have.
+%% %% \begin{yapcode}
+%% %%  prop(double_rev_app) :-
+%% %%    plqc:for_all(listOf(int), L, m:prop({dbl_rev_app_body, L})).
+%% %% 
+%% %%  prop({dbl_rev_app_body, L}) :- 
+%% %%    m:rev_app(L, LR), !, m:rev_app(LR, L2), !, L == L2.
+%% %% \end{yapcode}
+%% %% %
+%% %% The version for \yap{rev_acc/2} is obtained by changing the affix of
+%% %% identifiers from \yap{app} to \yap{acc}
+%% %% ,
+%% %%           [{numtests, 1000}]
+%%  %% OK: Passed 1000 test(s).
+%%  %% yes
+
+
+%% To check that the order is being reversed we can randomly choose an
+%% element (or a %even a random
+%%  set of elements) and inspect
+%%  its position in the parameters.
+%% %% if it is correctly positioned in the reversed list.
+%% %
+%% Choosing random elements prevent us from checking the whole list.
+%% %
+%% \begin{yapcode}
+%%  prop(rev_app_i) :- plqc:for_all(
+%%      suchThat(structure({listOf(int), int}), m:valid_index),
+%%      {L,I}, m:prop({double_rev_i_body, L, I}) ).
+%%  valid_index({L, I}) :- length(L,X), I<X.
+
+%%  prop({double_rev_i_body, L, I}) :- 
+%%    m:rev_app(L, LR), length(L,X), Index is I+1, RevIndex is X-I,
+%%    lists:nth(Index, L, Val), lists:nth(RevIndex, LR, Val).
+%% \end{yapcode}
+%% %
+%% When performing a large number of tests this method should
+%%  randomly choose enough indexes to 
+%% give good
+%% element coverage.
+%% %
+%% \begin{yapcode}
+%%    ?- prologcheck(m:prop(rev_app_i)).
+%%  OK: Passed 100 test(s).
+%% \end{yapcode}
+
+%% %% We start with
+%% We have another implementation of reverse.
+%% %, described later, 
+%% While the first implementation uses concatenation, the following
+%% builds the result with an accumulator via an auxiliary predicate.
+%% %
+%% %% With proper property labelling  and predicate calls we can define
+%% %% \yap{prop(d_rev_app)} and \yap{prop(d_rev_acc)} to depict the
+%% %% behaviour of \yap{rev_app/2} and \yap{rev_acc/2} respectively.
+%% %
+%% The same property is defined for the new implementation with the same
+%% testing result.
+%% \begin{yapcode}
+%%  rev_acc([], LR, LR).
+%%  rev_acc([X||XS], Acc, LR) :- rev_acc(XS, [X||Acc], LR).
+
+%%  rev_acc(L, LR) :- rev_acc(L, [], LR).
+%% \end{yapcode}
+
+
+%% Since we have two implementations of the same concept we can explore
+%% this by 
+%% %% only performing tests on one version and
+%% stating and testing a property comparing their behaviours.
+%% %
+%% \begin{yapcode}
+%%  prop(eqv_acc_app) :-
+%%    for_all(listOf(int), L, (rev_acc(L,LR),rev_app(L,LR))).
+%% \end{yapcode}
+%% The comparison succeeds if both have the same behaviour.
+%% %
+%% \begin{yapcode}
+%%    ?- prologcheck(m:prop(eqv_acc_app)).
+%%  OK: Passed 100 test(s).
+%% \end{yapcode}
+
+%}}}
+
+%{{{ append
+
+\subsection{Append}
+%% The %% \Prolog{}
+%% implementation of the list concatenation predicate recurs on the first list
+%% and the appended list parameters, leaving the second list uninspected.
+%% %
+Here we describe in more detail properties of  \yap{app/3}:
+%
+%% \todo{no texto fica melhor   \yap{append/3} ou 'append' em texto normal?}
+\begin{yapcode}
+ app([], YS, YS).
+ app([X|XS], YS, [X|AS]) :- app(XS, YS, AS).
+\end{yapcode}
+%
+We check the behaviour of the predicate through its specification with
+the predicate specification language presented in
+\refSec{sec:pred-spec}.
+%
+
+
+%% The most obvious way to use \yap{append/3} is by giving it two lists and expect
+%% the resulting appended list.
+%% %
+%% So the type of such a specification clause is
+%% (\yap{listOf(int),listOf(int),variable}).
+%% %
+%% We can assert that, in this \plqc{} type, parameters input modes are
+%% (\yap{ground, ground, var}) and the output modes (\yap{ground, ground,
+%%   ground}).
+%% %
+%% It should also be the case that this use of the predicate behaves as a
+%% function, expecting exactly one answer.
+%% %
+\yap{app(A,B,C)} is used in a functional way in many programs,
+i.e., by giving it two lists as input and getting their concatenation as
+output.
+%
+This behaviour is specified in \plqc{} as:
+ %% (plqc:listOf(int), plqc:listOf(int), plqc:variable)
+\begin{yapcode}
+ app of_type (A-(listOf(int)), B-(listOf(int)), C-(variable))
+   where (i(g, g, v), o(g, g, g))  has_range {1,1}.
+\end{yapcode}
+%
+\emph{Prologchecking} this specification clause bears no surprises.
+%
+\begin{yapcode}
+   ?- prologcheck(m:prop(spec_app)).
+ OK: Passed 100 test(s).
+\end{yapcode}
+
+
+%% Although
+\yap{app/3} %% has an intended usage, it
+may be %% successfully
+also
+used in other situations.
+%
+For example, one can use it to create an open list, by %% giving a variable
+%% in place of the second list, which remains uninspected.
+calling it with a variable in the second input parameter.
+%
+The result is a list with the ground elements of the list and the
+variable in the second parameter as the tail, therefore it is neither ground nor
+variable.
+%% %
+%% This usage also behaves as a function, since the potentially mutating
+%% part of the input is not a target of pattern matches.
+%
+\begin{yapcode}
+ {app, 1} of_type (A-(listOf(int)), B-(variable), C-(variable))
+   where (i(g, v, v), o(g, v, ngv))  has_range {1,1}.
+\end{yapcode}
+%
+Testing this specification clause reveals that the \emph{out} part of
+the directionality is not satisfied.
+%   ?- plqc:prologcheck(m:prop(spec_app_1)).
+\begin{yapcode}
+  ?- prologcheck(m:prop(spec_app_1), [noshrink]).
+ {failed_out_modes,[[o,g,v,ngv]], [[],_10258,_10258]}
+ Failed: After 3 test(s).
+ Counterexample found: [[[],_10258,_10260]] 
+\end{yapcode}
+%
+The counterexample shows that when the first input parameter is the empty
+list, %% and the other two variables,
+the output modes do not respect %% comply with
+the specification %% .
+%% % when L1 is [], LApp is L2, i.e. var
+%% %
+%% Upon closer inspection it is noted that
+because
+the base case of the recursion
+%% on the first input parameter simply
+unifies the second and third parameters.
+%% when it matches an empty list.
+%
+%% There are two %% simple
+%% ways of solving this problem.
+%% %
+%% One is to split the specification clause between input types that only
+%% have empty lists or non-empty lists separately.
+%% %
+%% The other
+One way to solve it 
+is to add the missing directionality \yap{(i(g, v, v), o(g, v, ngv)), o(g,v,v)}.
+%
+%% The correct choice in general is to split the input types, since this is
+%% a matter between disjoint sets of terms.
+%% %
+%% Multiple output directionalities are mainly intended for multiple modes
+%% %% of the parameters
+%% of multiple answers.
+%% %
+%% Given the simplicity of the example we decided to add a directionality.
+%% %
+%% \begin{yapcode}
+%%    where (i(g, v, v), o(g, v, ngv)), o(g,v,v)
+%% \end{yapcode}
+
+
+%% \begin{yapcode}
+%%  {m:append, 2}
+%%    of_type (A-(plqc:variable),
+%%      B-(plqc:listOf(int)), C-(plqc:variable))
+%%    where (i(v, g, v), o(g, g, g), o(ngv, g, g))
+%%    has_range {1,1}.
+%% \end{yapcode}
+%%  % default 1-inf
+
+%}}}
+
+\subsection{AVL Trees}
+
+We have described AVL properties and performed black-box testing of an
+implementation of AVL trees in a \Yap{} module, \yap{avl.yap}, with
+\plqc{}\footnote{All the details can be found in the tool's website.}.
+%%
+Due to space restrictions we only present a general description of the
+process and its results. 
+
+
+The module interface is small, with predicates to create an empty
+tree, insert an element and look up an element, respectively
+\yap{avl_new/1}, \yap{avl_insert/4} and \yap{avl_lookup/3}.
+%
+When performing this kind of test one does not simply test individual
+predicates but rather usages of the module.
+%
+To do this we must be able to create sequences of interface
+calls and inspect intermediate results for compliance with AVL
+invariants.
+%
+Knowledge about the shape of input/output terms can be gathered manually
+if it is not previously known.
+
+
+\paragraph{\bf Generator}
+
+Creating a valid sequence of interface calls is not difficult, but
+requires attention to detail.
+%
+First, we only want to generate valid sequences to save effort of
+checking validity and not suffer from sparse valid values.
+%
+Using the \yap{avl} module implies the existence of two sets of important
+terms: key terms, and value terms, which we represent as generators.
+%
+In order to test the correct failure of wrong look-ups, a set of values
+for failed look-ups disjoint from the regular values is also
+implemented.
+
+
+The generator starts by creating the tree, independently of the
+size parameter, using \yap{avl_new/1}.
+%
+This implies that when size is 0 an empty AVL-tree is still created.
+%
+Thus, we always append the tree creation to a sequence of calls to
+insert and look-up values.
+%
+Each element of the sequence is obtained by randomly choosing between
+insert and look-ups.
+
+
+When an insert command is added to the sequence, the value to be
+inserted is kept so that it can be used in later look-ups.
+%
+Look-ups are divided between valid look-up and invalid look-up.
+%
+Valid look-ups are only generated after the corresponding insert and
+invalid look-ups are based in a set of values that is never inserted.
+%
+Valid look-ups can be further distinguished between looking up a
+key-value pair and looking up a key and retrieving its value.
+%
+These elements are  branded by a command identifier to recognise their
+correct behaviour during testing.
+%
+The relative probabilities are such that we get a big variety of commands within
+relatively small sequences.
+
+
+
+%}}}
+
+%% \paragraph{\bf }
+
+%% \subsubsection*{Property}
+\paragraph{\bf Property}
+
+%{{{ generic property
+
+The definition of the AVL property depends on several factors.
+%
+It is necessary to have operations to extract information from trees,
+such as current node's key, key comparison, left and
+right sub-trees and empty tree test.
+
+
+A tree may be empty, in which case it is an AVL tree of height 0.
+%
+In the case of a non-empty tree we retrieve its key and sub-trees.
+%
+They are used in recursive checks of the property.
+%
+The recursive calls accumulate lists of keys that should be greater and
+less then the keys in the sub-trees.
+%
+If the sub-trees are individually compliant with the property, we
+proceed with the last check, comparing the returned heights for
+balance and computing the current tree height.
+%
+This is how the property is outlined in \plqc{}:
+%
+
+%\pagebreak 
+      %% ((forall(member(X, Ls), cmpKeys(X, K, lte))) -> true; error1),
+      %% ((forall(member(X, Gs), cmpKeys(X, K, gt))) -> true; error2))
+   %% and (( abs(Hl-Hr) =< 1 -> true; error3), H is 1+max(Hl,Hr))),
+\begin{yapcode}
+prop({avl, T, Gs, Ls, H}) :- if (not isNil(T)) then
+ ((getKey(T, K), left(T, L),  right(T, R),
+      ((forall(member(X, Ls), cmpKeys(X, K, gt))) -> error1),
+      ((forall(member(X, Gs), cmpKeys(X, K, lte))) -> error2))
+   and prop({avl, L, [Key|Gt], Lt, Hl})
+   and prop({avl, R, Gt, [Key|Lt], Hr})
+   and (( abs(Hl-Hr)>1 -> error3), H is 1+max(Hl,Hr)))
+ else (H = 0).
+\end{yapcode}
+%
+We complete the property by inserting it into a loop that consumes the
+operations in the quantified module uses.
+
+
+
+\refTabI{tab:avl-tests} summarises some relevant results of our tool
+applied to the AVL library.
+%
+Each line corresponds to a different module version: line 1 to the
+original version; line 2 to a bug in the re-balancing strategy inserted
+by the tester; line 3 to a different bug also in the re-balancing
+strategy inserted by someone that was not involved with the tests.
+%
+The column \emph{Tests} is the number of tests needed to achieve a
+particular counter-example.
+%
+For the purpose of readability we will represent only the key and value
+input parameters of the AVL operations.
+%
+Thus consider \yap{i(N,V)} as insert an
+element with key \yap{N} and value  \yap{V}, and \yap{l(N,V)} as look up
+the pair \yap{(N,V)} in the tree.
+
+
+Note that the counter-example found in the original version corresponds
+to an unspecified behaviour in the case of two insertions with the same key.
+%
+After several runs of the tool (10 for the first bug and 20 for the
+second) we managed to find a pattern on the counter-examples which led
+to the identification of the pathological behaviour caused by the bugs.
+
+
+\begin{table}
+  \centering
+  \begin{tabular}{|c|c|l|}
+    \hline
+    Version    &  Tests   &  Counter-example
+    \\ \hline
+    Original   &  732     &  \yap{i(1,a), i(1,b), l(1,b)}
+    \\ \hline
+    Error 1    &  51      &  \yap{i(3,a), i(1,b), i(2,c)}
+    \\ \hline
+    Error 2    &  213     &  \yap{i(5,a), i(2,b), i(3,c), i(4,d), i(1,e)}
+    \\ \hline
+  \end{tabular}
+  \caption{{\tt avl} testing summary.}
+  \label{tab:avl-tests}
+\end{table}
+
+
+%% We run 1000 tests and no bug is detected, as expected for a relatively
+%% smaller library module.
+%% %
+%% The only unspecified behaviour we discover is about two insertions under the
+%% same key, and a look-up based on the discarded insertion.
+%% %
+%% This means that the key generator is not sparse enough for 1000 test,
+%% where the size of generated values grows and the probability of such a
+%% combination appearing starts to show.
+
+%}}}
+
+%{{{ wrong 1
+
+%% To explore the tool potential we inserted a bug in the module.
+%% %
+%% We changed a line in the table that states how the tree will be
+%% re-balanced upon insertion of a new element.
+%% %
+%% We changed the information stating that a perfectly balanced tree leans
+%% left after inserting an element that increases the left sub-tree height
+%% to ignore the balance change.
+%% %
+%% Testing this version of the implementation shows a counterexample after
+%% less than 100 test cases on average.
+%% %
+%% The counterexamples found are command sequences where three inserts are
+%% given in the key order $3, 1, 2$
+%% %
+%% Another failing sequence of insertions is in the key order $1, 3, 2$.
+%% %
+%% The conclusion we can get from the counterexamples is that the
+%% balancing or balance calculation of the tree is probably failing.
+
+%}}}
+
+%{{{ wrong 2
+
+%% A second bug is purposely inserted by someone that is not involved
+%% with the tests.
+%% %
+%% From the perspective of the tester we start with the tests.
+%% %
+%% Counterexamples are found in average after at least 200 test cases.
+%% %
+%% The minimal shape found are sequences of 5 insertions.
+%% %
+%% There are two families of counterexamples
+%% %
+%% One is such that the first three elements inserted are the keys $1, 2,
+%% 4$, in any order, followed by key $5$ and finally key $3$.
+%% %
+%% In the second the first keys are $2, 4, 5$, also in no particular order,
+%% followed by $3$ and $1$.
+%% %
+%% These sequences fail when trying to complete the second level of one of
+%% the root's sub-trees.
+%% %
+%% Furthermore, it happens only if the completion takes the order
+%% right-left.
+
+
+%% There are no other details we could retrieve information from.
+%% %
+%% As far as black-box testing is concerned the origin of the error cannot
+%% be pinpointed.
+%% %
+%% Although, we can infer we are dealing with a balance issue, since it can
+%% appear with only insertions.
+%% %
+%% We can go as far as saying that the problem appears to be in a left
+%% insertion, not noticeable in the nodes after the root of the tree.
+
+
+%% Inspecting the source we can see that the error was caused by another
+%% change to the balance table changed for the first error.
+%% %
+%% The bug inserted forces a re-balance of an already balanced tree in the
+%% speculated situation - an insertion to the left filling where there is
+%% already a value to the right.
+
+%}}}
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5555
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5555
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5555
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5555
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5555
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5555
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5555
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5555
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5555
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5555
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5555
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5555
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5555
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5555
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5555
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5555
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5555
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5555
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5555
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5555
+
+
+
+
+
+%% %% \subsection{red-black Trees}
+
+% -*- mode: latex; mode: folding -*-
+%% \pagebreak
+
+\section{Conclusion}
+\label{sec:conclusion}
+
+%% %
+%% (Find place for)
+%% The tool is specially useful for people that are beginning logic
+%% programming or that have their logic programming polluted by other
+%% programming styles (arguably,  such as one of the authors).
+
+
+We present \plqc{}, an automatic tool for specification based
+testing of \Prolog{} programs.
+%
+%% The implementation consists of a single \Prolog{} module of about
+
+
+Compared to similar tools for functional languages, we deal with testing
+of nondeterministic programs in a logic programming language.
+%
+We provide a language to write properties with convenient features,
+such as quantifiers, conditionals, directionality and multiplicity.
+%
+\plqc{} also includes the notion of random test-data generation.
+%
+%% There are differences between \plqc{} generators and the generators
+%% in a strongly typed version such as \Haskell\ \QuickCheck.
+%% %
+%% In a strongly typed language, generators pick values with a specific
+%% type.
+%% %
+%% In \plqc{} generators are special predicates that randomly choose an
+%% element from a set of values.
+%% %
+%% The generators define the set by the elements they
+%% generate, regardless of their probability distribution.
+%% %
+%% Thus \plqc{} generators may be heterogenous, in the sense of
+%% defining collections of terms with different types.
+
+
+We show that specification based testing works extremely well for
+\Prolog.
+%
+The relational nature of the language allows to specify local properties
+quite well since all the dependencies between input parameters are explicit in
+predicate definitions.
+
+
+Finally note that our tool uses \Prolog{} also to write properties, which,
+besides its use in the tool for test specification, increases the
+understanding of the program itself, without requiring extra learning for
+\Prolog{} programmers.
+%% %include sec3.tex
+%% %include sec4.tex
+%% %include sec5.tex
+%% %include sec6.tex
+
+
+\bibliographystyle{abbrv}
+%% \bibliographystyle{abbrvnat}
+\bibliography{plqc}
+%% \bibliography{../../../gitroot/bibtex/jp,../../../gitroot/bibtex/genprog,../../../gitroot/bibtex/misc}
+
+
+\end{document}

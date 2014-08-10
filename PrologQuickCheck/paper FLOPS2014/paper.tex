@@ -1,0 +1,792 @@
+% -*- mode: latex; mode: folding -*-
+\documentclass[runningheads,a4paper]{../../PaperStyles/llncs}
+
+%% ODER: format ==         = "\mathrel{==}"
+%% ODER: format /=         = "\neq "
+%
+%
+\makeatletter
+\@ifundefined{lhs2tex.lhs2tex.sty.read}%
+  {\@namedef{lhs2tex.lhs2tex.sty.read}{}%
+   \newcommand\SkipToFmtEnd{}%
+   \newcommand\EndFmtInput{}%
+   \long\def\SkipToFmtEnd#1\EndFmtInput{}%
+  }\SkipToFmtEnd
+
+\newcommand\ReadOnlyOnce[1]{\@ifundefined{#1}{\@namedef{#1}{}}\SkipToFmtEnd}
+\usepackage{amstext}
+\usepackage{amssymb}
+\usepackage{stmaryrd}
+\DeclareFontFamily{OT1}{cmtex}{}
+\DeclareFontShape{OT1}{cmtex}{m}{n}
+  {<5><6><7><8>cmtex8
+   <9>cmtex9
+   <10><10.95><12><14.4><17.28><20.74><24.88>cmtex10}{}
+\DeclareFontShape{OT1}{cmtex}{m}{it}
+  {<-> ssub * cmtt/m/it}{}
+\newcommand{\texfamily}{\fontfamily{cmtex}\selectfont}
+\DeclareFontShape{OT1}{cmtt}{bx}{n}
+  {<5><6><7><8>cmtt8
+   <9>cmbtt9
+   <10><10.95><12><14.4><17.28><20.74><24.88>cmbtt10}{}
+\DeclareFontShape{OT1}{cmtex}{bx}{n}
+  {<-> ssub * cmtt/bx/n}{}
+\newcommand{\tex}[1]{\text{\texfamily#1}}	% NEU
+
+\newcommand{\Sp}{\hskip.33334em\relax}
+
+
+\newcommand{\Conid}[1]{\mathit{#1}}
+\newcommand{\Varid}[1]{\mathit{#1}}
+\newcommand{\anonymous}{\kern0.06em \vbox{\hrule\@width.5em}}
+\newcommand{\plus}{\mathbin{+\!\!\!+}}
+\newcommand{\bind}{\mathbin{>\!\!\!>\mkern-6.7mu=}}
+\newcommand{\rbind}{\mathbin{=\mkern-6.7mu<\!\!\!<}}% suggested by Neil Mitchell
+\newcommand{\sequ}{\mathbin{>\!\!\!>}}
+\renewcommand{\leq}{\leqslant}
+\renewcommand{\geq}{\geqslant}
+\usepackage{polytable}
+
+%mathindent has to be defined
+\@ifundefined{mathindent}%
+  {\newdimen\mathindent\mathindent\leftmargini}%
+  {}%
+
+\def\resethooks{%
+  \global\let\SaveRestoreHook\empty
+  \global\let\ColumnHook\empty}
+\newcommand*{\savecolumns}[1][default]%
+  {\g@addto@macro\SaveRestoreHook{\savecolumns[#1]}}
+\newcommand*{\restorecolumns}[1][default]%
+  {\g@addto@macro\SaveRestoreHook{\restorecolumns[#1]}}
+\newcommand*{\aligncolumn}[2]%
+  {\g@addto@macro\ColumnHook{\column{#1}{#2}}}
+
+\resethooks
+
+\newcommand{\onelinecommentchars}{\quad-{}- }
+\newcommand{\commentbeginchars}{\enskip\{-}
+\newcommand{\commentendchars}{-\}\enskip}
+
+\newcommand{\visiblecomments}{%
+  \let\onelinecomment=\onelinecommentchars
+  \let\commentbegin=\commentbeginchars
+  \let\commentend=\commentendchars}
+
+\newcommand{\invisiblecomments}{%
+  \let\onelinecomment=\empty
+  \let\commentbegin=\empty
+  \let\commentend=\empty}
+
+\visiblecomments
+
+\newlength{\blanklineskip}
+\setlength{\blanklineskip}{0.66084ex}
+
+\newcommand{\hsindent}[1]{\quad}% default is fixed indentation
+\let\hspre\empty
+\let\hspost\empty
+\newcommand{\NB}{\textbf{NB}}
+\newcommand{\Todo}[1]{$\langle$\textbf{To do:}~#1$\rangle$}
+
+\EndFmtInput
+\makeatother
+%
+
+%
+%
+%
+%
+%
+% This package provides two environments suitable to take the place
+% of hscode, called "plainhscode" and "arrayhscode". 
+%
+% The plain environment surrounds each code block by vertical space,
+% and it uses \abovedisplayskip and \belowdisplayskip to get spacing
+% similar to formulas. Note that if these dimensions are changed,
+% the spacing around displayed math formulas changes as well.
+% All code is indented using \leftskip.
+%
+% Changed 19.08.2004 to reflect changes in colorcode. Should work with
+% CodeGroup.sty.
+%
+\ReadOnlyOnce{polycode.fmt}%
+\makeatletter
+
+\newcommand{\hsnewpar}[1]%
+  {{\parskip=0pt\parindent=0pt\par\vskip #1\noindent}}
+
+% can be used, for instance, to redefine the code size, by setting the
+% command to \small or something alike
+\newcommand{\hscodestyle}{}
+
+% The command \sethscode can be used to switch the code formatting
+% behaviour by mapping the hscode environment in the subst directive
+% to a new LaTeX environment.
+
+\newcommand{\sethscode}[1]%
+  {\expandafter\let\expandafter\hscode\csname #1\endcsname
+   \expandafter\let\expandafter\endhscode\csname end#1\endcsname}
+
+% "compatibility" mode restores the non-polycode.fmt layout.
+
+\newenvironment{compathscode}%
+  {\par\noindent
+   \advance\leftskip\mathindent
+   \hscodestyle
+   \let\\=\@normalcr
+   \let\hspre\(\let\hspost\)%
+   \pboxed}%
+  {\endpboxed\)%
+   \par\noindent
+   \ignorespacesafterend}
+
+\newcommand{\compaths}{\sethscode{compathscode}}
+
+% "plain" mode is the proposed default.
+% It should now work with \centering.
+% This required some changes. The old version
+% is still available for reference as oldplainhscode.
+
+\newenvironment{plainhscode}%
+  {\hsnewpar\abovedisplayskip
+   \advance\leftskip\mathindent
+   \hscodestyle
+   \let\hspre\(\let\hspost\)%
+   \pboxed}%
+  {\endpboxed%
+   \hsnewpar\belowdisplayskip
+   \ignorespacesafterend}
+
+\newenvironment{oldplainhscode}%
+  {\hsnewpar\abovedisplayskip
+   \advance\leftskip\mathindent
+   \hscodestyle
+   \let\\=\@normalcr
+   \(\pboxed}%
+  {\endpboxed\)%
+   \hsnewpar\belowdisplayskip
+   \ignorespacesafterend}
+
+% Here, we make plainhscode the default environment.
+
+\newcommand{\plainhs}{\sethscode{plainhscode}}
+\newcommand{\oldplainhs}{\sethscode{oldplainhscode}}
+\plainhs
+
+% The arrayhscode is like plain, but makes use of polytable's
+% parray environment which disallows page breaks in code blocks.
+
+\newenvironment{arrayhscode}%
+  {\hsnewpar\abovedisplayskip
+   \advance\leftskip\mathindent
+   \hscodestyle
+   \let\\=\@normalcr
+   \(\parray}%
+  {\endparray\)%
+   \hsnewpar\belowdisplayskip
+   \ignorespacesafterend}
+
+\newcommand{\arrayhs}{\sethscode{arrayhscode}}
+
+% The mathhscode environment also makes use of polytable's parray 
+% environment. It is supposed to be used only inside math mode 
+% (I used it to typeset the type rules in my thesis).
+
+\newenvironment{mathhscode}%
+  {\parray}{\endparray}
+
+\newcommand{\mathhs}{\sethscode{mathhscode}}
+
+% texths is similar to mathhs, but works in text mode.
+
+\newenvironment{texthscode}%
+  {\(\parray}{\endparray\)}
+
+\newcommand{\texths}{\sethscode{texthscode}}
+
+% The framed environment places code in a framed box.
+
+\def\codeframewidth{\arrayrulewidth}
+\RequirePackage{calc}
+
+\newenvironment{framedhscode}%
+  {\parskip=\abovedisplayskip\par\noindent
+   \hscodestyle
+   \arrayrulewidth=\codeframewidth
+   \tabular{@{}|p{\linewidth-2\arraycolsep-2\arrayrulewidth-2pt}|@{}}%
+   \hline\framedhslinecorrect\\{-1.5ex}%
+   \let\endoflinesave=\\
+   \let\\=\@normalcr
+   \(\pboxed}%
+  {\endpboxed\)%
+   \framedhslinecorrect\endoflinesave{.5ex}\hline
+   \endtabular
+   \parskip=\belowdisplayskip\par\noindent
+   \ignorespacesafterend}
+
+\newcommand{\framedhslinecorrect}[2]%
+  {#1[#2]}
+
+\newcommand{\framedhs}{\sethscode{framedhscode}}
+
+% The inlinehscode environment is an experimental environment
+% that can be used to typeset displayed code inline.
+
+\newenvironment{inlinehscode}%
+  {\(\def\column##1##2{}%
+   \let\>\undefined\let\<\undefined\let\\\undefined
+   \newcommand\>[1][]{}\newcommand\<[1][]{}\newcommand\\[1][]{}%
+   \def\fromto##1##2##3{##3}%
+   \def\nextline{}}{\) }%
+
+\newcommand{\inlinehs}{\sethscode{inlinehscode}}
+
+% The joincode environment is a separate environment that
+% can be used to surround and thereby connect multiple code
+% blocks.
+
+\newenvironment{joincode}%
+  {\let\orighscode=\hscode
+   \let\origendhscode=\endhscode
+   \def\endhscode{\def\hscode{\endgroup\def\@currenvir{hscode}\\}\begingroup}
+   %\let\SaveRestoreHook=\empty
+   %\let\ColumnHook=\empty
+   %\let\resethooks=\empty
+   \orighscode\def\hscode{\endgroup\def\@currenvir{hscode}}}%
+  {\origendhscode
+   \global\let\hscode=\orighscode
+   \global\let\endhscode=\origendhscode}%
+
+\makeatother
+\EndFmtInput
+%
+% to handle ∀ a . t without making the dot be composition
+% the `doubleequals' macro is due to Jeremy Gibbons
+\def\doubleequals{\mathrel{\unitlength 0.01em
+  \begin{picture}(78,40)
+    \put(7,34){\line(1,0){25}} \put(45,34){\line(1,0){25}}
+    \put(7,14){\line(1,0){25}} \put(45,14){\line(1,0){25}}
+  \end{picture}}}
+% If you remove the %format == command the lhs2TeX default yields ≡, which can be a problem
+
+\newcommand{\shortequals}{
+  {\unitlength 0.01em
+  \begin{picture}(39,40)
+    \put(7,34){\line(1,0){25}}
+    \put(7,14){\line(1,0){25}}
+  \end{picture}}
+}
+
+\newcommand{\doubledotequals}{\ensuremath{\mathrel{
+  \shortequals . \shortequals}}}
+
+% %format ^ = " "
+
+
+% -*- mode: latex; mode: folding -*-
+
+\usepackage{amsmath}
+\usepackage{listings}
+\usepackage{url}
+
+\lstset{language=Prolog}          % Set your language (you can change
+                                % the language for each code-block
+                                % optionally)
+%style for prolog programs
+\lstdefinestyle{yap}{
+  language=Prolog,
+  basicstyle=\fontsize{8}{9.6}\ttfamily,
+  keywordstyle=\ttfamily,
+  showstringspaces=false,
+  otherkeywords={ <->, (,) },
+}
+\lstnewenvironment{yapcode}
+  {\lstset{style=yap}\lstset{basicstyle=\fontsize{8}{9.6}\ttfamily}}
+  {}
+
+\newcommand{\yap}[1]{\lstinline[style=yap]{#1}}
+
+\newcommand{\todo}[2][?]{\marginpar{\raggedright \tiny TODO: #2}}
+\newcommand{\refSec}[1]{Sec.~\ref{#1}}
+\newcommand{\refSecI}[1]{Section~\ref{#1}}
+\newcommand{\refFig}[1]{Fig.~\ref{#1}}
+\newcommand{\refFigI}[1]{Figure~\ref{#1}}
+\newcommand{\refFigs}[1]{Figs~\ref{#1}}
+\newcommand{\refTab}[1]{Tab.~\ref{#1}}
+\newcommand{\refTabI}[1]{Table~\ref{#1}}
+
+\newcommand{\Yap}[0]{{\sf Yap}}
+\newcommand{\Prolog}[0]{{\sf Prolog}}
+\newcommand{\Haskell}[0]{{\sf Haskell}}
+\newcommand{\QuickCheck}[0]{{\sf QuickCheck}}
+\newcommand{\plqc}[0]{{\sf PrologCheck}}
+
+%% % ----------------------------------------------------
+
+
+%% LNCS stuff
+\newcommand{\keywords}[1]{\par\addvspace\baselineskip
+\noindent\keywordname\enspace\ignorespaces#1}
+
+
+\begin{document}
+%%%%%%%%%%%
+\newcommand{\papertitle}{{PrologCheck} -- property-based testing in {Prolog}}
+
+\mainmatter  % start of an individual contribution
+
+% first the title is needed
+\title{\papertitle}
+
+% a short form should be given in case it is too long for the running head
+%% \titlerunning{Lecture Notes in Computer Science: Authors' Instructions}
+
+\author{
+  Cl\'audio Amaral$^{1,2}$ \and
+  M\'ario Florido$^{1,2}$ \and
+  V\'itor Santos Costa$^{1,3}$
+}
+\authorrunning{Cl\'audio Amaral \and M\'ario Florido \and V\'itor Santos Costa}
+
+% the affiliations are given next; don't give your e-mail address
+% unless you accept that it will be published
+\institute{
+DCC - Faculty of Sciences, University of Porto
+\and LIACC - University of Porto \and CRACS - University of Porto
+\\
+\url{{coa,amf,vsc}@dcc.fc.up.pt}}
+
+
+\maketitle
+\begin{abstract}
+
+
+We present \plqc{}, an automatic tool for property-based
+testing of programs in the logic programming language \Prolog{} with
+randomised test data generation.
+%
+The tool is inspired by the well known \QuickCheck, originally designed
+for the functional programming language \Haskell{}. It includes features
+that deal with specific characteristics of \Prolog{} such as its
+relational nature (as opposed to \Haskell{}) and the absence of a strong
+type discipline.
+
+
+\plqc{} expressiveness stems from describing properties as
+\Prolog{} goals.
+%
+It enables the definition of custom test data generators for
+random testing tailored for the property to be tested.
+%
+Further, it allows the use of a predicate specification language that
+supports types, modes and constraints on the number of successful
+computations.
+%
+We evaluate our tool on a number of  examples and apply
+it successfully to debug a \Prolog{} library for AVL search trees.
+
+\end{abstract}
+
+
+
+% -*- mode: latex; mode: folding -*-
+
+\section{Introduction}
+\label{sec:intro}
+%{{{ introduction text
+
+
+Software testing consists of executing a program on
+a pre-selected set of inputs and inspecting whether the outputs
+respect the expected results.
+%
+Each input tested is called a \emph{test case} and the set of inputs is
+a \emph{test suite}.
+%
+Testing tries to find counter-examples and choosing the test cases to
+this effect is often a difficult task.
+%
+The approach used can be  manual, with the tester designing test cases
+one by one, or it can be automated to some extent, in this case
+resorting to tools for case generation.
+%
+Ideally, the best approach would be automatic testing.
+
+
+
+In a property-based framework test cases are automatically generated and run
+from assertions about logical properties of the program.
+%
+Feedback is given to the user about their evaluation.
+%
+Property-based testing applications include black-box, white-box, unit,
+integration and system
+testing~\cite{Boberg-model-based-testing-erl}~\cite{Claessen-ranking-prog-blackbox,Claessen-find-race-cond-erl}.
+
+
+
+
+Property-based testing naturally fits the logic programming paradigm. 
+%
+Assertions are first order formulas and thus easily encoded as program predicates.
+%
+Therefore, a property based approach to testing
+is intuitive for the
+logic programmer.
+
+
+
+In this paper we introduce \plqc{}\footnote{The \plqc{} tool is available at \url{www.dcc.fc.up.pt/~coa/PrologCheck.html}.},
+a property-based testing framework for \Prolog{}.
+%
+We further discuss two main contributions: a specification language for \Prolog{} predicates
+and a translation procedure into testable properties.
+
+
+
+In most programming languages interfaces to testing frameworks rely
+on boolean functions, such as equality, to determine primitive properties.
+%
+\plqc{} states properties through a domain-specific language that
+naturally supports domain quantification.
+%
+In this language primitive properties are \Prolog{} goals which can be
+composed by \plqc{} property operators. 
+
+
+
+\plqc{} testing consists on repetitively calling the goal for a large number of
+test cases.
+%
+Input to such goals is based on \plqc{} value abstraction,
+quantification over a domain represented by a randomised generator of
+terms.
+%
+We implement randomised test case generation, which frees the user
+from choosing input manually.
+%
+We include a number of predefined generators for relevant sets of
+terms, such as integers, and combinators to help define new
+generators.
+%
+Thus other generation techniques
+\cite{Duregard-2012-feat}~\cite{naylor2007logic}~\cite{runciman2008smallcheck} can be
+implemented  to complement the power of built-in generators.
+
+
+
+We also define a language of testable predicate specifications including
+types, modes and multiplicity, which the tester can use to encode
+interesting properties of the predicate under test.
+%
+By specifying some aspects of a predicate in a proper specification
+language it is possible to generate a \plqc{} property and check it.
+%
+This allows us to  use \plqc{} and its predicate specification to test a
+number of non-trivial programs.
+
+
+%}}} introduction
+
+
+%{{{ paper outline
+The rest of this paper is organised as follows.
+%
+We proceed with the presentation of motivating examples in
+\refSec{sec:motiv-ex}. 
+%
+\refSecI{sec:rel-work} encloses the presentation of related work.
+%
+In \refSec{sec:properties} we introduce property definitions and their
+testing in \plqc{} and in \refSec{sec:generators} we discuss details
+about test case generation.
+%
+\refSecI{sec:pred-spec} describes the predicate specification language
+and how to test the specifications.
+%
+A case study of AVL trees is presented \refSec{sec:case-studies}. 
+%
+We finalise with the conclusions in \refSec{sec:conclusion}
+%}}} outline
+
+
+% -*- mode: latex; mode: folding -*-
+\documentclass[runningheads,a4paper]{../../PaperStyles/llncs}
+
+%% ODER: format ==         = "\mathrel{==}"
+%% ODER: format /=         = "\neq "
+%
+%
+\makeatletter
+\\text{\tt ifundefined\char123{}lhs2tex\char46{}lhs2tex\char46{}sty\char46{}read\char125{}\char37{}~~~\char123{}\char92{}}namedef{lhs2tex.lhs2tex.sty.read}{}%
+   \newcommand\SkipToFmtEnd{}%
+   \newcommand\EndFmtInput{}%
+   \long\def\SkipToFmtEnd#1\EndFmtInput{}%
+  }\SkipToFmtEnd
+
+\newcommand\ReadOnlyOnce[1]{\\text{\tt ifundefined\char123{}\char35{}1\char125{}\char123{}\char92{}}namedef{#1}{}}\SkipToFmtEnd}
+\usepackage{amstext}
+\usepackage{amssymb}
+\usepackage{stmaryrd}
+\DeclareFontFamily{OT1}{cmtex}{}
+\DeclareFontShape{OT1}{cmtex}{m}{n}
+  {<5><6><7><8>cmtex8
+   <9>cmtex9
+   <10><10.95><12><14.4><17.28><20.74><24.88>cmtex10}{}
+\DeclareFontShape{OT1}{cmtex}{m}{it}
+  {<-> ssub * cmtt/m/it}{}
+\newcommand{\texfamily}{\fontfamily{cmtex}\selectfont}
+\DeclareFontShape{OT1}{cmtt}{bx}{n}
+  {<5><6><7><8>cmtt8
+   <9>cmbtt9
+   <10><10.95><12><14.4><17.28><20.74><24.88>cmbtt10}{}
+\DeclareFontShape{OT1}{cmtex}{bx}{n}
+  {<-> ssub * cmtt/bx/n}{}
+\newcommand{\tex}[1]{\text{\texfamily#1}}	% NEU
+
+\newcommand{\Sp}{\hskip.33334em\relax}
+
+
+\newcommand{\Conid}[1]{\mathit{#1}}
+\newcommand{\Varid}[1]{\mathit{#1}}
+\newcommand{\anonymous}{\kern0.06em \vbox{\hrule\\text{\tt width\char46{}5em\char125{}\char125{}~\char92{}newcommand\char123{}\char92{}plus\char125{}\char123{}\char92{}mathbin\char123{}\char43{}\char92{}\char33{}\char92{}\char33{}\char92{}\char33{}\char43{}\char125{}\char125{}~\char92{}newcommand\char123{}\char92{}bind\char125{}\char123{}\char92{}mathbin\char123{}\char62{}\char92{}\char33{}\char92{}\char33{}\char92{}\char33{}\char62{}\char92{}mkern\char45{}6\char46{}7mu\char61{}\char125{}\char125{}~\char92{}newcommand\char123{}\char92{}rbind\char125{}\char123{}\char92{}mathbin\char123{}\char61{}\char92{}mkern\char45{}6\char46{}7mu\char60{}\char92{}\char33{}\char92{}\char33{}\char92{}\char33{}\char60{}\char125{}\char125{}\char37{}~suggested~by~Neil~Mitchell~\char92{}newcommand\char123{}\char92{}sequ\char125{}\char123{}\char92{}mathbin\char123{}\char62{}\char92{}\char33{}\char92{}\char33{}\char92{}\char33{}\char62{}\char125{}\char125{}~\char92{}renewcommand\char123{}\char92{}leq\char125{}\char123{}\char92{}leqslant\char125{}~\char92{}renewcommand\char123{}\char92{}geq\char125{}\char123{}\char92{}geqslant\char125{}~\char92{}usepackage\char123{}polytable\char125{}~~\char37{}mathindent~has~to~be~defined~\char92{}}ifundefined{mathindent}%
+  {\newdimen\mathindent\mathindent\leftmargini}%
+  {}%
+
+\def\resethooks{%
+  \global\let\SaveRestoreHook\empty
+  \global\let\ColumnHook\empty}
+\newcommand*{\savecolumns}[1][default]%
+  {\g\text{\tt addto}macro\SaveRestoreHook{\savecolumns[#1]}}
+\newcommand*{\restorecolumns}[1][default]%
+  {\g\text{\tt addto}macro\SaveRestoreHook{\restorecolumns[#1]}}
+\newcommand*{\aligncolumn}[2]%
+  {\g\text{\tt addto}macro\ColumnHook{\column{#1}{#2}}}
+
+\resethooks
+
+\newcommand{\onelinecommentchars}{\quad-{}- }
+\newcommand{\commentbeginchars}{\enskip\{-}
+\newcommand{\commentendchars}{-\}\enskip}
+
+\newcommand{\visiblecomments}{%
+  \let\onelinecomment=\onelinecommentchars
+  \let\commentbegin=\commentbeginchars
+  \let\commentend=\commentendchars}
+
+\newcommand{\invisiblecomments}{%
+  \let\onelinecomment=\empty
+  \let\commentbegin=\empty
+  \let\commentend=\empty}
+
+\visiblecomments
+
+\newlength{\blanklineskip}
+\setlength{\blanklineskip}{0.66084ex}
+
+\newcommand{\hsindent}[1]{\quad}% default is fixed indentation
+\let\hspre\empty
+\let\hspost\empty
+\newcommand{\NB}{\textbf{NB}}
+\newcommand{\Todo}[1]{$\langle$\textbf{To do:}~#1$\rangle$}
+
+\EndFmtInput
+\makeatother
+%
+
+%
+%
+%
+%
+%
+% This package provides two environments suitable to take the place
+% of hscode, called "plainhscode" and "arrayhscode". 
+%
+% The plain environment surrounds each code block by vertical space,
+% and it uses \abovedisplayskip and \belowdisplayskip to get spacing
+% similar to formulas. Note that if these dimensions are changed,
+% the spacing around displayed math formulas changes as well.
+% All code is indented using \leftskip.
+%
+% Changed 19.08.2004 to reflect changes in colorcode. Should work with
+% CodeGroup.sty.
+%
+\ReadOnlyOnce{polycode.fmt}%
+\makeatletter
+
+\newcommand{\hsnewpar}[1]%
+  {{\parskip=0pt\parindent=0pt\par\vskip #1\noindent}}
+
+% can be used, for instance, to redefine the code size, by setting the
+% command to \small or something alike
+\newcommand{\hscodestyle}{}
+
+% The command \sethscode can be used to switch the code formatting
+% behaviour by mapping the hscode environment in the subst directive
+% to a new LaTeX environment.
+
+\newcommand{\sethscode}[1]%
+  {\expandafter\let\expandafter\hscode\csname #1\endcsname
+   \expandafter\let\expandafter\endhscode\csname end#1\endcsname}
+
+% "compatibility" mode restores the non-polycode.fmt layout.
+
+\newenvironment{compathscode}%
+  {\par\noindent
+   \advance\leftskip\mathindent
+   \hscodestyle
+   \let\\=\\text{\tt normalcr~~~~\char92{}let\char92{}hspre\char92{}\char40{}\char92{}let\char92{}hspost\char92{}\char41{}\char37{}~~~~\char92{}pboxed\char125{}\char37{}~~~\char123{}\char92{}endpboxed\char92{}\char41{}\char37{}~~~~\char92{}par\char92{}noindent~~~~\char92{}ignorespacesafterend\char125{}~~\char92{}newcommand\char123{}\char92{}compaths\char125{}\char123{}\char92{}sethscode\char123{}compathscode\char125{}\char125{}~~\char37{}~\char34{}plain\char34{}~mode~is~the~proposed~default\char46{}~\char37{}~It~should~now~work~with~\char92{}centering\char46{}~\char37{}~This~required~some~changes\char46{}~The~old~version~\char37{}~is~still~available~for~reference~as~oldplainhscode\char46{}~~\char92{}newenvironment\char123{}plainhscode\char125{}\char37{}~~~\char123{}\char92{}hsnewpar\char92{}abovedisplayskip~~~~\char92{}advance\char92{}leftskip\char92{}mathindent~~~~\char92{}hscodestyle~~~~\char92{}let\char92{}hspre\char92{}\char40{}\char92{}let\char92{}hspost\char92{}\char41{}\char37{}~~~~\char92{}pboxed\char125{}\char37{}~~~\char123{}\char92{}endpboxed\char37{}~~~~\char92{}hsnewpar\char92{}belowdisplayskip~~~~\char92{}ignorespacesafterend\char125{}~~\char92{}newenvironment\char123{}oldplainhscode\char125{}\char37{}~~~\char123{}\char92{}hsnewpar\char92{}abovedisplayskip~~~~\char92{}advance\char92{}leftskip\char92{}mathindent~~~~\char92{}hscodestyle~~~~\char92{}let\char92{}\char92{}\char61{}\char92{}}normalcr
+   \(\pboxed}%
+  {\endpboxed\)%
+   \hsnewpar\belowdisplayskip
+   \ignorespacesafterend}
+
+% Here, we make plainhscode the default environment.
+
+\newcommand{\plainhs}{\sethscode{plainhscode}}
+\newcommand{\oldplainhs}{\sethscode{oldplainhscode}}
+\plainhs
+
+% The arrayhscode is like plain, but makes use of polytable's
+% parray environment which disallows page breaks in code blocks.
+
+\newenvironment{arrayhscode}%
+  {\hsnewpar\abovedisplayskip
+   \advance\leftskip\mathindent
+   \hscodestyle
+   \let\\=\\text{\tt normalcr~~~~\char92{}\char40{}\char92{}parray\char125{}\char37{}~~~\char123{}\char92{}endparray\char92{}\char41{}\char37{}~~~~\char92{}hsnewpar\char92{}belowdisplayskip~~~~\char92{}ignorespacesafterend\char125{}~~\char92{}newcommand\char123{}\char92{}arrayhs\char125{}\char123{}\char92{}sethscode\char123{}arrayhscode\char125{}\char125{}~~\char37{}~The~mathhscode~environment~also~makes~use~of~polytable\char39{}s~parray~~\char37{}~environment\char46{}~It~is~supposed~to~be~used~only~inside~math~mode~~\char37{}~\char40{}I~used~it~to~typeset~the~type~rules~in~my~thesis\char41{}\char46{}~~\char92{}newenvironment\char123{}mathhscode\char125{}\char37{}~~~\char123{}\char92{}parray\char125{}\char123{}\char92{}endparray\char125{}~~\char92{}newcommand\char123{}\char92{}mathhs\char125{}\char123{}\char92{}sethscode\char123{}mathhscode\char125{}\char125{}~~\char37{}~texths~is~similar~to~mathhs\char44{}~but~works~in~text~mode\char46{}~~\char92{}newenvironment\char123{}texthscode\char125{}\char37{}~~~\char123{}\char92{}\char40{}\char92{}parray\char125{}\char123{}\char92{}endparray\char92{}\char41{}\char125{}~~\char92{}newcommand\char123{}\char92{}texths\char125{}\char123{}\char92{}sethscode\char123{}texthscode\char125{}\char125{}~~\char37{}~The~framed~environment~places~code~in~a~framed~box\char46{}~~\char92{}def\char92{}codeframewidth\char123{}\char92{}arrayrulewidth\char125{}~\char92{}RequirePackage\char123{}calc\char125{}~~\char92{}newenvironment\char123{}framedhscode\char125{}\char37{}~~~\char123{}\char92{}parskip\char61{}\char92{}abovedisplayskip\char92{}par\char92{}noindent~~~~\char92{}hscodestyle~~~~\char92{}arrayrulewidth\char61{}\char92{}codeframewidth~~~~\char92{}tabular\char123{}}{}\ensuremath{\Varid{p}\;\{\mskip1.5mu \lambda \Varid{linewidth}\mathbin{-}\mathrm{2}\lambda \Varid{arraycolsep}\mathbin{-}\mathrm{2}\lambda \Varid{arrayrulewidth}\mathbin{-}\mathrm{2}\;\Varid{pt}\mskip1.5mu\}}\text{\tt \char123{}\char125{}\char125{}\char37{}~~~~\char92{}hline\char92{}framedhslinecorrect\char92{}\char92{}\char123{}\char45{}1\char46{}5ex\char125{}\char37{}~~~~\char92{}let\char92{}endoflinesave\char61{}\char92{}\char92{}~~~~\char92{}let\char92{}\char92{}\char61{}\char92{}}normalcr
+   \(\pboxed}%
+  {\endpboxed\)%
+   \framedhslinecorrect\endoflinesave{.5ex}\hline
+   \endtabular
+   \parskip=\belowdisplayskip\par\noindent
+   \ignorespacesafterend}
+
+\newcommand{\framedhslinecorrect}[2]%
+  {#1[#2]}
+
+\newcommand{\framedhs}{\sethscode{framedhscode}}
+
+% The inlinehscode environment is an experimental environment
+% that can be used to typeset displayed code inline.
+
+\newenvironment{inlinehscode}%
+  {\(\def\column##1##2{}%
+   \let\>\undefined\let\<\undefined\let\\\undefined
+   \newcommand\>[1][]{}\newcommand\<[1][]{}\newcommand\\[1][]{}%
+   \def\fromto##1##2##3{##3}%
+   \def\nextline{}}{\) }%
+
+\newcommand{\inlinehs}{\sethscode{inlinehscode}}
+
+% The joincode environment is a separate environment that
+% can be used to surround and thereby connect multiple code
+% blocks.
+
+\newenvironment{joincode}%
+  {\let\orighscode=\hscode
+   \let\origendhscode=\endhscode
+   \def\endhscode{\def\hscode{\endgroup\def\\text{\tt currenvir\char123{}hscode\char125{}\char92{}\char92{}\char125{}\char92{}begingroup\char125{}~~~~\char37{}\char92{}let\char92{}SaveRestoreHook\char61{}\char92{}empty~~~~\char37{}\char92{}let\char92{}ColumnHook\char61{}\char92{}empty~~~~\char37{}\char92{}let\char92{}resethooks\char61{}\char92{}empty~~~~\char92{}orighscode\char92{}def\char92{}hscode\char123{}\char92{}endgroup\char92{}def\char92{}}currenvir{hscode}}}%
+  {\origendhscode
+   \global\let\hscode=\orighscode
+   \global\let\endhscode=\origendhscode}%
+
+\makeatother
+\EndFmtInput
+%
+% to handle ∀ a . t without making the dot be composition
+% the `doubleequals' macro is due to Jeremy Gibbons
+\def\doubleequals{\mathrel{\unitlength 0.01em
+  \begin{picture}(78,40)
+    \put(7,34){\line(1,0){25}} \put(45,34){\line(1,0){25}}
+    \put(7,14){\line(1,0){25}} \put(45,14){\line(1,0){25}}
+  \end{picture}}}
+% If you remove the %format == command the lhs2TeX default yields ≡, which can be a problem
+
+\newcommand{\shortequals}{
+  {\unitlength 0.01em
+  \begin{picture}(39,40)
+    \put(7,34){\line(1,0){25}}
+    \put(7,14){\line(1,0){25}}
+  \end{picture}}
+}
+
+\newcommand{\doubledotequals}{\ensuremath{\mathrel{
+  \shortequals . \shortequals}}}
+
+% %format ^ = " "
+
+
+% -*- mode: latex; mode: folding -*-
+
+\usepackage{amsmath}
+\usepackage{listings}
+\usepackage{url}
+
+\lstset{language=Prolog}          % Set your language (you can change
+                                % the language for each code-block
+                                % optionally)
+%style for prolog programs
+\lstdefinestyle{yap}{
+  language=Prolog,
+  basicstyle=\fontsize{8}{9.6}\ttfamily,
+  keywordstyle=\ttfamily,
+  showstringspaces=false,
+  otherkeywords={ <->, (,) },
+}
+\lstnewenvironment{yapcode}
+  {\lstset{style=yap}\lstset{basicstyle=\fontsize{8}{9.6}\ttfamily}}
+  {}
+
+\newcommand{\yap}[1]{\lstinline[style=yap]{#1}}
+
+\newcommand{\todo}[2][?]{\marginpar{\raggedright \tiny TODO: #2}}
+\newcommand{\refSec}[1]{Sec.~\ref{#1}}
+\newcommand{\refSecI}[1]{Section~\ref{#1}}
+\newcommand{\refFig}[1]{Fig.~\ref{#1}}
+\newcommand{\refFigI}[1]{Figure~\ref{#1}}
+\newcommand{\refFigs}[1]{Figs~\ref{#1}}
+\newcommand{\refTab}[1]{Tab.~\ref{#1}}
+\newcommand{\refTabI}[1]{Table~\ref{#1}}
+
+\newcommand{\Yap}[0]{{\sf Yap}}
+\newcommand{\Prolog}[0]{{\sf Prolog}}
+\newcommand{\Haskell}[0]{{\sf Haskell}}
+\newcommand{\QuickCheck}[0]{{\sf QuickCheck}}
+\newcommand{\plqc}[0]{{\sf PrologCheck}}
+
+%% % ----------------------------------------------------
+
+
+%% LNCS stuff
+\newcommand{\keywords}[1]{\par\addvspace\baselineskip
+\noindent\keywordname\enspace\ignorespaces#1}
+
+
+\begin{document}
+%%%%%%%%%%%
+\newcommand{\papertitle}{{PrologCheck} -- property-based testing in {Prolog}}
+
+\mainmatter  % start of an individual contribution
+
+% first the title is needed
+\title{\papertitle}
+
+% a short form should be given in case it is too long for the running head
+%% \titlerunning{Lecture Notes in Computer Science: Authors' Instructions}
+
+\author{
+  Cl\'audio Amaral$^{1,2}$ \and
+  M\'ario Florido$^{1,2}$ \and
+  V\'itor Santos Costa$^{1,3}$
+}
+\authorrunning{Cl\'audio Amaral \and M\'ario Florido \and V\'itor Santos Costa}
+
+% the affiliations are given next; don't give your e-mail address
+% unless you accept that it will be published
+\institute{
+DCC - Faculty of Sciences, University of Porto
+\and LIACC - University of Porto \and CRACS - University of Porto
+\\
+\url{{coa,amf,vsc}

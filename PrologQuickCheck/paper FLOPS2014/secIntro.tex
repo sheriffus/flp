@@ -1,0 +1,121 @@
+% -*- mode: latex; mode: folding -*-
+
+\section{Introduction}
+\label{sec:intro}
+%{{{ introduction text
+
+
+Software testing consists of executing a program on
+a pre-selected set of inputs and inspecting whether the outputs
+respect the expected results.
+%
+Each input tested is called a \emph{test case} and the set of inputs is
+a \emph{test suite}.
+%
+Testing tries to find counter-examples and choosing the test cases to
+this effect is often a difficult task.
+%
+The approach used can be  manual, with the tester designing test cases
+one by one, or it can be automated to some extent, in this case
+resorting to tools for case generation.
+%
+Ideally, the best approach would be automatic testing.
+
+
+
+In a property-based framework test cases are automatically generated and run
+from assertions about logical properties of the program.
+%
+Feedback is given to the user about their evaluation.
+%
+Property-based testing applications include black-box, white-box, unit,
+integration and system
+testing~\cite{Boberg-model-based-testing-erl}~\cite{Claessen-ranking-prog-blackbox,Claessen-find-race-cond-erl}.
+
+
+
+
+Property-based testing naturally fits the logic programming paradigm. 
+%
+Assertions are first order formulas and thus easily encoded as program predicates.
+%
+Therefore, a property based approach to testing
+is intuitive for the
+logic programmer.
+
+
+
+In this paper we introduce \plqc{}\footnote{The \plqc{} tool is available at \url{www.dcc.fc.up.pt/~coa/PrologCheck.html}.},
+a property-based testing framework for \Prolog{}.
+%
+We further discuss two main contributions: a specification language for \Prolog{} predicates
+and a translation procedure into testable properties.
+
+
+
+In most programming languages interfaces to testing frameworks rely
+on boolean functions, such as equality, to determine primitive properties.
+%
+\plqc{} states properties through a domain-specific language that
+naturally supports domain quantification.
+%
+In this language primitive properties are \Prolog{} goals which can be
+composed by \plqc{} property operators. 
+
+
+
+\plqc{} testing consists on repetitively calling the goal for a large number of
+test cases.
+%
+Input to such goals is based on \plqc{} value abstraction,
+quantification over a domain represented by a randomised generator of
+terms.
+%
+We implement randomised test case generation, which frees the user
+from choosing input manually.
+%
+We include a number of predefined generators for relevant sets of
+terms, such as integers, and combinators to help define new
+generators.
+%
+Thus other generation techniques
+\cite{Duregard-2012-feat}~\cite{naylor2007logic}~\cite{runciman2008smallcheck} can be
+implemented  to complement the power of built-in generators.
+
+
+
+We also define a language of testable predicate specifications including
+types, modes and multiplicity, which the tester can use to encode
+interesting properties of the predicate under test.
+%
+By specifying some aspects of a predicate in a proper specification
+language it is possible to generate a \plqc{} property and check it.
+%
+This allows us to  use \plqc{} and its predicate specification to test a
+number of non-trivial programs.
+
+
+%}}} introduction
+
+
+%{{{ paper outline
+The rest of this paper is organised as follows.
+%
+We proceed with the presentation of motivating examples in
+\refSec{sec:motiv-ex}. 
+%
+\refSecI{sec:rel-work} encloses the presentation of related work.
+%
+In \refSec{sec:properties} we introduce property definitions and their
+testing in \plqc{} and in \refSec{sec:generators} we discuss details
+about test case generation.
+%
+\refSecI{sec:pred-spec} describes the predicate specification language
+and how to test the specifications.
+%
+A case study of AVL trees is presented \refSec{sec:case-studies}. 
+%
+We finalise with the conclusions in \refSec{sec:conclusion}
+%}}} outline
+
+

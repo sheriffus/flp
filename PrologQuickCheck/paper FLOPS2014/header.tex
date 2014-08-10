@@ -1,0 +1,44 @@
+% -*- mode: latex; mode: folding -*-
+
+\usepackage{amsmath}
+\usepackage{listings}
+\usepackage{url}
+
+\lstset{language=Prolog}          % Set your language (you can change
+                                % the language for each code-block
+                                % optionally)
+%style for prolog programs
+\lstdefinestyle{yap}{
+  language=Prolog,
+  basicstyle=\fontsize{8}{9.6}\ttfamily,
+  keywordstyle=\ttfamily,
+  showstringspaces=false,
+  otherkeywords={ <->, (,) },
+}
+\lstnewenvironment{yapcode}
+  {\lstset{style=yap}\lstset{basicstyle=\fontsize{8}{9.6}\ttfamily}}
+  {}
+
+\newcommand{\yap}[1]{\lstinline[style=yap]{#1}}
+
+\newcommand{\todo}[2][?]{\marginpar{\raggedright \tiny TODO: #2}}
+\newcommand{\refSec}[1]{Sec.~\ref{#1}}
+\newcommand{\refSecI}[1]{Section~\ref{#1}}
+\newcommand{\refFig}[1]{Fig.~\ref{#1}}
+\newcommand{\refFigI}[1]{Figure~\ref{#1}}
+\newcommand{\refFigs}[1]{Figs~\ref{#1}}
+\newcommand{\refTab}[1]{Tab.~\ref{#1}}
+\newcommand{\refTabI}[1]{Table~\ref{#1}}
+
+\newcommand{\Yap}[0]{{\sf Yap}}
+\newcommand{\Prolog}[0]{{\sf Prolog}}
+\newcommand{\Haskell}[0]{{\sf Haskell}}
+\newcommand{\QuickCheck}[0]{{\sf QuickCheck}}
+\newcommand{\plqc}[0]{{\sf PrologCheck}}
+
+%% % ----------------------------------------------------
+
+
+%% LNCS stuff
+\newcommand{\keywords}[1]{\par\addvspace\baselineskip
+\noindent\keywordname\enspace\ignorespaces#1}

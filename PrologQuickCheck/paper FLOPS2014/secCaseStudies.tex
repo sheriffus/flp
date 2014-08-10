@@ -1,0 +1,176 @@
+% -*- mode: latex; mode: folding -*-
+
+\section{AVL Trees Case Study}
+\label{sec:case-studies}
+
+
+%{{{ avl
+
+%% \subsection{AVL Trees}
+
+We have described AVL properties and performed black-box testing of an
+implementation of AVL trees in a \Yap{}~\cite{yap} module, \yap{avl.yap}, with
+\plqc{}\footnote{All the details can be found in the tool's website.}.
+%%
+Due to space restrictions we only present a general description of the
+process and its results. 
+
+
+The module interface is small, with predicates to create an empty
+tree, insert an element and look up an element, respectively
+\yap{avl_new/1}, \yap{avl_insert/4} and \yap{avl_lookup/3}.
+%
+When performing this kind of test one does not simply test individual
+predicates but rather usages of the module.
+%
+To do this we must be able to create sequences of interface
+calls and inspect intermediate results for compliance with AVL
+invariants.
+%
+Knowledge about the shape of input/output terms can be gathered manually
+if it is not previously known.
+
+
+\paragraph{\bf Generator}
+
+Creating a valid sequence of interface calls is not difficult, but
+requires attention to detail.
+%
+First, we only want to generate valid sequences to save effort of
+checking validity and not suffer from sparse valid values.
+%
+Using the \yap{avl} module implies the existence of two sets of important
+terms: key terms, and value terms, which we represent as generators.
+%
+In order to test the correct failure of wrong look-ups, a set of values
+for failed look-ups disjoint from the regular values is implemented.
+
+
+The generator starts by creating the tree, independently of the
+size parameter, using \yap{avl_new/1}.
+%
+This implies that when size is 0 an empty AVL-tree is still created.
+%
+Thus, we always append the tree creation to a sequence of calls to
+insert and look-up values.
+%
+Each element of the sequence is obtained by randomly choosing between
+insert and look-ups.
+
+
+When an insert command is added to the sequence, the value to be
+inserted is kept so that it can be used in later look-ups.
+%
+Look-ups are divided between valid look-up and invalid look-up.
+%
+Valid look-ups are only generated after the corresponding insert and
+invalid look-ups are based in a set of values that is never inserted.
+%
+Valid look-ups can be further distinguished between looking up a
+key-value pair and looking up a key and retrieving its value.
+%
+These elements are  branded by a command identifier to recognise their
+correct behaviour during testing.
+%
+The relative probabilities are such that we get a big variety of commands within
+relatively small sequences.
+
+
+
+%}}}
+
+\paragraph{\bf Property}
+
+%{{{ generic property
+
+The definition of the AVL property depends on several factors.
+%
+It is necessary to have operations to extract information from trees,
+such as current node's key, key comparison, left and
+right sub-trees and empty tree test.
+
+
+A tree may be empty, in which case it is an AVL tree of height 0.
+%
+In the case of a non-empty tree we retrieve its key and sub-trees.
+%
+They are used in recursive checks of the property.
+%
+The recursive calls accumulate lists of keys that should be greater and
+less then the keys in the sub-trees.
+%
+If the sub-trees are individually compliant with the property, we
+proceed with the last check, comparing the returned heights for
+balance and computing the current tree height.
+%
+This is how the property is outlined in \plqc{}:
+
+
+\begin{yapcode}
+prop({avl, T, Gs, Ls, H}) :- if (not isNil(T)) then
+ ((getKey(T, K), left(T, L),  right(T, R),
+      ((forall(member(X, Ls), cmpKeys(X, K, gt))) -> error1),
+      ((forall(member(X, Gs), cmpKeys(X, K, lte))) -> error2))
+   and prop({avl, L, [Key||Gt], Lt, Hl})
+   and prop({avl, R, Gt, [Key||Lt], Hr})
+   and (( abs(Hl-Hr)>1 -> error3), H is 1+max(Hl,Hr)))
+ else (H = 0).
+\end{yapcode}
+%
+We complete the property by inserting it into a loop that consumes the
+operations in the quantified module uses.
+
+
+
+\refTabI{tab:avl-tests} summarises some relevant results of our tool
+applied to the AVL library.
+%
+Each line corresponds to a different module version: line 1 to the
+original version; line 2 to a bug in the re-balancing strategy inserted
+by the tester; line 3 to a different bug in the re-balancing
+strategy inserted by someone that was not involved with the tests.
+%
+The column \emph{Tests} is the number of tests needed to achieve a
+particular counter-example.
+%
+For the purpose of readability we will represent only the key and value
+input parameters of the AVL operations.
+%
+Thus consider \yap{i(N,V)} as insert an
+element with key \yap{N} and value  \yap{V}, and \yap{l(N,V)} as look up
+the pair \yap{(N,V)} in the tree.
+
+
+Note that the counter-example found in the original version corresponds
+to an unspecified behaviour in the case of two insertions with the same key.
+%
+After several runs of the tool (10 for the first bug and 20 for the
+second) we managed to find a pattern on the counter-examples which led
+to the identification of the pathological behaviour caused by the bugs.
+
+
+\begin{table}
+  \centering
+  \begin{tabular}{||c||c||l||}
+    \hline
+    Version    &  Tests   &  Counter-example
+    \\ \hline
+    Original   &  732     &  \yap{i(1,a), i(1,b), l(1,b)}
+    \\ \hline
+    Error 1    &  51      &  \yap{i(3,a), i(1,b), i(2,c)}
+    \\ \hline
+    Error 2    &  213     &  \yap{i(5,a), i(2,b), i(3,c), i(4,d), i(1,e)}
+    \\ \hline
+  \end{tabular}
+  \caption{{\tt avl} testing summary.}
+  \label{tab:avl-tests}
+\end{table}
+
+
+
+%}}}
+
+
+
+%% \subsection{red-black Trees}
+

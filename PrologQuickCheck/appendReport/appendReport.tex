@@ -1,0 +1,168 @@
+% -*- mode: latex; mode: folding -*-
+\documentclass[11pt,twoside]{article}
+
+\usepackage{techReps}
+\usepackage{epsfig}
+
+
+\makeatletter
+\def\cleardoublepage{\clearpage\if@twoside \ifodd\c@page\else%
+\hbox{}%
+\thispagestyle{empty}
+\newpage%
+\if@twocolumn\hbox{}\newpage\fi\fi\fi}
+\makeatother
+
+\begin{document}
+
+\trtitle{Title}
+\trauthor{author 1 \hspace{1cm} author 2 \hspace{1cm} etc}
+
+\trnumber{ToDo\\Version $1.0$ September 2013}
+%% \trnumber{DCC-2006-07\\Version $1.1$ September 2013}
+
+\mkcoverpage
+
+\title{Title2}
+\author{author\thanks{author is funded by FCT grant
+SFRH/BD/XXXXX/20XX.}\hspace{0.5cm} author 2 \hspace{0.5cm}
+etc\\ {\tt \{xxx,xxx,xxx\}@dcc.fc.up.pt}}
+
+\date{}
+\cleardoublepage
+
+\maketitle
+
+
+%{{{ append
+%% The %% \Prolog{}
+%% implementation of the list concatenation predicate recurs on the first list
+%% and the appended list parameters, leaving the second list uninspected.
+%% %
+Here we describe some properties of  \yap{append/3}:
+%
+%% \todo{no texto fica melhor   \yap{append/3} ou 'append' em texto normal?}
+\begin{yapcode}
+ append([], YS, YS).
+ append([X||XS], YS, [X||AS]) :- append(XS, YS, AS).
+\end{yapcode}
+%% %
+%% We check the behaviour of the \yap{append/3} predicate
+%% through its specification with the predicate specification language.
+%% %% presented in \refSec{sec:pred-spec}.
+%% %
+
+
+%% The most obvious way to use \yap{append/3} is by giving it two lists and expect
+%% the resulting appended list.
+%% %
+%% So the type of such a specification clause is
+%% (\yap{listOf(int),listOf(int),variable}).
+%% %
+%% We can assert that, in this \plqc{} type, parameters input modes are
+%% (\yap{ground, ground, var}) and the output modes (\yap{ground, ground,
+%%   ground}).
+%% %
+%% It should also be the case that this use of the predicate behaves as a
+%% function, expecting exactly one answer.
+%% %
+\yap{append(A,B,C)} is used in a functional way in many programs,
+i.e. by giving it two lists as input and getting their concatenation as
+output.
+%
+This behaviour is specified in \plqc{} as:
+ %% (plqc:listOf(int), plqc:listOf(int), plqc:variable)
+\begin{yapcode}
+ append of_type (A-(listOf(int)), B-(listOf(int)), C-(variable))
+   where (i(g, g, v), o(g, g, g))  has_range {1,1}.
+\end{yapcode}
+%
+Prologchecking this specification clause bears no surprises.
+%
+\begin{yapcode}
+   ?- prologcheck(m:pcprop(spec_append)).
+ OK: Passed 100 test(s).
+\end{yapcode}
+
+
+%% Although
+\yap{append/3} %% has an intended usage, it
+may be %% successfully
+also
+used in other situations.
+%
+For example, one can use it to create an open list, by %% giving a variable
+%% in place of the second list, which remains uninspected.
+calling it with a variable in the second argument.
+%
+The result is a list with the ground elements of the first list and the
+second list variable as the tail, therefor it is neither ground nor
+variable.
+%% %
+%% This usage also behaves as a function, since the potentially mutating
+%% part of the input is not a target of pattern matches.
+%
+\begin{yapcode}
+ {append, 1} of_type (A-(listOf(int)), B-(variable), C-(variable))
+   where (i(g, v, v), o(g, v, ngv))  has_range {1,1}.
+\end{yapcode}
+%
+Testing this specification clause reveals that the \emph{out} part of
+the directionality is not satisfied.
+%   ?- plqc:prologcheck(m:pcprop(spec_append_1)).
+\begin{yapcode}
+  ?- prologcheck(m:pcprop(spec_append_1), [noshrink]).
+ {failed_out_modes,[[o,g,v,ngv]], [[],_10258,_10258]}
+ Failed: After 3 test(s).
+ Counterexample found: [[[],_10258,_10260]] 
+\end{yapcode}
+%
+The counterexample shows that when the first argument is the empty
+list, %% and the other two variables,
+the output modes do not respect %% comply with
+the specification %% .
+%% % when L1 is [], LApp is L2, i.e. var
+%% %
+%% Upon closer inspection it is noted that
+because
+the base case of the recursion
+%% on the first argument simply
+unifies the second and third parameters.
+%% when it matches an empty list.
+%
+%% There are two %% simple
+%% ways of solving this problem.
+%% %
+%% One is to split the specification clause between input types that only
+%% have empty lists or non-empty lists separately.
+%% %
+%% The other
+One way to solve it 
+is to add the missing directionality \yap{(i(g, v, v), o(g, v, ngv)), o(g,v,v)}.
+%
+%% The correct choice in general is to split the input types, since this is
+%% a matter between disjoint sets of terms.
+%% %
+%% Multiple output directionalities are mainly intended for multiple modes
+%% %% of the parameters
+%% of multiple answers.
+%% %
+%% Given the simplicity of the example we decided to add a directionality.
+%% %
+%% \begin{yapcode}
+%%    where (i(g, v, v), o(g, v, ngv)), o(g,v,v)
+%% \end{yapcode}
+
+
+%% \begin{yapcode}
+%%  {m:append, 2}
+%%    of_type (A-(plqc:variable),
+%%      B-(plqc:listOf(int)), C-(plqc:variable))
+%%    where (i(v, g, v), o(g, g, g), o(ngv, g, g))
+%%    has_range {1,1}.
+%% \end{yapcode}
+%%  % default 1-inf
+
+%}}}
+
+\end{document}

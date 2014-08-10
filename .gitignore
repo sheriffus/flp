@@ -55,5 +55,9 @@ mpxerr.tex
 .dialyzer_plt
 erl_crash.dump
 
+*.tar
+*.tar.gz
 
 * (copy)*
+
+backup*

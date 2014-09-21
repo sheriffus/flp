@@ -1,0 +1,60 @@
+% -*- mode: latex; mode: folding -*-
+
+\documentclass[11pt,twoside]{article}
+
+\usepackage{techReps}
+\usepackage{epsfig}
+
+
+\makeatletter
+\def\cleardoublepage{\clearpage\if@twoside \ifodd\c@page\else%
+\hbox{}%
+\thispagestyle{empty}
+\newpage%
+\if@twocolumn\hbox{}\newpage\fi\fi\fi}
+\makeatother
+
+\begin{document}
+
+\trtitle{Title}
+\trauthor{author 1 \hspace{1cm} author 2 \hspace{1cm} etc}
+
+\trnumber{ToDo\\Version $1.0$ September 2013}
+%% \trnumber{DCC-2006-07\\Version $1.1$ September 2013}
+
+\mkcoverpage
+
+\title{Title2}
+\author{author\thanks{author is funded by FCT grant
+SFRH/BD/XXXXX/20XX.}\hspace{0.5cm} author 2 \hspace{0.5cm}
+etc\\ {\tt \{xxx,xxx,xxx\}@dcc.fc.up.pt}}
+
+\date{}
+\cleardoublepage
+
+\maketitle
+
+\abstract
+
+Axiomatic semantics represent an important role in the verification of
+programming languages.
+%
+They enable the derivation of properties of programs statically and are
+a first step into automated verification of programs.
+
+
+In this paper we present an axiomatic semantic system for \Prolog.
+%
+We provide a soundness proof of the rules w.r.t. a previously defined
+operational semantics~\cite{PlOpSem}.
+
+
+
+
+\section{Introduction}
+
+\bibliographystyle{abbrv}
+\bibliography{plas}
+
+
+\end{document}

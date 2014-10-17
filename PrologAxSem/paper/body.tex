@@ -1,0 +1,265 @@
+
+
+
+
+\section{Introduction}
+\label{sec:intro}
+
+\subsection{what}
+
+Axiomatic Semantics is a method to proving the correctness of
+programs.
+%
+The approach works by expressing the semantics of a programming language
+through a formal logic system coupled to the language in which program
+properties can be proven.
+
+
+\subsection{why}
+
+Although the use of Axiomatic Semantics is widespread, they do not cover
+all programming paradigms evenly.
+
+
+
+
+\subsection{how}
+
+We do stuff
+
+
+\section{Related Work}
+\label{sec:rel-work}
+
+\section{Semantics of Assertions}
+\label{sec:sem-ass}
+
+\subsection{The Assertion Language}
+
+\paragraph{\Cond\ Language}
+\setlength{\grammarparsep}{20pt plus 1pt minus 1pt} % increase separation between rules
+\setlength{\grammarindent}{5em} % increase separation between LHS/RHS 
+\begin{grammar}
+<\Cond> ::= `true'\ \ |\ \ `false'
+\ |\ \  <term> `=' <term> 
+\alt  <term> `<=' <term>
+\ \ |\ \  $\neg$ <\Cond>
+\alt <\Cond> $\wedge$ <\Cond>
+\ \ |\ \  <\Cond> $\vee$ <\Cond>
+\alt  $\forall$ <var>`.' <\Cond>
+\ \ |\ \  $\exists$ <var>`.' <\Cond>
+
+<term> ::= \dots
+
+<ground term> ::= \dots
+
+<var> ::= \dots
+\end{grammar}
+
+It is important to note that terms in \Cond{} are implicitly interpreted
+from to program to the logic language.
+%
+Integers in \Cond{} are a subset of terms where the interpretation is
+the representation of a number.
+
+
+\Cond{} is extended with logical predicates on terms, which include modes
+and types, which can be viewed as meta-predicates of the program.
+
+\begin{grammar}
+<\Cond> ::= ...
+\alt  <pred> `(' <term> `,' ... `,' <term>`)'
+\end{grammar}
+
+Without loss of generality we assume \Cond{} has integer arithmetic and
+terms can be integers
+
+\begin{grammar}
+<i> ::= <num>
+\ \ |\ \ <var>
+\ \ |\ \ <const>
+\ \ |\ \ <i> <op> <i>
+
+<num> ::= \dots
+<const> ::= \dots
+
+<op> ::= `+'
+\ \ |\ \ `-'
+\ \ |\ \ `*'
+\end{grammar}
+
+Constants may be defined in the interpretation used.
+
+
+\subsection{Semantics of terms and atoms}
+
+\begin{eqnarray*}
+\semTerm{f(t_1,...,t_n)}{I}{\sigma}& =& 
+I(f)(\semTerm{t_1}{I}{\sigma}, \ldots, \semTerm{t_n}{I}{\sigma})
+\\
+\semTerm{x}{I}{\sigma}& =& \sigma(x)
+\\
+\semTerm{P(t_1,...,t_n)}{I}{\sigma}& =& 
+I(P)(\semTerm{t_1}{I}{\sigma}, \ldots, \semTerm{t_n}{I}{\sigma})
+\end{eqnarray*}
+
+
+\subsection{Semantics of assertions}
+
+\begin{align*}
+\semAss{\sigma}{I}{&true} \\
+\semAss{\sigma}{I}{&P(t_1,...,t_n)}
+ && \text{if } \semTerm{P(t_1,...,t_n)}{I}{\sigma}\\
+\semAss{\sigma}{I}{&A \wedge B}
+ &&\text{if } \semAss{\sigma}{I}{A} \text{ and } \semAss{\sigma}{I}{B}\\
+\semAss{\sigma}{I}{&A \vee B}
+ &&\text{if } \semAss{\sigma}{I}{A} \text{ or } \semAss{\sigma}{I}{B}\\
+\semAss{\sigma}{I}{&\not A }
+ &&\text{if } \text{not } \semAss{\sigma}{I}{B}\\
+\semAss{\sigma}{I}{&A \vee B}
+ &&\text{if } \semAss{\sigma}{I}{A} \text{ or } \semAss{\sigma}{I}{B}\\
+\semAss{\sigma}{I}{&A \vee B}
+ &&\text{if } \semAss{\sigma}{I}{A} \text{ or } \semAss{\sigma}{I}{B}\\
+\end{align*}
+
+\subsection{}
+
+
+\section{Axiomatic Semantics}
+\label{sec:ax-sem}
+The Axiomatic Semantics presented in this paper is a formal system for
+proving properties of logic programs.
+%
+The system is based on proof rules defined for each programming
+construct.
+%
+The proof rules are inspired by Hoare rules~\cite{} for imperative
+languages, which evolved from Floyd's work~\cite{}.
+\subsection{Proof Rules}
+\subsection{Examples}
+\subsection{Soundness}
+
+\section{Axiomatic Semantics without Cons}
+\label{sec:ax-sem-wo-cons}
+\subsection{Proof Rules}
+\subsection{Equivalence}
+
+\section{Verification Conditions}
+\label{sec:ver-cond}
+\subsection{Weakest Precondition}
+\subsection{VCGen}
+
+\section{Logic Programming Verification Arquitecture}
+\label{sec:ver-arch}
+Small description of the whole verification process, from source to
+proof.
+
+\Prolog\ $+$ Assertions
+ $\Rightarrow$ Axiomatic Semantics VCGen
+ $\Rightarrow$ Proof Obligations
+ $\Rightarrow$ Why3
+ $\Rightarrow$ Provers
+
+
+
+\section{Package Usage Examples}
+
+I use an ad-hoc collection of tools for typesetting:
+\begin{itemize}
+\item
+For representing object language syntax, I define macros in
+the style shown above, extending the set as necessary to cover
+new language features. This is tedious, but it helps me keep
+things well-formed.
+\item 
+For stating inference rules, I use the {\tt bcprules} package.
+\item
+For showing derivations, I use the {\tt proof} package.
+\end{itemize}
+
+
+For example, here are the inference rules in Figures 8-1 and 8-2 on p.93:
+
+\infax[T-True]{\hast{\ct}{\cB}}
+
+\infax[T-False]{\hast{\cf}{\cB}}
+
+\infrule[T-If]
+  {\hast{\vt_1}{\cB} \andalso \hast{\vt_2}{\vT} \andalso \hast{\vt_3}{\vT}}
+  {\hast{\ite{\vt_1}{\vt_2}{\vt_3}}{\vT}}
+
+\infax[T-Zero]
+  {\hast{\cz}{\cN}}
+
+\infrule[T-Succ]
+  {\hast{\vt_1}{\cN}}
+  {\hast{\suc{\vt_1}}{\cN}}
+
+\infrule[T-Pred]
+  {\hast{\vt_1}{\cN}}
+  {\hast{\pred{\vt_1}}{\cN}}
+
+\infrule[T-IsZero]
+  {\hast{\vt_1}{\cN}}
+  {\hast{\iszero{\vt_1}}{\cB}}
+
+\eject
+Here is the text of Lemma 8.2.2 on p. 94:
+
+\begin{enumerate}
+\item
+If $\hast{\ct}{\vR}$, then $\vR = \cB$.
+\item
+If $\hast{\cf}{\vR}$, then $\vR = \cB$.
+\item
+If $\hast{\ite{\vt_1}{\vt_2}{\vt_3}}{\vR}$, then 
+$\hast{\vt_1}{\cB}$,$\hast{\vt_2}{\vR}$, and $\hast{\vt_3}{\vR}$.
+\item
+If $\hast{\cz}{\vR}$, then $\vR = \cN$.
+\item
+If $\hast{\suc{\vt_1}}{\vR}$, then $\vR = \cN$ and $\hast{\vt_1}{\cN}$.
+\item
+If $\hast{\pred{\vt_1}}{\vR}$, then $\vR = \cN$ and $\hast{\vt_1}{\cN}$.
+\item
+If $\hast{\iszero{\vt_1}}{\vR}$, then $\vR = \cB$ and $\hast{\vt_1}{\cN}$.
+\end{enumerate}
+
+
+Finally, here is the derivation near the bottom of p. 94:
+
+\vspace*{0.5in}
+
+\infer[\mbox{\sc T-If}]
+{\hast{\ite{\iszero{\cz}}{\cz}{\pred{\cz}}}{\cN}}
+{
+ \infer[\mbox{\sc T-IsZero}]
+ {\hast{\iszero{\cz}}{\cB}}
+ {\infer[\mbox{\sc T-Zero}]
+   {\hast{\cz}{\cN}} 
+   {}}
+ &
+ \infer[\mbox{\sc T-Zero}]
+  {\hast{\cz}{\cN}}
+  {}
+ &
+ \infer[\mbox{\sc T-Pred}]
+ {\hast{\pred{\cz}}{\cN}}
+ {\infer[\mbox{\sc T-Zero}]
+   {\hast{\cz}{\cN}}
+   {}}
+}
+
+\vspace*{0.5in}
+
+I'm sure there are better ways of doing some or all of these things;
+contributions and suggestions are welcome!
+
+
+\section*{Acknowledgment}
+\label{sec:ack}
+
+
+The authors would like to thank...
+
+\section*{Conclusion}
+\label{sec:conc}

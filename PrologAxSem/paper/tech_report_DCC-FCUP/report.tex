@@ -1,0 +1,68 @@
+% -*- mode: latex; mode: folding -*-
+
+
+\documentclass[11pt,twoside]{article}
+
+\usepackage{techReps}
+\usepackage{epsfig}
+
+\input{../preamble}
+
+\makeatletter
+\def\cleardoublepage{\clearpage\if@twoside \ifodd\c@page\else%
+\hbox{}%
+\thispagestyle{empty}
+\newpage%
+\if@twocolumn\hbox{}\newpage\fi\fi\fi}
+\makeatother
+
+\begin{document}
+
+\trtitle{\PaperTitle}
+\trauthor{Cl\'audio Amaral \hspace{1cm} M\'ario Florido
+  \hspace{1cm} V\'itor Santos Costa}
+
+\trnumber{DCC-2014-XX\\Version $1.0$ September 2014}
+%% \trnumber{DCC-2006-07\\Version $1.1$ September 2013}
+
+\mkcoverpage
+
+\title{Axiomatic Semantics for \Prolog}
+\author{Cl\'audio Amaral\authorScholarship \hspace{0.5cm}
+ M\'ario Florido \hspace{0.5cm}
+V\'itor Santos Costa
+\\ {\tt \{coa,amf,vsc\}@dcc.fc.up.pt}}
+
+\date{}
+\cleardoublepage
+
+\maketitle
+
+\abstract
+
+Axiomatic semantics represent an important role in the verification and
+certification of high quality software.
+%
+They enable the derivation of properties of programs statically and are
+a first step into automated verification of programs.
+
+
+Since their introduction, axiomatic semantic systems have been designed
+for many programming languages, most of which imperative languages.
+
+
+In this paper we present an axiomatic semantic system for \Prolog.
+%
+We provide a soundness proof of the rules w.r.t. a previously defined
+operational semantics~\cite{PlOpSem}.
+
+\input{../body}
+
+
+\bibliographystyle{abbrv}
+\bibliography{../plas}
+
+
+\end{document}
+
+

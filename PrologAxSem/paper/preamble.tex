@@ -1,0 +1,62 @@
+\usepackage{syntax}
+\usepackage{bcprules,proof}
+
+\parindent=0pt
+
+
+% variables
+\newcommand{\vf} {\mbox{\tt f}}
+\newcommand{\vg} {\mbox{\tt g}}
+\newcommand{\vs} {\mbox{\tt s}}
+\newcommand{\vt} {\mbox{\tt t}}
+\newcommand{\vtp} {\mbox{\tt t}^{\prime}}
+\newcommand{\vtpp} {\mbox{\tt t}^{\prime\prime}}
+\newcommand{\vu} {\mbox{\tt u}}
+\newcommand{\vup} {\mbox{\tt u}^{\prime}}
+\newcommand{\vv} {\mbox{\tt v}}
+\newcommand{\vx} {\mbox{\tt x}}
+\newcommand{\vy} {\mbox{\tt y}}
+\newcommand{\vz} {\mbox{\tt z}}
+% type variables
+\newcommand{\vR} {\mbox{\tt R}}
+\newcommand{\vS} {\mbox{\tt S}}
+\newcommand{\vT} {\mbox{\tt T}}
+\newcommand{\vTp} {\mbox{\tt T}^{\prime}}
+\newcommand{\vV} {\mbox{\tt V}}
+\newcommand{\vW} {\mbox{\tt W}}
+% boolean constants
+\newcommand{\ct} {\mbox{\tt true}}
+\newcommand{\cf} {\mbox{\tt false}}
+\newcommand{\cB} {\mbox{\tt Bool}}
+% nat constants
+\newcommand{\cz} {\mbox{\tt 0}}
+\newcommand{\cN} {\mbox{\tt Nat}}
+% term forms
+\newcommand{\ite}[3] {\mbox{\tt if ${#1}$ then ${#2}$ else ${#3}$}}
+\newcommand{\suc}[1] {\mbox{\tt succ ${#1}$}}  % succ is already defined in latex
+\newcommand{\pred}[1] {\mbox{\tt pred ${#1}$}}
+\newcommand{\iszero}[1] {\mbox{\tt iszero ${#1}$}}
+\newcommand{\labs}[3] {\mbox{\tt $\lambda{#1}$:${#2}$.${#3}$}}
+% judgments
+\newcommand{\hast}[2] {{#1}:{#2}}
+\newcommand{\tr}[3] {{#1}\vdash{#2}:{#3}}
+
+% Prolog
+\newcommand{\Prolog} {{\sf Logic Programming}}
+% Cond Language
+\newcommand{\Cond} {{\sf\small Cond}}
+
+\newcommand{\PaperTitle} {
+  \Prolog\ Axiomatic Semantics for Goals and Programs
+}
+\newcommand{\authorScholarship} {
+  \thanks{author is funded by FCT grant SFRH/BD/XXXXX/20XX.}
+}
+\newcommand{\semTerm}[3] {
+  \ensuremath{ \mathcal{T} [ #1 ] #2 #3}
+}
+\newcommand{\semAss}[3] {
+  \ensuremath{ #1 \models^{#2} #3}
+}
+
+

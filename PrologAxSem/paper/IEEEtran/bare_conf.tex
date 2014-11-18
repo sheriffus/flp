@@ -180,6 +180,7 @@
 % version and documentation can be obtained at:
 % http://www.ctan.org/tex-archive/macros/latex/required/amslatex/math/
 
+\usepackage{mathrsfs}
 
 
 
@@ -389,21 +390,27 @@
 % in the abstract
 \begin{abstract}
 
-Axiomatic semantics represent an important role in the verification and
+Axiomatic semantics have an important role in the verification and
 certification of high quality software.
 %
-They enable the derivation of properties of programs statically and are
-a first step into automated verification of programs.
+They enable the derivation, statically, of properties of programs such
+as the ordination of a result or an equation amongst input and output
+parameters and therefore
+are a first step into automated verification of programs.
 
 
 Since their introduction, axiomatic semantic systems have been designed
 for many programming languages, most of which imperative languages.
+%
+% radix = mathematical basis
+It is the radix for the development of automatic verification tools
+based on weakest pre-condition calculi.
 
 
-In this paper we present an axiomatic semantic system for \Prolog.
+In this paper we present an axiomatic semantic system for Logic Programs.
 %
 We provide a soundness proof of the rules w.r.t. a previously defined
-operational semantics~\cite{PlOpSem}.
+operational semantics. % ~\cite{PlOpSem}.
 \end{abstract}
 
 % no keywords

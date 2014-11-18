@@ -1,5 +1,8 @@
+\usepackage{amssymb}
 \usepackage{syntax}
 \usepackage{bcprules,proof}
+
+\usepackage{rotating}
 
 \parindent=0pt
 
@@ -41,13 +44,39 @@
 \newcommand{\hast}[2] {{#1}:{#2}}
 \newcommand{\tr}[3] {{#1}\vdash{#2}:{#3}}
 
-% Prolog
-\newcommand{\Prolog} {{\sf Logic Programming}}
+% logic programming
+\newcommand{\Goal}[1] {\mbox{$\leftarrow$ \tt #1}}
+\newcommand{\Clause}[2] {\mbox{\tt #1 $\leftarrow$ #2}}
+% logic operations
+\newcommand{\LgAnd}[2] {\mbox{\tt #1 $\wedge$ #2}}
+\newcommand{\LgOr}[2] {\mbox{\tt #1 $\vee$ #2}}
+% streams
+\newcommand{\spec}[1] {\mbox{\tt #1}}
+\newcommand{\ssNRakPz}  {\mbox{\tt \Pair{\LgAnd{N=0}{N=n}}{R=n!}}}
+\newcommand{\ssNRbkPz}  {\mbox{\tt \Pair{\LgAnd{N>0}{N=n}}{R=n!}}}
+\newcommand{\ssXFakPz}  {\mbox{\tt \Pair{\LgAnd{X=0}{X=n}}{F=n!}}}
+\newcommand{\ssXFakaPz} {\mbox{\tt \Pair{\LgAnd{\LgAnd{X=0}{X=n}}{X=0}}{F=n!}}}
+\newcommand{\ssXFbkPz}  {\mbox{\tt \Pair{\LgAnd{X>0}{X=n}}{F=n!}}}
+\newcommand{\ssXFakPaka}{\mbox{\tt \Pair{\LgAnd{X=0}{X=n}}
+                                      {\LgAnd{\LgAnd{X=0}{X=n}}{X=0}}}}
+\newcommand{\Xn} {\mbox{\tt X=n}}
+\newcommand{\FnFact} {\mbox{\tt F=n!}}
+% stream operations
+\newcommand{\Concat}[2] {\mbox{\tt #1 $\diamond$ #2}}
+
+\newcommand{\PCA}[3]  {#1 \mid\hspace{-2.32pt}\vartriangleright \Pair{#2}{#3}}
+\newcommand{\PCAe}[2] {\PCA{}{#1}{#2}}
+\newcommand{\PCAAx}[3]{\PCA{\mathcal{A}, #1}{#1}{#2}}
+\newcommand{\PCAA}[2] {\PCA{\mathcal{A}}{#1}{#2}}
+
+
+%% % Prolog
+%% \newcommand{\Prolog} {{\sf Logic Programming}}
 % Cond Language
 \newcommand{\Cond} {{\sf\small Cond}}
 
 \newcommand{\PaperTitle} {
-  \Prolog\ Axiomatic Semantics for Goals and Programs
+  Axiomatic Semantics for Goals and Programs
 }
 \newcommand{\authorScholarship} {
   \thanks{author is funded by FCT grant SFRH/BD/XXXXX/20XX.}
@@ -58,5 +87,15 @@
 \newcommand{\semAss}[3] {
   \ensuremath{ #1 \models^{#2} #3}
 }
+\newcommand{\semLogProg}[3] {
+  \ensuremath{ \mathcal{PL} [ #1 ] #2 #3}
+}
+\newcommand{\Terms} {
+  \ensuremath{ \mathscr{T} }
+}
+\newcommand{\Pair}[2] {\ensuremath{\langle $#1$, $#2$ \rangle}}
 
 
+\makeatletter
+\newcommand*{\textoverline}[1]{$\overline{\hbox{#1}}\m@th$}
+\makeatother

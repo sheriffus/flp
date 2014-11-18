@@ -1,0 +1,62 @@
+\begin{figure}[H]
+  \centering
+  \begin{small}
+    \begin{mathpar}
+      Code \qquad  spec\\
+      \\
+      spec :: [ (Cond, Cond)]\\
+
+      $an ordered collection of pairs where the first element is a
+      pre-condition and the second element is a corresponding post-conditions$
+      \linebreak
+      \hookleftarrow  $-- notation for retrieving each element of an
+      ordered collection$
+      \linebreak
+      \Diamond\  $-- notation for the concatenation of
+      ordered collections$
+      \linebreak
+      f\|\ cs $-- notation for the application of a function
+      ordered collections$
+      \linebreak
+      f\bigcirc\ cs $-- notation for the application of a function
+      returning an ordered collection to an
+      ordered collections (concatenation of all partial results)$
+      \linebreak
+      id $-- the identity collection, compatible with all specific
+      element orderings$
+      \linebreak
+      \sigma \models^I Cond  $-- state/substitution$\ \sigma\ $satisfies
+      Cond in interpretation I, or equivalently, that Cond is true at
+      state/subst$\ \sigma$, in interpretation I$
+      \linebreak
+      \perp \models Cond\ $-- for any Cond (needed when
+      $\mathcal{S}_{op}[|code|]\sigma\ $is undefined)$
+      \linebreak
+      Cond ::= true | false | t_1 = t_2 | C \wedge C | C \vee C | \neg c |
+      C \Rightarrow C | \forall t. C | \exists t. C | Pred(t)
+      \linebreak
+      Pred(t)\ $-- describes computable properties os a predicate, such
+      as types and modes$
+      \linebreak
+      \forall t. type(t) \Rightarrow C \equiv \forall t \in type. C
+      \linebreak
+      \mathcal{S}_{op}[|goal|]\sigma :=
+      interp(\langle \langle goal^f,  \rangle::nil, \sigma, nil \rangle
+      :: nil, \mathcal{Prog})
+      \linebreak
+       (g_1 \wedge g_2)^f ::= g_1^f \Diamond g_2^f
+      \linebreak
+       (atom(V_1,\ldots,V_n))^f ::= [ \langle atom(V_1,\ldots,V_n),
+        [V_1,\ldots,V_n] \rangle ]
+      \linebreak
+      \sigma \models Cond[t/x] \equiv \sigma[t\sigma/x] \models Cond
+    \end{mathpar}
+  \end{small}
+  \caption{Axiomatic semantic of a program.}
+  \label{fig:rule-shape}
+\end{figure}
+
+
+
+
+

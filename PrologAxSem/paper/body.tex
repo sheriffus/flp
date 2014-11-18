@@ -5,6 +5,8 @@
 \section{Introduction}
 \label{sec:intro}
 
+%{{{ what
+
 \subsection{what}
 
 Axiomatic Semantics is a method to proving the correctness of
@@ -15,21 +17,37 @@ through a formal logic system coupled to the language in which program
 properties can be proven.
 
 
+%}}}
+
+%{{{ why
 \subsection{why}
 
 Although the use of Axiomatic Semantics is widespread, they do not cover
 all programming paradigms evenly.
 
 
+%}}}
 
-
+%{{{ how
 \subsection{how}
 
 We do stuff
 
+%}}}
+
+%{{{ outline
+\subsection{Paper outline}
+This paper is organised as follows
+%}}}
+
 
 \section{Related Work}
 \label{sec:rel-work}
+%{{{
+
+Java, C, Winskel book, Prolog Axiomatic Semantics from the 90s.
+
+%}}}
 
 \section{Semantics of Assertions}
 \label{sec:sem-ass}
@@ -37,8 +55,11 @@ We do stuff
 \subsection{The Assertion Language}
 
 \paragraph{\Cond\ Language}
+%{{{
+
 \setlength{\grammarparsep}{20pt plus 1pt minus 1pt} % increase separation between rules
 \setlength{\grammarindent}{5em} % increase separation between LHS/RHS 
+
 \begin{grammar}
 <\Cond> ::= `true'\ \ |\ \ `false'
 \ |\ \  <term> `=' <term> 
@@ -49,12 +70,14 @@ We do stuff
 \alt  $\forall$ <var>`.' <\Cond>
 \ \ |\ \  $\exists$ <var>`.' <\Cond>
 
-<term> ::= \dots
+<term> ::= <var> \ \ |\ \ <symbol> (`('<terms>`)')?
 
-<ground term> ::= \dots
+<terms> ::= <term> \ \ |\ \ <term> `,' <terms>
 
-<var> ::= \dots
+
+<var> ::= [A-Z][a-zA-Z]*
 \end{grammar}
+
 
 It is important to note that terms in \Cond{} are implicitly interpreted
 from to program to the logic language.
@@ -81,6 +104,7 @@ terms can be integers
 \ \ |\ \ <i> <op> <i>
 
 <num> ::= \dots
+<var> ::= \dots
 <const> ::= \dots
 
 <op> ::= `+'
@@ -91,7 +115,15 @@ terms can be integers
 Constants may be defined in the interpretation used.
 
 
+$FV(t)$ -- free variables of $t$
+
+$t \sigma$ -- the result of applying the substitution $\sigma$ to term $t$
+
+%}}}
+
 \subsection{Semantics of terms and atoms}
+
+%{{{
 
 \begin{eqnarray*}
 \semTerm{f(t_1,...,t_n)}{I}{\sigma}& =& 
@@ -103,27 +135,92 @@ I(f)(\semTerm{t_1}{I}{\sigma}, \ldots, \semTerm{t_n}{I}{\sigma})
 I(P)(\semTerm{t_1}{I}{\sigma}, \ldots, \semTerm{t_n}{I}{\sigma})
 \end{eqnarray*}
 
+%}}}
+
 
 \subsection{Semantics of assertions}
 
+%{{{
+
 \begin{align*}
-\semAss{\sigma}{I}{&true} \\
+\semAss{\sigma}{I}{&true}
+ \\
 \semAss{\sigma}{I}{&P(t_1,...,t_n)}
- && \text{if } \semTerm{P(t_1,...,t_n)}{I}{\sigma}\\
+ && \text{iff } \semTerm{P(t_1,...,t_n)}{I}{\sigma}
+\\
 \semAss{\sigma}{I}{&A \wedge B}
- &&\text{if } \semAss{\sigma}{I}{A} \text{ and } \semAss{\sigma}{I}{B}\\
+ &&\text{iff } \semAss{\sigma}{I}{A} \text{ and } \semAss{\sigma}{I}{B}
+\\
 \semAss{\sigma}{I}{&A \vee B}
- &&\text{if } \semAss{\sigma}{I}{A} \text{ or } \semAss{\sigma}{I}{B}\\
-\semAss{\sigma}{I}{&\not A }
- &&\text{if } \text{not } \semAss{\sigma}{I}{B}\\
-\semAss{\sigma}{I}{&A \vee B}
- &&\text{if } \semAss{\sigma}{I}{A} \text{ or } \semAss{\sigma}{I}{B}\\
-\semAss{\sigma}{I}{&A \vee B}
- &&\text{if } \semAss{\sigma}{I}{A} \text{ or } \semAss{\sigma}{I}{B}\\
+ &&\text{iff } \semAss{\sigma}{I}{A} \text{ or } \semAss{\sigma}{I}{B}
+\\
+\semAss{\sigma}{I}{&\neg A }
+ &&\text{iff } \text{not } \semAss{\sigma}{I}{B}
+\\
+\semAss{\sigma}{I}{&A \Rightarrow B}
+ &&\text{iff not }( \semAss{\sigma}{I}{A} )\text{ or } \semAss{\sigma}{I}{B}
+\\
+\semAss{\sigma}{I}{&\forall x. A}
+ &&\text{iff } \semAss{\sigma[t/x]}{I}{A} \text{ for all } t \in \Terms
+\\
+\semAss{\sigma}{I}{&\exists x. A}
+ &&\text{iff } \semAss{\sigma[t/x]}{I}{A} \text{ for some } t \in \Terms
+\\
+\semAss{\bot}{I}{&A}
+ &&
 \end{align*}
 
-\subsection{}
+The semantics of a predicate when not defined in $I$ is its operational
+semantics.
 
+%}}}
+
+\subsection{Extension of an assertion}
+
+Extension of $A$, an assertion, w.r.t. an interpretation $I$
+
+$$ A^{I} = \{ \sigma \in \text{Subst}_{\bot}\ |\ \semAss{\sigma}{I}{A} \} $$
+
+\subsection{Partial correctness assertions}
+
+$$ \langle \text{code}, [\langle A_{1}, B_{1} \rangle,\ldots, \langle
+  A_{n}, B_{n} \rangle] \rangle $$
+
+satisfaction relation between stated and partial correctness assertions,
+w.r.t. $I$
+
+\begin{align*}
+&\semAss{\sigma}{I}{\langle \text{code}, [\langle A_{1}, B_{1}
+      \rangle,\ldots, \langle A_{n}, B_{n} \rangle] \rangle}
+\\iff&\\
+&\semAss{\sigma}{I}{A_{i}} \Rightarrow
+ \semAss{\semLogProg{\text{code}}{\sigma}{I}_{i}}{I}{B_{i}}
+\end{align*}
+913 309 015
+\subsection{Validity}
+$$\forall \sigma \in \text{Subst}_{\bot}. \semAss{\sigma}{I}{\langle \text{code}, [\langle A_{1}, B_{1}
+      \rangle,\ldots, \langle A_{n}, B_{n} \rangle] \rangle}$$
+
+we can write as 
+
+$$ \semAss{}{I}{\langle \text{code}, [\langle A_{1}, B_{1}
+      \rangle,\ldots, \langle A_{n}, B_{n} \rangle] \rangle}$$
+
+expressing the partial correctness assertion is valid
+w.r.t. interpretation $I$
+
+We are interested in whether or not it is true for all stated and all
+interpretations that encompass $I_{mathcal{PL}}$ ($\forall
+I. I_{\mathcal{PL}} \sqsubseteq I$).
+%
+This motivates the notion of \underline{validity}
+
+$$ \semAss{}{}{\langle \text{code}, [\langle A_{1}, B_{1}
+      \rangle,\ldots, \langle A_{n}, B_{n} \rangle] \rangle}$$
+
+$$ \equiv \forall I _{I_{\mathcal{PL}} \sqsubseteq I}. \forall \sigma.
+\semAss{\sigma}{I}{\langle \text{code}, [\langle A_{1}, B_{1}
+      \rangle,\ldots, \langle A_{n}, B_{n} \rangle] \rangle}$$
 
 \section{Axiomatic Semantics}
 \label{sec:ax-sem}
@@ -135,13 +232,213 @@ construct.
 %
 The proof rules are inspired by Hoare rules~\cite{} for imperative
 languages, which evolved from Floyd's work~\cite{}.
+
+
+%{{{ notation
+
+$$      Code \qquad  spec\\
+      \\
+      spec :: [ (Cond, Cond)]\\
+      $$an ordered collection of pairs where the first element is a
+      pre-condition and the second element is a corresponding post-conditions$$
+      \linebreak
+      \hookleftarrow  $$-- notation for retrieving each element of an
+      ordered collection$$
+      \linebreak
+      \diamond\  $$-- notation for the concatenation of
+      ordered collections$$
+      \linebreak
+      f\|\ cs $$-- notation for the application of a function
+      ordered collections$$
+      \linebreak
+      f\bigcirc\ cs $$-- notation for the application of a function
+      returning an ordered collection to an
+      ordered collections (concatenation of all partial results)$$
+      \linebreak
+      id $$-- the identity collection, compatible with all specific
+      element orderings$$
+      \linebreak
+      \sigma \models^I Cond  $$-- state/substitution$$\ \sigma\ $$satisfies
+      Cond in interpretation I, or equivalently, that Cond is true at
+      state/subst$$\ \sigma$$, in interpretation I$$
+      \linebreak
+      \perp \models Cond\ $$-- for any Cond (needed when
+      $$\mathcal{S}_{op}[|code|]\sigma\ $$is undefined)$$
+      \linebreak
+      Cond ::= true | false | t_1 = t_2 | C \wedge C | C \vee C | \neg c |
+      C \Rightarrow C | \forall t. C | \exists t. C | Pred(t)
+      \linebreak
+      Pred(t)\ $$-- describes computable properties os a predicate, such
+      as types and modes$$
+      \linebreak
+      \forall t. type(t) \Rightarrow C \equiv \forall t \in type. C
+      \linebreak
+      \mathcal{S}_{op}[|goal|]\sigma :=
+      interp(\langle \langle goal^f,  \rangle::nil, \sigma, nil \rangle
+      :: nil, \mathcal{Prog})
+      \linebreak
+       (g_1 \wedge g_2)^f ::= g_1^f \diamond g_2^f
+      \linebreak
+       (atom(V_1,\ldots,V_n))^f ::= [ \langle atom(V_1,\ldots,V_n),
+        [V_1,\ldots,V_n] \rangle ]
+      \linebreak
+      \sigma \models Cond[t/x] \equiv \sigma[t\sigma/x] \models Cond
+$$
+
+%}}}
+
 \subsection{Proof Rules}
+
+%{{{ proof rules
+
+\infrule[Pred]
+        {\PCAAx{\Pair{\Clause{h}{b}}{\spec{s}}}
+          {\Goal{b}}{\spec{s}}}
+        {\PCAA{\Clause{h}{b}}{\spec{s}}}
+
+\infrule[Disj]
+      {\PCAA{\Goal{g$_1$}}{\spec{s$_1$}} \andalso
+        \PCAA{\Goal{g$_2$}}{\spec{s$_2$}}}
+      {\PCAA{\Goal{\LgOr{g$_1$}{g$_2$}}}{\Concat{s$_1$}{s$_2$}}}
+      
+\infrule[Conj]
+      {\PCAA{\Goal{g$_1$}}{\spec{s$_1$}} \andalso
+        \PCAA{\Goal{g$_2$}}{\spec{s$_2$}}}
+      {\PCAA{\Goal{\LgAnd{g$_1$}{g$_2$}}}{\spec{s$_{3}$}}}
+\vspace{-18pt}
+\infax{
+ {\mbox{\tt s$_{3} =$
+$[$\Pair{c$_{1A}$}{c$_{2B}$}$|$\Pair{c$_{1A}$}{c$_{1B}$}$\hookleftarrow$s$_1$,
+ }}}
+\vspace{-20pt}
+\infax{
+ {\mbox{\tt
+\Pair{c$_{2A}$}{c$_{2B}$}$\hookleftarrow$s$_2$, c$_{1A} = $c$_{1B} ]$
+ }}}
+
+
+\infrule[Call]
+  {\PCAA{\Clause{h(\textoverline{X})}{b}}{\spec{s}}}
+  {\PCAA{\Goal{h(\textoverline{Y})}}
+    {\spec{s[Y$_{1}$/X$_{1}$, $\ldots$, Y$_{n}$/X$_{n}$]}}}
+
+
+\infrule[Cons]
+      {\Pair{\Goal{g}}{\spec{s}}}
+      {\Pair{\Goal{g}}{\spec{s$_{1}$}}}
+\vspace{-18pt}
+\infax{
+ {\mbox{\tt s$_{1} =$
+$[$\Pair{c$_{A}'$}{c$_{B}'$}$|$\Pair{c$_{A}$}{c$_{B}$}$\hookleftarrow$s,
+ }}}
+\vspace{-20pt}
+\infax{ 
+ {\mbox{\tt
+$\exists $c$_{A}'$. c$_{A}$ $\Rightarrow$ c$_{A}'$,
+$\exists $c$_{B}'$. c$_{B}'$ $\Rightarrow$ c$_{B} ]$
+ }}}
+
+\infax[UVar]
+  {\PCAA{\Goal{$x=t$}}{\spec{[\Pair{C$_{A}$[t/x]}{\LgAnd{C$_{A}$}{$x=t$}}]}}}
+
+\infax[URefl]
+  {\PCAA{\Goal{$t=t$}}{\spec{[\Pair{C$_{A}$}{C$_{A}$}]}}}
+
+\infrule[URefl]
+  {\PCAA{\Goal{$x=t$}}{\spec{s}}}
+  {\PCAA{\Goal{$t=x$}}{\spec{s}}}
+
+\infrule[UFun]
+  {\PCAA{\Goal{$t_{11}=t_{21} \wedge \ldots \wedge t_{1n}=t_{2n}$}}{\spec{s}}}
+  {\PCAA{\Goal{$f(t_{11} \wedge \ldots \wedge t_{1n})=f(t_{21} \wedge \ldots \wedge t_{2n})$}}{\spec{s}}}
+
+
+\eject
+
+%}}}
+
+some text
+
 \subsection{Examples}
+Here is the derivation of a property of a recursive  implementation of factorial.
+
+\begin{sidewaysfigure}
+%\begin{figure*}
+\mbox{\tt
+f(X,F) $\leftarrow$ body(f(X,F))
+}
+where\ \ 
+\mbox{\tt
+body(X,F) ::= $\leftarrow$ (X==0 $\wedge$ F is 1)
+     $\vee$  (X>0 $\wedge$ X1 is X-1 $\wedge$ f(X1,F1) $\wedge$ F is F1*X).
+}
+
+\caption{Recursive factorial logic implementation.}
+\end{sidewaysfigure}
+%\end{figure*}
+
+\begin{sidewaysfigure}
+%% \begin{figure*}
+%\vspace*{0.5in}
+
+
+\infer[\mbox{\sc Call}]
+ { \PCAe{\Goal{f(N,R)}}{\spec{[\ssNRakPz, \ssNRbkPz]}} }
+ { \infer[\mbox{\sc Pred}]
+  { \PCAe{\Clause{f(X,F)}{ body(f(X,F)) }} {\spec{[\ssXFakPz, \ssXFakPz]}} }
+  { \infer[\mbox{\sc Disj}]
+    { \PCA
+      { \Pair{\Clause{f(X,F)}{ body(f(X,F)) }}{\spec{[\ssXFakPz, \ssXFbkPz]}}}
+      { \Goal{body(f(X,F))}} {\spec{[\ssXFakPz, \ssXFbkPz]}}  }
+    { \infer[\mbox{\sc Conj}]
+      { \Pair{\Goal{\LgAnd{X==0}{F is 1}}}{\spec{[\ssXFakaPz]}} }
+      { \infer[\mbox{\sc Cons}]
+        { \Pair{\Goal{X==0}} {\spec{[\ssXFakPaka]} }}
+        { \Pair{\Goal{X==0}} {\spec{[\ssXFakaPaka]} }
+&
+          \infer[\mbox{\sc Conj}]
+            { a }
+            { aa }
+        }
+&
+    \infer[\mbox{\sc rule}]
+    { \PCA{...}
+            { \Pair{\Goal{F is 1}} {\spec{[\ssXFakaPz]} } }
+            {b} }
+    { \PCA{...}{a}{b} }
+}}}}
+
+\vspace*{0.5in}
+where
+\mbox{$mathcal{A} = $ }
+\caption{Property derivation for a recursive factorial.}
+\end{sidewaysfigure}
+%% \end{figure*}
+
 \subsection{Soundness}
+
+``Every rule should preserve validity, in the sense that if the
+assumptions in the rule's premise are valid then so is its conclusion.''
+``When this holds of a rule it is called {\it sound}.''
+``When every rule of a proof system is sound, the proof system itself is
+said to be {\it sound}.''
+``It follows then by rule-induction that every theorem obtained from the
+proof system [of Hoare rules] is a valid partial correctness
+assertion.''
+
+
+
+
+If we can show each rule is sound, (preserves validity in the sense that
+if its premises consists of valid assertions and partial correctness
+assertions then so its conclusion).
 
 \section{Axiomatic Semantics without Cons}
 \label{sec:ax-sem-wo-cons}
 \subsection{Proof Rules}
+
+
+
 \subsection{Equivalence}
 
 \section{Verification Conditions}
@@ -154,7 +451,7 @@ languages, which evolved from Floyd's work~\cite{}.
 Small description of the whole verification process, from source to
 proof.
 
-\Prolog\ $+$ Assertions
+Logic Program\ $+$ Assertions
  $\Rightarrow$ Axiomatic Semantics VCGen
  $\Rightarrow$ Proof Obligations
  $\Rightarrow$ Why3
